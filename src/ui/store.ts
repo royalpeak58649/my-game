@@ -3,7 +3,7 @@ import type { GameState } from '../sim/types';
 export type MapMode = 'political' | 'population' | 'states';
 
 /** Which view the side panel shows. */
-export type PanelView = 'auto' | 'market' | 'construction';
+export type PanelView = 'auto' | 'market' | 'construction' | 'politics' | 'laws' | 'technology';
 
 /** Speed 0 = paused, 1..5 = weekly tick speeds. */
 export type Speed = 0 | 1 | 2 | 3 | 4 | 5;

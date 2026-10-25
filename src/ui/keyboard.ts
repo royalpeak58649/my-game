@@ -1,4 +1,4 @@
-import type { Speed, Store } from './store';
+import type { PanelView, Speed, Store } from './store';
 
 export interface KeyboardOptions {
   onClosePanel: () => void;
@@ -10,10 +10,19 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
-/** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M cycles map mode. */
+/** Opens a politics view for the player's country (no-op for observers). */
+function openPlayerView(store: Store, view: PanelView): void {
+  const tag = store.get().player;
+  if (!tag) return;
+  store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: view });
+}
+
+/** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M cycles map mode,
+ *  P politics, L laws, T technology. */
 export function installKeyboard(store: Store, options: KeyboardOptions): () => void {
   const handler = (event: KeyboardEvent): void => {
     if (isTypingTarget(event.target)) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
 
     if (event.code === 'Space') {
       event.preventDefault();
@@ -37,6 +46,20 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
       const mode = store.getUi().mapMode;
       const next = mode === 'political' ? 'population' : mode === 'population' ? 'states' : 'political';
       store.setUi({ mapMode: next });
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (key === 'p') {
+      openPlayerView(store, 'politics');
+      return;
+    }
+    if (key === 'l') {
+      openPlayerView(store, 'laws');
+      return;
+    }
+    if (key === 't') {
+      openPlayerView(store, 'technology');
     }
   };
 

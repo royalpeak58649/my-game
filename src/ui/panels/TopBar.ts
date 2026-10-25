@@ -1,7 +1,9 @@
 import { formatDate } from '../../sim/date';
 import { countryEconomy } from '../../sim/economy/queries';
+import { politicsOf } from '../../sim/politics/queries';
+import { TECHS } from '../../data/politics/techs';
 import { formatDelta, formatMoney } from '../format';
-import type { Speed, Store } from '../store';
+import type { PanelView, Speed, Store } from '../store';
 
 const SPEEDS: Exclude<Speed, 0>[] = [1, 2, 3, 4, 5];
 
@@ -28,6 +30,8 @@ export class TopBar {
   private readonly netValue: HTMLElement;
   private readonly marketButton: HTMLButtonElement;
   private readonly constructionButton: HTMLButtonElement;
+  private readonly legitimacyButton: HTMLButtonElement;
+  private readonly researchButton: HTMLButtonElement;
   private readonly pauseButton: HTMLButtonElement;
   private readonly pips: HTMLButtonElement[] = [];
   private readonly unsubscribers: (() => void)[] = [];
@@ -68,7 +72,23 @@ export class TopBar {
     this.constructionButton.title = 'Open the construction panel';
     this.constructionButton.addEventListener('click', () => this.openView('construction'));
 
-    stats.append(this.treasurySlot, this.marketButton, this.constructionButton);
+    this.legitimacyButton = el('button', 'stat-slot stat-button stat-legitimacy', 'Legitimacy —');
+    this.legitimacyButton.type = 'button';
+    this.legitimacyButton.title = 'Open the politics panel (P)';
+    this.legitimacyButton.addEventListener('click', () => this.openView('politics'));
+
+    this.researchButton = el('button', 'stat-slot stat-button stat-research', 'Research: none');
+    this.researchButton.type = 'button';
+    this.researchButton.title = 'Open the technology panel (T)';
+    this.researchButton.addEventListener('click', () => this.openView('technology'));
+
+    stats.append(
+      this.treasurySlot,
+      this.marketButton,
+      this.constructionButton,
+      this.legitimacyButton,
+      this.researchButton,
+    );
 
     const controls = el('div', 'speed-controls');
     this.pauseButton = el('button', 'speed-pause');
@@ -101,7 +121,7 @@ export class TopBar {
   }
 
   /** Opens the side panel on an economy view for the player's country. */
-  private openView(view: 'market' | 'construction'): void {
+  private openView(view: PanelView): void {
     const tag = this.store.get().player;
     if (!tag) return;
     this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: view });
@@ -124,6 +144,7 @@ export class TopBar {
     }
 
     this.renderEconomy(game.player);
+    this.renderPolitics(game.player);
 
     this.pauseButton.classList.toggle('is-paused', ui.speed === 0);
     this.pauseButton.textContent = ui.speed === 0 ? '▶' : '❚❚';
@@ -163,6 +184,45 @@ export class TopBar {
       `Net ${formatDelta(net)} / week`;
 
     this.constructionButton.textContent = `Construction ${Math.round(economy.constructionPoints)}/wk`;
+  }
+
+  /** Legitimacy and research pills; hidden for observers. */
+  private renderPolitics(tag: string | null): void {
+    const game = this.store.get();
+    const politics = tag ? politicsOf(game, tag) : undefined;
+
+    this.legitimacyButton.hidden = !politics;
+    this.researchButton.hidden = !politics;
+    if (!politics) {
+      this.legitimacyButton.className = 'stat-slot stat-button stat-legitimacy';
+      this.researchButton.className = 'stat-slot stat-button stat-research';
+      return;
+    }
+
+    const legitimacy = Math.round(politics.legitimacy);
+    this.legitimacyButton.textContent = `Legitimacy ${legitimacy}`;
+    const tone = legitimacy < 25 ? 'is-low' : legitimacy < 50 ? 'is-mid' : 'is-good';
+    this.legitimacyButton.className = `stat-slot stat-button stat-legitimacy ${tone}`;
+    this.legitimacyButton.title =
+      `Legitimacy ${legitimacy}/100\n` +
+      `Government: ${politics.government.length} interest group${politics.government.length === 1 ? '' : 's'}\n` +
+      'Open the politics panel (P)';
+
+    const researching = politics.researching ? TECHS[politics.researching] : undefined;
+    if (researching) {
+      const pct = researching.cost > 0 ? Math.min(1, politics.researchProgress / researching.cost) : 1;
+      this.researchButton.textContent = `Research: ${researching.name} ${Math.round(pct * 100)}%`;
+      this.researchButton.className = 'stat-slot stat-button stat-research is-active';
+      this.researchButton.title =
+        `${researching.name}\n` +
+        `${Math.round(politics.researchProgress)} / ${researching.cost} points\n` +
+        `${politics.researchPoints.toFixed(1)} points per week\n` +
+        'Open the technology panel (T)';
+    } else {
+      this.researchButton.textContent = 'Research: none';
+      this.researchButton.className = 'stat-slot stat-button stat-research is-idle';
+      this.researchButton.title = 'No technology is being researched. Open the technology panel (T)';
+    }
   }
 
   dispose(): void {
