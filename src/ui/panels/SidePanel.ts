@@ -2,6 +2,9 @@ import { TECHS } from '../../data/politics/techs';
 import { BUILDINGS } from '../../data/economy/buildings';
 import { GOODS, GOOD_IDS } from '../../data/economy/goods';
 import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
+import { IGS, IG_IDS, STANCES } from '../../data/politics/igs';
+import { LAWS, LAW_GROUPS, LAW_GROUP_IDS } from '../../data/politics/laws';
+import { TECHS } from '../../data/politics/techs';
 import {
   buildableBuildings,
   buildingJobs,
@@ -14,7 +17,10 @@ import {
   totalPopulation,
 } from '../../sim/economy/queries';
 import { cancelConstruction, queueConstruction, setIncomeTax, setProductionMethod } from '../../sim/economy/commands';
+import { cancelEnactment, setGovernment, setResearch, startEnactment } from '../../sim/politics/commands';
+import { availableTechs, igMembers, lawOptions, politicsOf } from '../../sim/politics/queries';
 import type { BuildingDef, BuildingInstance, GoodId } from '../../sim/economy/types';
+import type { CountryPolitics, IgId, LawGroupId, TechCategory } from '../../sim/politics/types';
 import type { GameState, StateDef } from '../../sim/types';
 import { formatCount, formatDelta, formatMoney, formatPercent } from '../format';
 import type { PanelView, Store } from '../store';
@@ -72,6 +78,93 @@ function progressBar(value: number, max: number): HTMLElement {
 
 function profitClass(value: number): string {
   return value > 0 ? 'is-positive' : value < 0 ? 'is-negative' : 'is-neutral';
+}
+
+/** Signed number with a true minus sign: 3 → "+3", −2 → "−2", 0 → "0". */
+function formatSigned(value: number, digits = 0): string {
+  const rounded = Number(value.toFixed(digits));
+  if (rounded === 0) return '0';
+  return `${rounded > 0 ? '+' : '\u2212'}${Math.abs(rounded).toFixed(digits)}`;
+}
+
+/** Approval label: angry at −5 or below, content at +5 or above. */
+function approvalLabel(approval: number): string {
+  if (approval <= -5) return 'Angry';
+  if (approval >= 5) return 'Content';
+  return 'Neutral';
+}
+
+function approvalTone(approval: number): string {
+  if (approval <= -5) return 'is-negative';
+  if (approval >= 5) return 'is-positive';
+  return 'is-neutral';
+}
+
+function legitimacyTone(legitimacy: number): string {
+  return legitimacy < 25 ? 'is-low' : legitimacy < 50 ? 'is-mid' : 'is-good';
+}
+
+/** Small colored dot for an interest group. */
+function igDot(ig: IgId): HTMLElement {
+  const dot = el('span', 'ig-dot');
+  dot.style.background = IGS[ig].color;
+  return dot;
+}
+
+/** Colored dot + name for an interest group. */
+function igLabel(ig: IgId): HTMLElement {
+  const wrap = el('span', 'ig-label');
+  wrap.append(igDot(ig), el('span', 'ig-name', IGS[ig].name));
+  return wrap;
+}
+
+/** 0..1 bar with a tone class. */
+function ratioBar(value: number, tone: string): HTMLElement {
+  const track = el('span', 'bar bar-ratio');
+  const fill = el('span', `bar-fill ${tone}`);
+  const pct = Math.max(0, Math.min(1, value));
+  fill.style.width = `${(pct * 100).toFixed(1)}%`;
+  track.append(fill);
+  return track;
+}
+
+/** −10..+10 approval bar, centered on zero. */
+function approvalBar(approval: number): HTMLElement {
+  const clamped = Math.max(-10, Math.min(10, approval));
+  const track = el('span', 'bar bar-approval');
+  const fill = el('span', `bar-fill ${approvalTone(approval)}`);
+  const half = Math.abs(clamped) / 20;
+  if (clamped >= 0) {
+    fill.style.left = '50%';
+    fill.style.width = `${(half * 100).toFixed(1)}%`;
+  } else {
+    fill.style.left = `${(50 - half * 100).toFixed(1)}%`;
+    fill.style.width = `${(half * 100).toFixed(1)}%`;
+  }
+  track.append(el('span', 'bar-mid'), fill);
+  return track;
+}
+
+/** Tiny colored dots showing each interest group's stance to a law. */
+function stanceDots(lawId: string): HTMLElement {
+  const wrap = el('span', 'stance-dots');
+  const lines: string[] = [];
+  for (const ig of IG_IDS) {
+    const stance = STANCES[ig][lawId] ?? 0;
+    if (stance === 0) continue;
+    const dot = el('span', `stance-dot ${stance > 0 ? 'is-for' : 'is-against'}`);
+    dot.style.background = IGS[ig].color;
+    dot.title = `${IGS[ig].name}: ${formatSigned(stance)}`;
+    wrap.append(dot);
+    lines.push(`${IGS[ig].name} ${formatSigned(stance)}`);
+  }
+  if (lines.length === 0) {
+    wrap.append(el('span', 'muted small', '—'));
+    wrap.title = 'No interest group has a strong opinion.';
+  } else {
+    wrap.title = lines.join('\n');
+  }
+  return wrap;
 }
 
 type MarketSortKey = 'name' | 'price' | 'ratio' | 'supply' | 'demand';
@@ -155,6 +248,7 @@ export class SidePanel {
       game.player ?? '',
       game.tickCount,
       view === 'market' ? `${this.marketSort.key}:${this.marketSort.desc ? 1 : 0}` : '',
+      view === 'politics' || view === 'laws' || view === 'technology' ? JSON.stringify(game.politics) : '',
     ].join('|');
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -168,6 +262,15 @@ export class SidePanel {
     } else if (view === 'construction') {
       this.title.textContent = 'Construction';
       this.renderConstruction(game, country?.tag ?? game.player);
+    } else if (view === 'politics') {
+      this.title.textContent = 'Politics';
+      this.renderPolitics(game, country?.tag ?? game.player);
+    } else if (view === 'laws') {
+      this.title.textContent = 'Laws';
+      this.renderLaws(game, country?.tag ?? game.player);
+    } else if (view === 'technology') {
+      this.title.textContent = 'Technology';
+      this.renderTechnology(game, country?.tag ?? game.player);
     } else if (state) {
       this.title.textContent = 'State';
       this.renderState(game, state);
@@ -481,7 +584,25 @@ export class SidePanel {
     constructionButton.addEventListener('click', () => {
       this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'construction' });
     });
-    actions.append(marketButton, constructionButton);
+    const politicsButton = el('button', 'button-secondary button-small', 'Politics');
+    politicsButton.type = 'button';
+    politicsButton.title = 'Interest groups, government and legitimacy (P)';
+    politicsButton.addEventListener('click', () => {
+      this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'politics' });
+    });
+    const lawsButton = el('button', 'button-secondary button-small', 'Laws');
+    lawsButton.type = 'button';
+    lawsButton.title = 'Laws and enactments (L)';
+    lawsButton.addEventListener('click', () => {
+      this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'laws' });
+    });
+    const techButton = el('button', 'button-secondary button-small', 'Technology');
+    techButton.type = 'button';
+    techButton.title = 'Research and technologies (T)';
+    techButton.addEventListener('click', () => {
+      this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'technology' });
+    });
+    actions.append(marketButton, constructionButton, politicsButton, lawsButton, techButton);
     this.body.append(actions);
   }
 
@@ -648,6 +769,371 @@ export class SidePanel {
       list.append(li);
     });
     this.body.append(list);
+  }
+
+  // --------------------------------------------------------------- politics
+
+  /** Heading shared by the politics views: country swatch, name and a read-only note. */
+  private politicsHeading(game: GameState, tag: string, suffix: string): boolean {
+    const country = game.countries[tag];
+    if (!country) {
+      this.body.append(el('p', 'muted', 'Select a country to see its politics.'));
+      return false;
+    }
+    const heading = el('div', 'panel-heading');
+    const swatch = el('span', 'swatch swatch-large');
+    swatch.style.background = country.color;
+    heading.append(swatch, el('h3', 'panel-name', `${country.name} ${suffix}`));
+    this.body.append(heading);
+
+    if (game.player !== tag) {
+      this.body.append(el('p', 'muted small readonly-note', 'Read-only: you are observing this country.'));
+    }
+    return true;
+  }
+
+  private renderPolitics(game: GameState, tag: string | null): void {
+    if (!tag) {
+      this.body.append(el('p', 'muted', 'Select a country to see its politics.'));
+      return;
+    }
+    if (!this.politicsHeading(game, tag, 'Politics')) return;
+
+    const politics = politicsOf(game, tag);
+    if (!politics) {
+      this.body.append(el('p', 'muted', 'No political data for this country.'));
+      return;
+    }
+    const editable = game.player === tag;
+
+    // --- legitimacy
+    const legitimacy = Math.round(politics.legitimacy);
+    const legitimacyBlock = el('div', 'legitimacy-block');
+    const legitimacyHead = el('div', 'legitimacy-head');
+    legitimacyHead.append(el('span', 'legitimacy-label', 'Legitimacy'));
+    legitimacyHead.append(el('span', `legitimacy-value ${legitimacyTone(legitimacy)}`, String(legitimacy)));
+    legitimacyBlock.append(legitimacyHead);
+    legitimacyBlock.append(ratioBar(politics.legitimacy / 100, legitimacyTone(legitimacy)));
+    this.body.append(legitimacyBlock);
+
+    // --- government
+    this.body.append(sectionTitle('Government'));
+    const chips = el('div', 'ig-chips');
+    if (politics.government.length === 0) {
+      chips.append(el('span', 'muted small', 'No interest group in government.'));
+    }
+    for (const ig of politics.government) {
+      const chip = el('span', 'ig-chip');
+      chip.style.borderColor = IGS[ig].color;
+      chip.append(igDot(ig), el('span', undefined, IGS[ig].name));
+      chip.title = IGS[ig].description;
+      chips.append(chip);
+    }
+    this.body.append(chips);
+
+    // --- interest groups
+    this.body.append(sectionTitle('Interest groups'));
+    const table = el('table', 'data-table ig-table');
+    const thead = el('thead');
+    const headRow = el('tr');
+    for (const [label, cls] of [
+      ['Group', 'col-name'],
+      ['Clout', 'col-clout'],
+      ['Approval', 'col-approval'],
+      ['In gov.', 'col-gov'],
+    ] as const) {
+      headRow.append(el('th', cls, label));
+    }
+    thead.append(headRow);
+    const tbody = el('tbody');
+
+    const inGovernment = new Set<IgId>(politics.government);
+    for (const ig of IG_IDS) {
+      const state = politics.igs[ig];
+      const tr = el('tr');
+
+      const nameCell = el('td', 'col-name');
+      const label = igLabel(ig);
+      label.title = `${IGS[ig].description}\nMembers: ${formatCount(igMembers(game, tag, ig))}`;
+      nameCell.append(label);
+      tr.append(nameCell);
+
+      const cloutCell = el('td', 'col-clout');
+      const cloutWrap = el('span', 'clout-cell');
+      cloutWrap.append(ratioBar(state.clout, 'is-brass'), el('span', 'clout-value', formatPercent(state.clout)));
+      cloutCell.append(cloutWrap);
+      tr.append(cloutCell);
+
+      const approvalCell = el('td', 'col-approval');
+      const approvalWrap = el('span', 'approval-cell');
+      approvalWrap.append(approvalBar(state.approval));
+      approvalWrap.append(el('span', `approval-value ${approvalTone(state.approval)}`, formatSigned(state.approval, 1)));
+      approvalWrap.append(el('span', `approval-label ${approvalTone(state.approval)}`, approvalLabel(state.approval)));
+      approvalCell.append(approvalWrap);
+      tr.append(approvalCell);
+
+      const govCell = el('td', 'col-gov');
+      const checkbox = el('input', 'ig-checkbox');
+      checkbox.type = 'checkbox';
+      checkbox.checked = inGovernment.has(ig);
+      checkbox.setAttribute('aria-label', `${IGS[ig].name} in government`);
+      const next = inGovernment.has(ig)
+        ? politics.government.filter((id) => id !== ig)
+        : [...politics.government, ig];
+      const blocked = next.length === 0 || next.length > 4;
+      checkbox.disabled = !editable || blocked;
+      if (!editable) checkbox.title = 'Read-only: you are observing this country.';
+      else if (blocked) checkbox.title = 'A government needs between 1 and 4 interest groups.';
+      else checkbox.title = inGovernment.has(ig) ? 'Remove from government' : 'Add to government';
+      checkbox.addEventListener('change', () => {
+        this.dispatch(setGovernment(this.store.get(), tag, next));
+      });
+      govCell.append(checkbox);
+      tr.append(govCell);
+
+      tbody.append(tr);
+    }
+    table.append(thead, tbody);
+    this.body.append(table);
+
+    // --- movements
+    this.body.append(sectionTitle('Movements'));
+    if (politics.movements.length === 0) {
+      this.body.append(el('p', 'muted small', 'No organised movements.'));
+    } else {
+      const list = el('ul', 'movement-list');
+      for (const movement of politics.movements) {
+        const li = el('li', 'movement-item');
+        const head = el('div', 'movement-head');
+        head.append(igLabel(movement.ig));
+        head.append(el('span', 'movement-law', LAWS[movement.law]?.name ?? movement.law));
+        li.append(head);
+
+        const radical = el('div', 'movement-radicalism');
+        const tone = movement.radicalism >= 75 ? 'is-negative' : movement.radicalism >= 40 ? 'is-mid' : 'is-good';
+        radical.append(ratioBar(movement.radicalism / 100, tone));
+        radical.append(el('span', 'movement-value', `${Math.round(movement.radicalism)}`));
+        li.append(radical);
+        list.append(li);
+      }
+      this.body.append(list);
+    }
+  }
+
+  // ------------------------------------------------------------------- laws
+
+  private renderLaws(game: GameState, tag: string | null): void {
+    if (!tag) {
+      this.body.append(el('p', 'muted', 'Select a country to see its laws.'));
+      return;
+    }
+    if (!this.politicsHeading(game, tag, 'Laws')) return;
+
+    const politics = politicsOf(game, tag);
+    if (!politics) {
+      this.body.append(el('p', 'muted', 'No political data for this country.'));
+      return;
+    }
+    const editable = game.player === tag;
+
+    for (const group of LAW_GROUP_IDS) {
+      this.body.append(sectionTitle(LAW_GROUPS[group].name));
+      const options = lawOptions(game, tag, group);
+      const list = el('ul', 'law-list');
+      for (const option of options) {
+        list.append(this.lawRow(game, tag, politics, group, option, editable));
+      }
+      this.body.append(list);
+    }
+  }
+
+  private lawRow(
+    game: GameState,
+    tag: string,
+    politics: CountryPolitics,
+    group: LawGroupId,
+    option: { law: { id: string; name: string; description: string }; inForce: boolean; allowed: boolean; reason?: string; support: number },
+    editable: boolean,
+  ): HTMLElement {
+    const law = option.law;
+    const enacting = politics.enacting !== null && politics.enacting.law === law.id;
+    const li = el('li', 'law-row');
+    if (option.inForce) li.classList.add('is-in-force');
+    if (enacting) li.classList.add('is-enacting');
+
+    const head = el('div', 'law-head');
+    head.append(el('span', 'law-name', law.name));
+    head.append(stanceDots(law.id));
+    li.append(head);
+    li.append(el('div', 'law-desc muted small', law.description));
+
+    const foot = el('div', 'law-foot');
+
+    const status = el('div', 'law-status');
+    if (option.inForce) {
+      status.append(el('span', 'law-badge is-in-force', 'In force'));
+    } else if (enacting && politics.enacting) {
+      status.append(el('span', 'law-badge is-enacting', 'Being enacted'));
+      const progress = el('span', 'law-progress');
+      progress.append(progressBar(politics.enacting.progress, 1));
+      progress.append(el('span', 'law-progress-value', formatPercent(politics.enacting.progress)));
+      status.append(progress);
+    } else if (option.allowed) {
+      status.append(el('span', 'law-badge is-allowed', 'Allowed'));
+    } else {
+      const badge = el('span', 'law-badge is-locked', 'Locked');
+      badge.title = option.reason ?? 'Not available.';
+      status.append(badge);
+      if (option.reason) status.append(el('span', 'law-reason muted small', option.reason));
+    }
+    foot.append(status);
+
+    const support = el('span', 'law-support');
+    support.append(el('span', 'law-support-label muted small', 'Support'));
+    support.append(
+      el(
+        'span',
+        `law-support-value ${option.support > 0 ? 'is-positive' : option.support < 0 ? 'is-negative' : 'is-neutral'}`,
+        formatSigned(option.support, 2),
+      ),
+    );
+    support.title = 'Clout-weighted support for this law (government groups count double).';
+    foot.append(support);
+
+    const action = el('div', 'law-action');
+    if (enacting) {
+      const cancel = el('button', 'button-small', 'Cancel');
+      cancel.type = 'button';
+      cancel.disabled = !editable;
+      cancel.title = editable ? 'Cancel this enactment' : 'Read-only: you are observing this country.';
+      cancel.addEventListener('click', () => {
+        this.dispatch(cancelEnactment(this.store.get(), tag));
+      });
+      action.append(cancel);
+    } else if (!option.inForce) {
+      const enact = el('button', 'button-small', 'Enact');
+      enact.type = 'button';
+      const blocked = !editable || !option.allowed || politics.enacting !== null;
+      enact.disabled = blocked;
+      if (!editable) enact.title = 'Read-only: you are observing this country.';
+      else if (politics.enacting !== null) enact.title = 'Another law is already being enacted.';
+      else if (!option.allowed) enact.title = option.reason ?? 'Not available.';
+      else enact.title = `Begin enacting ${law.name}`;
+      enact.addEventListener('click', () => {
+        this.dispatch(startEnactment(this.store.get(), tag, law.id));
+      });
+      action.append(enact);
+    }
+    foot.append(action);
+
+    li.append(foot);
+    // `group` is kept for symmetry with lawOptions; the row itself needs no group id.
+    void group;
+    void game;
+    return li;
+  }
+
+  // ------------------------------------------------------------- technology
+
+  private renderTechnology(game: GameState, tag: string | null): void {
+    if (!tag) {
+      this.body.append(el('p', 'muted', 'Select a country to see its technology.'));
+      return;
+    }
+    if (!this.politicsHeading(game, tag, 'Technology')) return;
+
+    const politics = politicsOf(game, tag);
+    if (!politics) {
+      this.body.append(el('p', 'muted', 'No political data for this country.'));
+      return;
+    }
+    const editable = game.player === tag;
+
+    const rows = el('dl', 'detail-list');
+    rows.append(detailRow('Research points', `${politics.researchPoints.toFixed(1)} / week`));
+    const researching = politics.researching ? TECHS[politics.researching] : undefined;
+    if (researching) {
+      const progress = el('span', 'tech-researching');
+      progress.append(progressBar(politics.researchProgress, researching.cost));
+      progress.append(
+        el('span', 'tech-progress-value', `${Math.round(politics.researchProgress)}/${researching.cost}`),
+      );
+      rows.append(detailRow('Researching', progress));
+    } else {
+      rows.append(detailRow('Researching', 'Nothing'));
+    }
+    rows.append(detailRow('Known technologies', String(politics.techs.length)));
+    this.body.append(rows);
+
+    const options = availableTechs(game, tag);
+    const columns = el('div', 'tech-columns');
+    const categories: { id: TechCategory; name: string }[] = [
+      { id: 'production', name: 'Production' },
+      { id: 'society', name: 'Society' },
+    ];
+    for (const category of categories) {
+      const column = el('div', 'tech-column');
+      column.append(el('h4', 'tech-column-title', category.name));
+      for (const option of options) {
+        if (option.tech.category !== category.id) continue;
+        column.append(this.techCard(game, tag, politics, option, editable));
+      }
+      columns.append(column);
+    }
+    this.body.append(columns);
+  }
+
+  private techCard(
+    game: GameState,
+    tag: string,
+    politics: CountryPolitics,
+    option: { tech: { id: string; name: string; cost: number; requires: string[]; description: string }; known: boolean; available: boolean; researching: boolean },
+    editable: boolean,
+  ): HTMLElement {
+    const tech = option.tech;
+    const card = el('div', 'tech-card');
+    if (option.known) card.classList.add('is-known');
+    if (option.researching) card.classList.add('is-researching');
+
+    const head = el('div', 'tech-head');
+    head.append(el('span', 'tech-name', tech.name));
+    head.append(el('span', 'tech-cost', `${tech.cost}`));
+    card.append(head);
+
+    if (tech.requires.length > 0) {
+      const requires = tech.requires.map((id) => TECHS[id]?.name ?? id).join(', ');
+      card.append(el('div', 'tech-requires muted small', `Requires: ${requires}`));
+    }
+    card.append(el('div', 'tech-desc muted small', tech.description));
+
+    const foot = el('div', 'tech-foot');
+    if (option.known) {
+      foot.append(el('span', 'tech-badge is-known', 'Known'));
+    } else if (option.researching) {
+      const progress = el('span', 'tech-progress');
+      progress.append(progressBar(politics.researchProgress, tech.cost));
+      progress.append(
+        el('span', 'tech-progress-value', `${Math.round(politics.researchProgress)}/${tech.cost}`),
+      );
+      foot.append(el('span', 'tech-badge is-researching', 'Researching'), progress);
+    } else if (option.available) {
+      foot.append(el('span', 'tech-badge is-available', 'Available'));
+      const button = el('button', 'button-small', 'Research');
+      button.type = 'button';
+      button.disabled = !editable;
+      button.title = editable ? `Research ${tech.name}` : 'Read-only: you are observing this country.';
+      button.addEventListener('click', () => {
+        this.dispatch(setResearch(this.store.get(), tag, tech.id));
+      });
+      foot.append(button);
+    } else {
+      const badge = el('span', 'tech-badge is-locked', 'Locked');
+      badge.title = 'Prerequisites are not known yet.';
+      foot.append(badge);
+    }
+    card.append(foot);
+    void game;
+    return card;
   }
 
   dispose(): void {
