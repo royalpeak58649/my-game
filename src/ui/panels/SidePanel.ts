@@ -13,7 +13,7 @@ import {
   totalPopulation,
 } from '../../sim/economy/queries';
 import { cancelConstruction, queueConstruction, setIncomeTax, setProductionMethod } from '../../sim/economy/commands';
-import type { BuildingDef, BuildingInstance, GoodId, PopTypeId } from '../../sim/economy/types';
+import type { BuildingDef, BuildingInstance, GoodId } from '../../sim/economy/types';
 import type { GameState, StateDef } from '../../sim/types';
 import { formatCount, formatDelta, formatMoney, formatPercent } from '../format';
 import type { PanelView, Store } from '../store';

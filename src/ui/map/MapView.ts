@@ -83,6 +83,12 @@ const POPULATION_PALETTE: readonly string[] = [
   '#5a3320',
 ];
 
+/** Density (people / km²) → palette step on a log scale: <1 … ≥256. */
+function populationColor(density: number): string {
+  const step = Math.max(0, Math.min(POPULATION_PALETTE.length - 1, Math.floor(Math.log2(Math.max(1, density)))));
+  return POPULATION_PALETTE[step] ?? DECENTRALIZED_COLOR;
+}
+
 const MIN_SCALE = 1;
 const MAX_SCALE = 40;
 const DRAG_THRESHOLD = 4;
@@ -695,6 +701,7 @@ export class MapView {
     if (!def) return DECENTRALIZED_COLOR;
     if (mode === 'states') return pastelFor(def.id);
     if (def.owner === null) return DECENTRALIZED_COLOR;
+    if (mode === 'population') return populationColor(totalPopulation(this.store.get(), def.id) / Math.max(1, def.area));
     return countries[def.owner]?.color ?? DECENTRALIZED_COLOR;
   }
 
