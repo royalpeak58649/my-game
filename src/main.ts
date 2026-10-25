@@ -5,6 +5,7 @@ import statesJson from './data/states.json';
 import countriesJson from './data/countries.json';
 
 import { createGameState } from './sim/state';
+import { initEconomy } from './sim/economy/init';
 import type { CountryDef, StateDef } from './sim/types';
 import { Store } from './ui/store';
 import { GameClock } from './ui/clock';
@@ -21,7 +22,7 @@ if (!app) throw new Error('#app container missing');
 const states = statesJson as StateDef[];
 const countries = countriesJson as Record<string, CountryDef>;
 
-const store = new Store(createGameState(states, countries, null));
+const store = new Store(initEconomy(createGameState(states, countries, null)));
 const clock = new GameClock(store);
 
 app.replaceChildren();
