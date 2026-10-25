@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest run",
-    "data": "node --max-old-space-size=6000 scripts/build-map.mjs"
+    "data": "node --max-old-space-size=6000 scripts/build-map.mjs",
+    "data:economy": "node scripts/build-economy.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

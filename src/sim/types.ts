@@ -1,4 +1,5 @@
 import type { GameDate } from './date';
+import type { EconomyState } from './economy/types';
 
 export interface StateDef {
   id: string;
@@ -22,4 +23,5 @@ export interface GameState {
   player: string | null;
   states: Record<string, StateDef>;
   countries: Record<string, CountryDef>;
+  economy: EconomyState;
 }
