@@ -11,7 +11,9 @@ npm install
 npm run dev     # start the dev server (http://localhost:5173)
 npm test        # unit tests
 npm run build   # type-check and build for production
-npm run data    # rebuild map data (downloads Natural Earth ~40 MB into data-raw/)
+npm run data          # rebuild map data (downloads Natural Earth ~40 MB into data-raw/)
+npm run data:economy  # 1836 population and resources per state
+npm run data:start    # calibrated 1836 start economy (run after changing economy data)
 ```
 
 ## Controls
@@ -22,7 +24,7 @@ npm run data    # rebuild map data (downloads Natural Earth ~40 MB into data-raw
 | Click a state | Open its panel |
 | Space | Pause / resume |
 | 1 – 5 | Game speed |
-| M | Toggle map mode (political / states) |
+| M | Cycle map mode (political / population / states) |
 | Esc | Close panel |
 
 ## What exists (milestone 1)
@@ -32,6 +34,13 @@ npm run data    # rebuild map data (downloads Natural Earth ~40 MB into data-raw
 - Start screen (pick a country or observe), top bar with date and speed, state and
   country panels, tooltip, country labels.
 - Deterministic weekly simulation tick (`src/sim`), JSON-serializable game state.
+
+## Milestone 2: economy
+
+Pops by profession, buildings with production methods, a market per country linked by world
+trade, wages/profits/taxes, construction, and an investment AI for the other countries. The top
+bar shows your treasury and opens the Market and Construction views; clicking a state shows its
+pops and buildings and lets you queue construction. See [docs/ECONOMY.md](docs/ECONOMY.md).
 
 ## The 1836 map is approximate
 

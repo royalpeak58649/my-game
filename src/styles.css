@@ -679,6 +679,7 @@ body {
 
 .data-table .col-name {
   text-align: left;
+  width: 100%; /* takes the remaining width; max-width: 0 lets long names ellipsize */
   max-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

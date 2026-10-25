@@ -338,7 +338,8 @@ export class SidePanel {
   }
 
   private renderBuildSection(game: GameState, state: StateDef, tag: string): void {
-    const options = buildableBuildings(game, tag, state.id);
+    // hide buildings the state has no resource for at all (cap 0 and nothing built)
+    const options = buildableBuildings(game, tag, state.id).filter((o) => o.cap === null || o.cap > 0 || o.current > 0);
     if (options.length === 0) {
       this.body.append(el('p', 'muted small', 'Nothing can be built here.'));
       return;

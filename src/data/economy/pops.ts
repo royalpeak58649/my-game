@@ -15,7 +15,7 @@ export const POP_TYPES: Record<PopTypeId, PopTypeDef> = {
 export const POP_TYPE_IDS = Object.keys(POP_TYPES) as PopTypeId[];
 
 // Per person per week at consumption scale 1 ("comfortable").
-// Lower basket costs ≈ 0.04 at base prices; middle ≈ 0.16; upper ≈ 0.9.
+// Lower basket costs ≈ 0.04 at base prices; middle ≈ 0.09; upper ≈ 0.9.
 export const NEEDS: Record<WealthTier, NeedsBasket> = {
   // Peasants grow most of what they need; this is only what they buy (≈ 0.029 at base prices).
   // Firewood, cloth and most food were still gathered, spun and grown at home.
@@ -28,10 +28,10 @@ export const NEEDS: Record<WealthTier, NeedsBasket> = {
     services: 0.0001, sugar: 0.00003, tobacco: 0.00002, tea: 0.00001, coffee: 0.00001, furniture: 0.00003,
   },
   middle: {
-    grain: 0.0012, meat: 0.0006, fish: 0.0003, fruit: 0.0003, wood: 0.0004,
-    fabric: 0.0003, clothes: 0.0005, liquor: 0.0002, groceries: 0.0005,
-    services: 0.0008, sugar: 0.0002, tobacco: 0.0002, tea: 0.0002, coffee: 0.0002,
-    furniture: 0.0004, paper: 0.0002, glass: 0.0002,
+    grain: 0.0008, meat: 0.0004, fish: 0.0002, fruit: 0.0002, wood: 0.0002,
+    fabric: 0.0002, clothes: 0.0003, liquor: 0.0001, groceries: 0.0003,
+    services: 0.0005, sugar: 0.0001, tobacco: 0.0001, tea: 0.0001, coffee: 0.0001,
+    furniture: 0.0002, paper: 0.0001, glass: 0.0001,
   },
   upper: {
     grain: 0.0015, meat: 0.0015, fish: 0.0005, fruit: 0.001, wood: 0.001,

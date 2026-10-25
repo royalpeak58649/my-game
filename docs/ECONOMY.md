@@ -116,3 +116,38 @@ Pure functions returning a new GameState (or the same one if invalid):
 
 `economyTick` must run in well under 30 ms for the whole world (≈1,400 states, ≈10k
 building instances). Avoid per-tick allocations of large intermediate maps where simple loops do.
+
+## As built — changes from the original spec
+
+These came out of running the whole world for years and fixing what broke.
+
+- **Subsistence tier.** Peasants use their own `subsistence` basket (mostly grain; little firewood,
+  fish or cloth — those were made at home in 1836). Without it the peasantry's demand for
+  manufactured goods dwarfed world industry.
+- **World trade (step 4).** Before prices update, each market offers `WORLD_TRADE_SHARE` (50%) of its
+  surplus to, or seeks that share of its shortage from, a single world pool; matched volume is
+  shared pro rata. Exporters count shipments as sales; importers count arrivals as supply.
+  Stored in `Market.exports / imports`.
+- **No money creation on losses.** A loss-making private building pays wages only up to
+  `revenue − inputCost`.
+- **Upkeep.** Each country pays `UPKEEP_PER_CAPITA` per inhabitant per week (abstracted court,
+  army and navy until those systems exist); included in `lastExpenses` and `lastUpkeep`.
+- **Excess workers are released** when a building has more employees than jobs (after losing a
+  level or switching method).
+- **Investment AI (step 10, `investment.ts`).** Every non-player country keeps
+  `ceil(constructionPoints / MAX_POINTS_PER_PROJECT)` projects queued, choosing the building with
+  the best profit per construction point that the state can staff (free peasants net of open jobs)
+  and has room for. Inputs are valued at the market's *unused surplus*, not its fill ratio, so a
+  country cannot herd into a method whose inputs nobody produces. Every 4 weeks AI buildings move
+  to a method that beats the current one by 10%, reserving the extra inputs from the surplus.
+  Rich treasuries also expand the construction sector.
+- **AI tax policy.** Every 4 weeks a non-player country lowers income tax by 1 pp when its treasury
+  exceeds 52 weeks of expenses and raises it when below 8 weeks (bounds 2–30%).
+- **Calibrated start (`npm run data:start`).** `initEconomy` only seeds the economy. The game starts
+  from `src/data/start1836.json`, produced by running ten pre-1836 years in warm-up mode (instant
+  levels, loss makers shrink, no population growth) and 26 normal weeks, then resetting queues and
+  treasuries. Regenerate it after changing any economy data.
+
+Tooling: `npx vite-node scripts/soak.ts -- <weeks>` runs the world and prints per-country stats,
+world supply/demand per good and tick timings. Current figures: ~25 ms median tick, prices of
+staples within 90–130% of base; luxuries (tea, coffee, tobacco, fine clothes) remain scarce.
