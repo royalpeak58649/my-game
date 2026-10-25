@@ -13,6 +13,7 @@ import {
 import { MAX_CONSUMPTION_SCALE, NEEDS, POP_TYPES, POP_TYPE_IDS, standardOfLiving, yearlyGrowth } from '../../data/economy/pops';
 import type { GameState } from '../types';
 import { investmentStep } from './investment';
+import type { Modifiers } from '../politics/types';
 import type {
   BuildingDef, BuildingInstance, ConstructionItem, CountryEconomy, EconomyState, GoodId, Market,
   PopTypeId, ProductionMethodDef, StateEconomy, WealthTier,
@@ -24,6 +25,9 @@ export const FIRE_RATE = 0.05;
 const G = GOOD_IDS.length;
 const P = POP_TYPE_IDS.length;
 const PEASANTS = POP_TYPE_IDS.indexOf('peasants');
+const FARMERS = POP_TYPE_IDS.indexOf('farmers');
+const ARISTOCRATS = POP_TYPE_IDS.indexOf('aristocrats');
+const CAPITALISTS = POP_TYPE_IDS.indexOf('capitalists');
 const TIERS: WealthTier[] = ['subsistence', 'lower', 'middle', 'upper'];
 const T = TIERS.length;
 
@@ -128,6 +132,15 @@ export function economyTick(state: GameState): GameState {
   tags.forEach((t, i) => mIndex.set(t, i));
   const M = tags.length;
   const markets = tags.map((t) => eco.markets[t] as Market);
+  // law and technology effects per market (see docs/POLITICS.md, "Economy hooks")
+  const mods: Modifiers[] = tags.map((t) => state.politics?.countries[t]?.modifiers ?? {});
+  const tradeShare = Float64Array.from(mods, (x) => x.tradeShare ?? WORLD_TRADE_SHARE);
+  const hireMult = Float64Array.from(mods, (x) => x.hireRateMult ?? 1);
+  const wageMult = Float64Array.from(mods, (x) => x.wageMult ?? 1);
+  const taxEff = Float64Array.from(mods, (x) => x.taxEfficiency ?? 1);
+  const outMult = Float64Array.from(mods, (x) => x.outputMult ?? 1);
+  const indMult = Float64Array.from(mods, (x) => (x.outputMult ?? 1) * (x.industryOutputMult ?? 1));
+  const upkeepMult = new Map(tags.map((t, i) => [t, mods[i]?.upkeepMult ?? 1]));
 
   const refs: SRef[] = [];
   for (const id of Object.keys(eco.states).sort()) {
@@ -216,7 +229,8 @@ export function economyTick(state: GameState): GameState {
         if (open <= 0) continue;
         const peasants = pops[s * P + PEASANTS] as number;
         if (peasants < 1) break;
-        const hire = Math.min(open, Math.ceil(open * (POP_HIRE[p] as number)), Math.floor(peasants));
+        const rate = (POP_HIRE[p] as number) * (p === FARMERS || p === ARISTOCRATS || p === CAPITALISTS ? 1 : (hireMult[r.m] as number));
+        const hire = Math.min(open, Math.ceil(open * rate), Math.floor(peasants));
         if (hire <= 0) continue;
         emp[id] = (emp[id] ?? 0) + hire;
         pops[s * P + p] += hire;
@@ -246,7 +260,7 @@ export function economyTick(state: GameState): GameState {
       for (let k = 0; k < v.inputs.idx.length; k++) {
         demand[base + (v.inputs.idx[k] as number)] += level * (v.inputs.amt[k] as number) * staff;
       }
-      const scale = level * staff * fill;
+      const scale = level * staff * fill * ((br.def.group === 'industry' ? indMult[r.m] : outMult[r.m]) as number);
       for (let k = 0; k < v.outputs.idx.length; k++) {
         supply[base + (v.outputs.idx[k] as number)] += (v.outputs.amt[k] as number) * scale;
       }
@@ -290,14 +304,16 @@ export function economyTick(state: GameState): GameState {
     let sought = 0;
     for (let m = 0; m < M; m++) {
       const e = (supply[m * G + g] as number) - (demand[m * G + g] as number);
-      if (e > 0) offered += e * WORLD_TRADE_SHARE; else sought += -e * WORLD_TRADE_SHARE;
+      const share = tradeShare[m] as number;
+      if (e > 0) offered += e * share; else sought += -e * share;
     }
     const matched = Math.min(offered, sought);
     if (matched <= 0) continue;
     for (let m = 0; m < M; m++) {
       const e = (supply[m * G + g] as number) - (demand[m * G + g] as number);
-      if (e > 0) exportsA[m * G + g] = e * WORLD_TRADE_SHARE * (matched / offered);
-      else if (e < 0) importsA[m * G + g] = -e * WORLD_TRADE_SHARE * (matched / sought);
+      const share = tradeShare[m] as number;
+      if (e > 0) exportsA[m * G + g] = e * share * (matched / offered);
+      else if (e < 0) importsA[m * G + g] = -e * share * (matched / sought);
     }
   }
   const buyFill = new Float64Array(M * G);
@@ -330,7 +346,7 @@ export function economyTick(state: GameState): GameState {
       const staff = st[bi] as number;
       let revenue = 0;
       if (!br.gov) {
-        const scale = level * staff * inst.inputFill;
+        const scale = level * staff * inst.inputFill * ((br.def.group === 'industry' ? indMult[r.m] : outMult[r.m]) as number);
         for (let k = 0; k < v.outputs.idx.length; k++) {
           const i = base + (v.outputs.idx[k] as number);
           revenue += (v.outputs.amt[k] as number) * scale * (sellFill[i] as number) * (price[i] as number);
@@ -342,7 +358,8 @@ export function economyTick(state: GameState): GameState {
         inputCost += level * (v.inputs.amt[k] as number) * staff * (buyFill[i] as number) * (price[i] as number);
       }
       let wageBill = 0;
-      for (let p = 0; p < P; p++) wageBill += (inst.employed[POP_TYPE_IDS[p] as PopTypeId] ?? 0) * (POP_WAGE[p] as number);
+      const wm = wageMult[r.m] as number;
+      for (let p = 0; p < P; p++) wageBill += (inst.employed[POP_TYPE_IDS[p] as PopTypeId] ?? 0) * (POP_WAGE[p] as number) * wm;
       const profit = revenue - inputCost - wageBill;
       inst.lastRevenue = revenue;
       inst.lastCosts = inputCost + wageBill;
@@ -353,7 +370,7 @@ export function economyTick(state: GameState): GameState {
       if (factor > 0) {
         for (let p = 0; p < P; p++) {
           const n = inst.employed[POP_TYPE_IDS[p] as PopTypeId] ?? 0;
-          if (n > 0) wages[s * P + p] += n * (POP_WAGE[p] as number) * factor;
+          if (n > 0) wages[s * P + p] += n * (POP_WAGE[p] as number) * wm * factor;
         }
       }
       if (br.gov) govCost[s] += inputCost + wageBill;
@@ -366,7 +383,7 @@ export function economyTick(state: GameState): GameState {
   const taxes = new Float64Array(S);
   for (let s = 0; s < S; s++) {
     const r = refs[s] as SRef;
-    const rate = clamp(fin(r.country.incomeTaxRate), 0, 0.5);
+    const rate = clamp(fin(r.country.incomeTaxRate), 0, 0.5) * (taxEff[r.m] as number);
     for (let p = 0; p < P; p++) {
       const id = POP_TYPE_IDS[p] as PopTypeId;
       const n = pops[s * P + p] as number;
@@ -397,7 +414,7 @@ export function economyTick(state: GameState): GameState {
     const c = eco.countries[tag] as CountryEconomy;
     const a = byTag.get(tag);
     if (!a) continue;
-    const upkeep = a.pop * UPKEEP_PER_CAPITA;
+    const upkeep = a.pop * UPKEEP_PER_CAPITA * (upkeepMult.get(tag) ?? 1);
     c.lastIncome = a.inc;
     c.lastUpkeep = upkeep;
     c.lastExpenses = a.exp + upkeep;
@@ -460,7 +477,7 @@ export function economyTick(state: GameState): GameState {
   }
 
   // ============================================================ 10. investment
-  investmentStep(eco, state.states, state.player, eco.warmup === true, state.tickCount);
+  investmentStep(eco, state.states, state.player, eco.warmup === true, state.tickCount, (tag) => state.politics?.countries[tag]?.techs);
   return next;
 }
 

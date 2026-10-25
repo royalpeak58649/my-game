@@ -6,6 +6,7 @@ import { BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings'
 import { GOODS } from '../../data/economy/goods';
 import { POP_TYPES } from '../../data/economy/pops';
 import type { StateDef } from '../types';
+import { unlockedFor } from '../politics/unlocks';
 import type { BuildingDef, CountryEconomy, EconomyState, GoodId, Market, PopTypeId, StateEconomy } from './types';
 
 const PRIVATE: BuildingDef[] = Object.values(BUILDINGS).filter((b) => b.owner !== 'government');
@@ -99,16 +100,17 @@ function room(se: StateEconomy, def: BuildingDef, queued: (id: string) => number
 interface Candidate { stateId: string; def: BuildingDef; method: string; score: number }
 
 /** Most profitable method for a new level. */
-export function bestMethod(def: BuildingDef, market: Market, surplus: Surplus): { id: string; profit: number } {
+export function bestMethod(def: BuildingDef, market: Market, surplus: Surplus, techs?: readonly string[]): { id: string; profit: number } {
   let best = { id: def.methods[0]?.id ?? '', profit: -Infinity };
   for (const m of def.methods) {
+    if (!unlockedFor(techs, m.id)) continue;
     const p = marginalProfit(def, m.id, market, surplus);
     if (p > best.profit) best = { id: m.id, profit: p };
   }
   return best;
 }
 
-function candidates(eco: EconomyState, stateIds: string[], market: Market, c: CountryEconomy, surplus: Surplus): Candidate[] {
+function candidates(eco: EconomyState, stateIds: string[], market: Market, c: CountryEconomy, surplus: Surplus, techs?: readonly string[]): Candidate[] {
   const out: Candidate[] = [];
   const methodCache = new Map<string, { id: string; profit: number }>();
   for (const sid of stateIds) {
@@ -118,13 +120,14 @@ function candidates(eco: EconomyState, stateIds: string[], market: Market, c: Co
     for (const q of c.queue) if (q.stateId === sid) free -= jobsPerLevel(BUILDINGS[q.buildingId] as BuildingDef);
     const queuedHere = (id: string) => c.queue.filter((q) => q.stateId === sid && q.buildingId === id).length;
     for (const def of PRIVATE) {
+      if (!unlockedFor(techs, def.id)) continue;
       if (room(se, def, queuedHere) < 1) continue;
       if (free < jobsPerLevel(def)) continue; // nobody to staff it
       const existing = se.buildings[def.id]?.method;
       const key = `${def.id}:${existing ?? '*'}`;
       let choice = methodCache.get(key);
       if (!choice) {
-        choice = existing ? { id: existing, profit: marginalProfit(def, existing, market, surplus) } : bestMethod(def, market, surplus);
+        choice = existing ? { id: existing, profit: marginalProfit(def, existing, market, surplus) } : bestMethod(def, market, surplus, techs);
         methodCache.set(key, choice);
       }
       if (choice.profit <= 0) continue;
@@ -147,7 +150,7 @@ function addLevel(se: StateEconomy, def: BuildingDef, method: string): void {
  * beat the current method by 10% and its extra inputs are reserved from the surplus, so
  * only as many buildings switch as the market can supply.
  */
-function switchMethods(eco: EconomyState, stateIds: string[], market: Market, surplus: Surplus): void {
+function switchMethods(eco: EconomyState, stateIds: string[], market: Market, surplus: Surplus, techs?: readonly string[]): void {
   for (const sid of stateIds) {
     for (const inst of Object.values(eco.states[sid]?.buildings ?? {})) {
       const def = BUILDINGS[inst.id];
@@ -155,7 +158,7 @@ function switchMethods(eco: EconomyState, stateIds: string[], market: Market, su
       const now = currentProfit(def, inst.method, market);
       let best: { id: string; profit: number } | null = null;
       for (const m of def.methods) {
-        if (m.id === inst.method) continue;
+        if (m.id === inst.method || !unlockedFor(techs, m.id)) continue;
         const p = marginalProfit(def, m.id, market, surplus, inst.level);
         if (p > now + Math.abs(now) * 0.1 && (!best || p > best.profit)) best = { id: m.id, profit: p };
       }
@@ -174,6 +177,7 @@ function switchMethods(eco: EconomyState, stateIds: string[], market: Market, su
  */
 export function investmentStep(
   eco: EconomyState, stateDefs: Record<string, StateDef>, player: string | null, warmup: boolean, week: number,
+  techsOf: (tag: string) => readonly string[] | undefined = () => undefined,
 ): void {
   const byTag = new Map<string, string[]>();
   for (const sid of Object.keys(eco.states).sort()) {
@@ -192,7 +196,8 @@ export function investmentStep(
     if (!c || !market) continue;
 
     const surplus = surplusOf(market);
-    if (week % 4 === 0) switchMethods(eco, stateIds, market, surplus);
+    const techs = techsOf(tag);
+    if (week % 4 === 0) switchMethods(eco, stateIds, market, surplus, techs);
 
     if (warmup) {
       // shrink loss makers every 4th week
@@ -216,7 +221,7 @@ export function investmentStep(
       const levels = Math.max(1, Math.ceil(pop / 2_000_000));
       const used = new Set<string>();
       let added = 0;
-      for (const p of candidates(eco, stateIds, market, c, surplus)) {
+      for (const p of candidates(eco, stateIds, market, c, surplus, techs)) {
         if (added >= levels) break;
         if (used.has(p.stateId)) continue; // at most one new level per state per week
         const se = eco.states[p.stateId];
@@ -247,7 +252,7 @@ export function investmentStep(
       c.queue.push({ stateId: capital, buildingId: 'construction_sector', progress: 0 });
       continue;
     }
-    const best = candidates(eco, stateIds, market, c, surplus)[0];
+    const best = candidates(eco, stateIds, market, c, surplus, techs)[0];
     if (best) c.queue.push({ stateId: best.stateId, buildingId: best.def.id, progress: 0 });
   }
 }

@@ -1,3 +1,4 @@
+import { TECHS } from '../../data/politics/techs';
 import { BUILDINGS } from '../../data/economy/buildings';
 import { GOODS, GOOD_IDS } from '../../data/economy/goods';
 import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
@@ -371,8 +372,9 @@ export class SidePanel {
       const atCap = option.cap !== null && option.current + option.queued >= option.cap;
       const button = el('button', 'button-small', 'Build');
       button.type = 'button';
-      button.disabled = atCap;
+      button.disabled = atCap || option.lockedBy !== null;
       if (atCap) button.title = 'At capacity';
+      else if (option.lockedBy) button.title = `Requires ${TECHS[option.lockedBy]?.name ?? option.lockedBy}`;
       else button.title = `Queue one level (${option.def.cost} construction points)`;
       button.addEventListener('click', () => {
         this.dispatch(queueConstruction(this.store.get(), tag, state.id, option.def.id));
