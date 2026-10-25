@@ -1,0 +1,530 @@
+{
+ "GBR": {
+  "tag": "GBR",
+  "name": "United Kingdom",
+  "color": "#b5563f",
+  "capital": "GBR_04"
+ },
+ "FRA": {
+  "tag": "FRA",
+  "name": "France",
+  "color": "#5470a6",
+  "capital": "FRA_06"
+ },
+ "SPA": {
+  "tag": "SPA",
+  "name": "Spain",
+  "color": "#c9a43a",
+  "capital": "ESP_04"
+ },
+ "POR": {
+  "tag": "POR",
+  "name": "Portugal",
+  "color": "#5f8e4e",
+  "capital": "PRT_01"
+ },
+ "NET": {
+  "tag": "NET",
+  "name": "Netherlands",
+  "color": "#d98a45",
+  "capital": "NLD_01"
+ },
+ "BEL": {
+  "tag": "BEL",
+  "name": "Belgium",
+  "color": "#a7a253",
+  "capital": "BEL_01"
+ },
+ "SWI": {
+  "tag": "SWI",
+  "name": "Switzerland",
+  "color": "#c25f5f",
+  "capital": "CHE_03"
+ },
+ "PRU": {
+  "tag": "PRU",
+  "name": "Prussia",
+  "color": "#5f6672",
+  "capital": "DEU_10"
+ },
+ "BAV": {
+  "tag": "BAV",
+  "name": "Bavaria",
+  "color": "#7ea3c9",
+  "capital": "DEU_01"
+ },
+ "WUR": {
+  "tag": "WUR",
+  "name": "Württemberg",
+  "color": "#b88b5e",
+  "capital": "DEU_14"
+ },
+ "SAX": {
+  "tag": "SAX",
+  "name": "Saxony",
+  "color": "#7b9f7a",
+  "capital": "DEU_12"
+ },
+ "HAN": {
+  "tag": "HAN",
+  "name": "Hanover",
+  "color": "#c9b77a",
+  "capital": "DEU_04"
+ },
+ "HES": {
+  "tag": "HES",
+  "name": "Hesse",
+  "color": "#9c7aa6",
+  "capital": "DEU_06"
+ },
+ "MEC": {
+  "tag": "MEC",
+  "name": "Mecklenburg",
+  "color": "#5c8f8c",
+  "capital": "DEU_07"
+ },
+ "THU": {
+  "tag": "THU",
+  "name": "Thuringian States",
+  "color": "#c48a9a",
+  "capital": "DEU_13"
+ },
+ "AUS": {
+  "tag": "AUS",
+  "name": "Austrian Empire",
+  "color": "#d4bd72",
+  "capital": "AUT_02"
+ },
+ "DEN": {
+  "tag": "DEN",
+  "name": "Denmark",
+  "color": "#c77575",
+  "capital": "DNK_03"
+ },
+ "SWE": {
+  "tag": "SWE",
+  "name": "Sweden",
+  "color": "#4f82a6",
+  "capital": "SWE_05"
+ },
+ "NOR": {
+  "tag": "NOR",
+  "name": "Norway",
+  "color": "#9a5656",
+  "capital": "NOR_06"
+ },
+ "SAR": {
+  "tag": "SAR",
+  "name": "Sardinia-Piedmont",
+  "color": "#6c93a8",
+  "capital": "ITA_09"
+ },
+ "TUS": {
+  "tag": "TUS",
+  "name": "Tuscany",
+  "color": "#80a07f",
+  "capital": "ITA_17"
+ },
+ "PAP": {
+  "tag": "PAP",
+  "name": "Papal States",
+  "color": "#e3d498",
+  "capital": "ITA_06"
+ },
+ "SIC": {
+  "tag": "SIC",
+  "name": "Two Sicilies",
+  "color": "#8ea66b",
+  "capital": "ITA_15"
+ },
+ "PRM": {
+  "tag": "PRM",
+  "name": "Parma",
+  "color": "#c79a6a",
+  "capital": "ITA_08"
+ },
+ "MOD": {
+  "tag": "MOD",
+  "name": "Modena",
+  "color": "#8a7fb0",
+  "capital": "ITA_04"
+ },
+ "RUS": {
+  "tag": "RUS",
+  "name": "Russian Empire",
+  "color": "#4f8a5b",
+  "capital": "RUS_15"
+ },
+ "OTT": {
+  "tag": "OTT",
+  "name": "Ottoman Empire",
+  "color": "#9e4252",
+  "capital": "TUR_02"
+ },
+ "GRE": {
+  "tag": "GRE",
+  "name": "Greece",
+  "color": "#6fa3c7",
+  "capital": "GRC_03"
+ },
+ "SER": {
+  "tag": "SER",
+  "name": "Serbia",
+  "color": "#a8786a",
+  "capital": "SRB_07"
+ },
+ "MON": {
+  "tag": "MON",
+  "name": "Montenegro",
+  "color": "#c9a36b",
+  "capital": "MNE_01"
+ },
+ "WAL": {
+  "tag": "WAL",
+  "name": "Wallachia",
+  "color": "#c7a85a",
+  "capital": "ROU_11"
+ },
+ "MOL": {
+  "tag": "MOL",
+  "name": "Moldavia",
+  "color": "#7c9cb8",
+  "capital": "ROU_05"
+ },
+ "EGY": {
+  "tag": "EGY",
+  "name": "Egypt",
+  "color": "#b5a463",
+  "capital": "EGY_03"
+ },
+ "PER": {
+  "tag": "PER",
+  "name": "Persia",
+  "color": "#7f6ca8",
+  "capital": "IRN_05"
+ },
+ "NEJ": {
+  "tag": "NEJ",
+  "name": "Nejd",
+  "color": "#c08c5a",
+  "capital": "SAU_10"
+ },
+ "YEM": {
+  "tag": "YEM",
+  "name": "Yemen",
+  "color": "#8f9a5e",
+  "capital": "YEM_08"
+ },
+ "OMA": {
+  "tag": "OMA",
+  "name": "Oman",
+  "color": "#b06a5e",
+  "capital": "OMN_01"
+ },
+ "MOR": {
+  "tag": "MOR",
+  "name": "Morocco",
+  "color": "#a97640",
+  "capital": "MAR_02"
+ },
+ "TUN": {
+  "tag": "TUN",
+  "name": "Tunis",
+  "color": "#5f9b8a",
+  "capital": "TUN_02"
+ },
+ "AFG": {
+  "tag": "AFG",
+  "name": "Kabul",
+  "color": "#8b905b",
+  "capital": "AFG_09"
+ },
+ "HER": {
+  "tag": "HER",
+  "name": "Herat",
+  "color": "#b39a6b",
+  "capital": "AFG_12"
+ },
+ "KHI": {
+  "tag": "KHI",
+  "name": "Khiva",
+  "color": "#9a8456",
+  "capital": "UZB_07"
+ },
+ "BUK": {
+  "tag": "BUK",
+  "name": "Bukhara",
+  "color": "#6d9e86",
+  "capital": "UZB_01"
+ },
+ "KOK": {
+  "tag": "KOK",
+  "name": "Kokand",
+  "color": "#c38e70",
+  "capital": "UZB_09"
+ },
+ "EIC": {
+  "tag": "EIC",
+  "name": "East India Company",
+  "color": "#d48b52",
+  "capital": "IND_19"
+ },
+ "SIK": {
+  "tag": "SIK",
+  "name": "Sikh Empire",
+  "color": "#c4a24a",
+  "capital": "PAK_06"
+ },
+ "SIN": {
+  "tag": "SIN",
+  "name": "Sindh",
+  "color": "#7da37b",
+  "capital": "PAK_08"
+ },
+ "KAL": {
+  "tag": "KAL",
+  "name": "Kalat",
+  "color": "#a3896b",
+  "capital": "PAK_03"
+ },
+ "HYD": {
+  "tag": "HYD",
+  "name": "Hyderabad",
+  "color": "#6b8f5e",
+  "capital": "IND_26"
+ },
+ "GWA": {
+  "tag": "GWA",
+  "name": "Gwalior",
+  "color": "#9c6f8f",
+  "capital": "IND_25"
+ },
+ "NAG": {
+  "tag": "NAG",
+  "name": "Nagpur",
+  "color": "#7f9fb0",
+  "capital": "IND_27"
+ },
+ "RAJ": {
+  "tag": "RAJ",
+  "name": "Rajput States",
+  "color": "#c27b62",
+  "capital": "IND_29"
+ },
+ "NEP": {
+  "tag": "NEP",
+  "name": "Nepal",
+  "color": "#8e6a9b",
+  "capital": "NPL_04"
+ },
+ "BHU": {
+  "tag": "BHU",
+  "name": "Bhutan",
+  "color": "#b49a5e",
+  "capital": "BTN_01"
+ },
+ "QNG": {
+  "tag": "QNG",
+  "name": "Qing Empire",
+  "color": "#d9ab4a",
+  "capital": "CHN_06"
+ },
+ "JAP": {
+  "tag": "JAP",
+  "name": "Japan",
+  "color": "#c47a8c",
+  "capital": "JPN_06"
+ },
+ "RYU": {
+  "tag": "RYU",
+  "name": "Ryukyu",
+  "color": "#7fb0a6",
+  "capital": "JPN_09"
+ },
+ "JOS": {
+  "tag": "JOS",
+  "name": "Joseon",
+  "color": "#8bb3a0",
+  "capital": "KOR_02"
+ },
+ "BUR": {
+  "tag": "BUR",
+  "name": "Burma",
+  "color": "#b07d55",
+  "capital": "MMR_03"
+ },
+ "SIA": {
+  "tag": "SIA",
+  "name": "Siam",
+  "color": "#68a48f",
+  "capital": "THA_08"
+ },
+ "DAI": {
+  "tag": "DAI",
+  "name": "Dai Nam",
+  "color": "#b8a455",
+  "capital": "VNM_06"
+ },
+ "JOH": {
+  "tag": "JOH",
+  "name": "Johor",
+  "color": "#9b7c5f",
+  "capital": "MYS_08"
+ },
+ "BRN": {
+  "tag": "BRN",
+  "name": "Brunei",
+  "color": "#8fa36b",
+  "capital": "BRN_01"
+ },
+ "ACE": {
+  "tag": "ACE",
+  "name": "Aceh",
+  "color": "#6e9a75",
+  "capital": "IDN_17"
+ },
+ "SUL": {
+  "tag": "SUL",
+  "name": "Sulu",
+  "color": "#b48870",
+  "capital": "PHL_08"
+ },
+ "ETH": {
+  "tag": "ETH",
+  "name": "Ethiopia",
+  "color": "#7f9e5c",
+  "capital": "ETH_10"
+ },
+ "MAD": {
+  "tag": "MAD",
+  "name": "Madagascar",
+  "color": "#6fa08a",
+  "capital": "MDG_01"
+ },
+ "ZUL": {
+  "tag": "ZUL",
+  "name": "Zulu Kingdom",
+  "color": "#a87b53",
+  "capital": "ZAF_09"
+ },
+ "SOK": {
+  "tag": "SOK",
+  "name": "Sokoto",
+  "color": "#b38f5a",
+  "capital": "NGA_16"
+ },
+ "ASH": {
+  "tag": "ASH",
+  "name": "Ashanti",
+  "color": "#8ba36a",
+  "capital": "GHA_04"
+ },
+ "DAH": {
+  "tag": "DAH",
+  "name": "Dahomey",
+  "color": "#a46a6a",
+  "capital": "BEN_06"
+ },
+ "LIB": {
+  "tag": "LIB",
+  "name": "Liberia",
+  "color": "#7c95b5",
+  "capital": "LBR_03"
+ },
+ "MAS": {
+  "tag": "MAS",
+  "name": "Massina",
+  "color": "#9b8d5c",
+  "capital": "MLI_08"
+ },
+ "USA": {
+  "tag": "USA",
+  "name": "United States",
+  "color": "#7192c4",
+  "capital": "USA_40"
+ },
+ "MEX": {
+  "tag": "MEX",
+  "name": "Mexico",
+  "color": "#7ba35d",
+  "capital": "MEX_18"
+ },
+ "FCA": {
+  "tag": "FCA",
+  "name": "Central America",
+  "color": "#6a7fb0",
+  "capital": "GTM_01"
+ },
+ "NGR": {
+  "tag": "NGR",
+  "name": "New Granada",
+  "color": "#d0b04f",
+  "capital": "COL_06"
+ },
+ "VNZ": {
+  "tag": "VNZ",
+  "name": "Venezuela",
+  "color": "#9b7c52",
+  "capital": "VEN_10"
+ },
+ "ECU": {
+  "tag": "ECU",
+  "name": "Ecuador",
+  "color": "#c9a46b",
+  "capital": "ECU_07"
+ },
+ "PEU": {
+  "tag": "PEU",
+  "name": "Peru",
+  "color": "#8f71a0",
+  "capital": "PER_01"
+ },
+ "BOL": {
+  "tag": "BOL",
+  "name": "Bolivia",
+  "color": "#6a8fa3",
+  "capital": "BOL_02"
+ },
+ "CHL": {
+  "tag": "CHL",
+  "name": "Chile",
+  "color": "#b45252",
+  "capital": "CHL_09"
+ },
+ "ARG": {
+  "tag": "ARG",
+  "name": "Argentine Confederation",
+  "color": "#8fbad3",
+  "capital": "ARG_24"
+ },
+ "URU": {
+  "tag": "URU",
+  "name": "Uruguay",
+  "color": "#6b78a8",
+  "capital": "URY_04"
+ },
+ "PRY": {
+  "tag": "PRY",
+  "name": "Paraguay",
+  "color": "#a6b06a",
+  "capital": "PRY_01"
+ },
+ "BRZ": {
+  "tag": "BRZ",
+  "name": "Empire of Brazil",
+  "color": "#479c8b",
+  "capital": "BRA_23"
+ },
+ "HAI": {
+  "tag": "HAI",
+  "name": "Haiti",
+  "color": "#5d7ea6",
+  "capital": "HTI_02"
+ },
+ "HAW": {
+  "tag": "HAW",
+  "name": "Hawaii",
+  "color": "#a8b56f",
+  "capital": "USA_04"
+ }
+}
