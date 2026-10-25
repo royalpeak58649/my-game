@@ -4,6 +4,7 @@ import statesJson from '../src/data/states.json';
 import countriesJson from '../src/data/countries.json';
 import { createGameState } from '../src/sim/state';
 import { initEconomy } from '../src/sim/economy/init';
+import { withStartEconomy } from '../src/sim/economy/start';
 import { tick } from '../src/sim/tick';
 import { GOODS, GOOD_IDS } from '../src/data/economy/goods';
 import { POP_TYPE_IDS } from '../src/data/economy/pops';
@@ -33,7 +34,8 @@ function report(s: GameState, label: string) {
 }
 
 let t0 = performance.now();
-let s = initEconomy(createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null));
+const base = createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null);
+let s = process.env.SEED ? initEconomy(base) : withStartEconomy(base);
 console.log(`init ${(performance.now() - t0).toFixed(0)} ms, states ${Object.keys(s.economy.states).length}, buildings ${Object.values(s.economy.states).reduce((n, e) => n + Object.keys(e.buildings).length, 0)}`);
 report(s, 'start');
 const times: number[] = [];

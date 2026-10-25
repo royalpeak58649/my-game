@@ -201,7 +201,7 @@ async function main() {
     if (big && hash(s.id + 'coal') < 0.12) res.coal = 1 + Math.floor(hash(s.id + 'c2') * 3);
     if (big && hash(s.id + 'iron') < 0.12) res.iron = 1 + Math.floor(hash(s.id + 'i2') * 3);
     for (const [crop, pred] of Object.entries(CROPS)) {
-      if (pred(facts)) res[crop] = Math.round(clamp(1 + p / 300000, 1, 10));
+      if (pred(facts)) res[crop] = Math.round(clamp(2 + p / 100000, 2, 20));
     }
     result[s.id] = {
       population: p,

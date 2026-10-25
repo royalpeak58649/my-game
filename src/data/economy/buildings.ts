@@ -77,15 +77,23 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
       { id: 'textile_wool', name: 'Wool Weaving', inputs: { wool: 9 }, outputs: { fabric: 16 } },
     ]),
     factory('garment_works', 'Garment Works', [
-      { id: 'garment_sewing', name: 'Hand Sewing', inputs: { fabric: 10, dye: 1 }, outputs: { clothes: 15 } },
-      { id: 'garment_luxury', name: 'Fine Tailoring', inputs: { silk: 4, dye: 1, fabric: 2 }, outputs: { luxury_clothes: 7 } },
+      { id: 'garment_sewing', name: 'Hand Sewing', inputs: { fabric: 10 }, outputs: { clothes: 13 } },
+      { id: 'garment_dyed', name: 'Dyed Garments', inputs: { fabric: 10, dye: 1 }, outputs: { clothes: 15 } },
+    ]),
+    factory('tailors', 'Fine Tailors', [
+      { id: 'tailors_silk', name: 'Silk Tailoring', inputs: { silk: 4, dye: 1, fabric: 2 }, outputs: { luxury_clothes: 7 } },
+      { id: 'tailors_wool', name: 'Fine Woollens', inputs: { wool: 6, dye: 1 }, outputs: { luxury_clothes: 5 } },
     ]),
     factory('furniture_workshop', 'Furniture Workshops', [
       { id: 'furniture_hand', name: 'Cabinet Making', inputs: { wood: 12, fabric: 2 }, outputs: { furniture: 14 } },
     ]),
     factory('food_industry', 'Food Industry', [
-      { id: 'food_bakeries', name: 'Bakeries', inputs: { grain: 14, sugar: 2 }, outputs: { groceries: 17 } },
-      { id: 'food_distillery', name: 'Distilleries', inputs: { grain: 14 }, outputs: { liquor: 14 } },
+      { id: 'food_bakeries', name: 'Bakeries', inputs: { grain: 15 }, outputs: { groceries: 15 } },
+      { id: 'food_sweet', name: 'Sweet Bakeries', inputs: { grain: 14, sugar: 2 }, outputs: { groceries: 17 } },
+    ]),
+    factory('distillery', 'Distilleries', [
+      { id: 'distillery_pot', name: 'Pot Stills', inputs: { grain: 14 }, outputs: { liquor: 14 } },
+      { id: 'distillery_rum', name: 'Rum Distilling', inputs: { sugar: 8 }, outputs: { liquor: 12 } },
     ]),
     factory('tool_workshop', 'Tool Workshops', [
       { id: 'tools_forge', name: 'Village Forges', inputs: { wood: 8, iron: 5 }, outputs: { tools: 12 } },

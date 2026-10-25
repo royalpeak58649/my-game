@@ -135,6 +135,8 @@ export interface CountryEconomy {
 }
 
 export interface EconomyState {
+  /** Pre-1836 calibration mode (see investment.ts); never set during play. */
+  warmup?: boolean;
   states: Record<string, StateEconomy>; // only states with an owner
   markets: Record<string, Market>; // keyed by country tag
   countries: Record<string, CountryEconomy>;

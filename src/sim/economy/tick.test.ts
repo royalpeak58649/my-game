@@ -232,6 +232,7 @@ describe('economyTick — money', () => {
     const farm = makeBuilding('farm', 1, { farmers: 3600, aristocrats: 40 });
     const mill = makeBuilding('textile_mill', 1, { laborers: 2500, machinists: 300, clerks: 150, capitalists: 40 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [farm, mill]) } });
+    state.player = 'AAA'; // no AI method switching inside this check
     const next = economyTick(state);
     const eco = next.economy.states.S1;
     const market = next.economy.markets.AAA;
@@ -278,6 +279,7 @@ describe('economyTick — construction', () => {
     const sector = makeBuilding('construction_sector', 1, { laborers: 4000 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [sector]) } });
     state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
+    state.player = 'AAA'; // keep the investment AI out of this test
 
     const next = economyTick(state);
     const farm = next.economy.states.S1.buildings.farm;
@@ -295,6 +297,7 @@ describe('economyTick — construction', () => {
     const farm = makeBuilding('farm', 1, { farmers: 3600, aristocrats: 40 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [sector, farm]) } });
     state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
+    state.player = 'AAA'; // keep the investment AI out of this test
     const next = economyTick(state);
     expect(next.economy.states.S1.buildings.farm?.level).toBe(2);
   });
@@ -321,6 +324,7 @@ describe('economyTick — robustness', () => {
     const farm = makeBuilding('farm', 1, { farmers: 3600, aristocrats: 40 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [farm]) } });
     state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
+    state.player = 'AAA'; // keep the investment AI out of this test
     const before = JSON.stringify(state);
     economyTick(state);
     expect(JSON.stringify(state)).toBe(before);

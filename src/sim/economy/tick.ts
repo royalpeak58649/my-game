@@ -12,6 +12,7 @@ import {
 } from '../../data/economy/goods';
 import { MAX_CONSUMPTION_SCALE, NEEDS, POP_TYPES, POP_TYPE_IDS, standardOfLiving, yearlyGrowth } from '../../data/economy/pops';
 import type { GameState } from '../types';
+import { investmentStep } from './investment';
 import type {
   BuildingDef, BuildingInstance, ConstructionItem, CountryEconomy, EconomyState, GoodId, Market,
   PopTypeId, ProductionMethodDef, StateEconomy, WealthTier,
@@ -102,7 +103,7 @@ function cloneEconomy(e: EconomyState): EconomyState {
     const c = e.countries[tag] as CountryEconomy;
     countries[tag] = { ...c, queue: c.queue.map((q) => ({ ...q })) };
   }
-  return { states, markets, countries };
+  return { ...(e.warmup ? { warmup: true } : {}), states, markets, countries };
 }
 
 export function createBuildingInstance(buildingId: string): BuildingInstance | null {
@@ -200,9 +201,18 @@ export function economyTick(state: GameState): GameState {
       }
       for (let p = 0; p < P; p++) {
         const jobs = level * (v.jobs[p] as number);
-        if (jobs <= 0) continue;
         const id = POP_TYPE_IDS[p] as PopTypeId;
-        const open = jobs - (emp[id] ?? 0);
+        const cur = emp[id] ?? 0;
+        if (cur > jobs) {
+          // more workers than jobs (level removed or method changed): release the excess
+          const excess = cur - jobs;
+          if (jobs > 0) emp[id] = jobs; else delete emp[id];
+          pops[s * P + p] = Math.max(0, (pops[s * P + p] as number) - excess);
+          pops[s * P + PEASANTS] += excess;
+          continue;
+        }
+        if (jobs <= 0) continue;
+        const open = jobs - cur;
         if (open <= 0) continue;
         const peasants = pops[s * P + PEASANTS] as number;
         if (peasants < 1) break;
@@ -421,8 +431,8 @@ export function economyTick(state: GameState): GameState {
     c.queue = remaining;
   }
 
-  // ============================================================ 9. growth
-  for (let s = 0; s < S; s++) {
+  // ============================================================ 9. growth (after write-back below)
+  for (let s = 0; s < S && eco.warmup !== true; s++) { // no growth during pre-1836 calibration
     const total = popStart[s] as number;
     if (total <= 0) continue;
     const added = Math.round((total * yearlyGrowth((solStart[s] as number) / total)) / 52);
@@ -448,6 +458,9 @@ export function economyTick(state: GameState): GameState {
       mk.imports[id] = importsA[i] as number;
     }
   }
+
+  // ============================================================ 10. investment
+  investmentStep(eco, state.states, state.player, eco.warmup === true, state.tickCount);
   return next;
 }
 
