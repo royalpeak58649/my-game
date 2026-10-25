@@ -1,4 +1,3 @@
-import { TECHS } from '../../data/politics/techs';
 import { BUILDINGS } from '../../data/economy/buildings';
 import { GOODS, GOOD_IDS } from '../../data/economy/goods';
 import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';

@@ -109,7 +109,6 @@ function advanceEnactment(country: CountryPolitics): boolean {
 
 /** Steps 0–8 for one country. Mutates `country`, which the caller owns. */
 function tickCountry(
-  tag: string,
   country: CountryPolitics,
   state: GameState,
   stateIds: readonly string[],
