@@ -1084,6 +1084,690 @@ body {
   grid-area: cancel;
 }
 
+/* ------------------------------------------------------------- politics */
+
+.readonly-note {
+  margin: 0 0 12px;
+  padding: 6px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.5);
+  line-height: 1.4;
+}
+
+/* legitimacy block */
+
+.legitimacy-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.55);
+}
+
+.legitimacy-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.legitimacy-label {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+
+.legitimacy-value {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.legitimacy-value.is-low {
+  color: var(--negative);
+}
+
+.legitimacy-value.is-mid {
+  color: var(--brass);
+}
+
+.legitimacy-value.is-good {
+  color: var(--positive);
+}
+
+/* interest group chips */
+
+.ig-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 4px;
+}
+
+.ig-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 999px;
+  background: rgba(22, 29, 40, 0.6);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--parchment);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ig-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brass);
+  flex: 0 0 auto;
+}
+
+.ig-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ig-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* interest group table */
+
+.ig-table {
+  table-layout: fixed;
+}
+
+.ig-table .col-clout {
+  width: 30%;
+  text-align: left;
+}
+
+.ig-table .col-approval {
+  width: 34%;
+  text-align: left;
+}
+
+.ig-table .col-gov {
+  width: 34px;
+  text-align: center;
+}
+
+.clout-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.clout-cell .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.clout-value {
+  flex: 0 0 auto;
+  min-width: 30px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--parchment-dim);
+  text-align: right;
+}
+
+.approval-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.approval-cell .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.approval-value {
+  flex: 0 0 auto;
+  min-width: 26px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.approval-label {
+  flex: 0 0 auto;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.approval-label.is-negative {
+  color: var(--negative);
+}
+
+.approval-label.is-positive {
+  color: var(--positive);
+}
+
+.approval-label.is-neutral {
+  color: var(--parchment-dim);
+}
+
+.ig-checkbox {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: var(--brass);
+  cursor: pointer;
+}
+
+.ig-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ratio + approval bars */
+
+.bar-ratio {
+  height: 5px;
+}
+
+.bar-ratio .bar-fill.is-brass {
+  background: var(--brass);
+}
+
+.bar-ratio .bar-fill.is-good {
+  background: var(--positive);
+}
+
+.bar-ratio .bar-fill.is-mid {
+  background: var(--brass);
+}
+
+.bar-ratio .bar-fill.is-low {
+  background: var(--negative);
+}
+
+.bar-approval {
+  height: 6px;
+  overflow: hidden;
+}
+
+.bar-approval .bar-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 160ms ease-out, left 160ms ease-out;
+}
+
+.bar-approval .bar-fill.is-positive {
+  background: var(--positive);
+}
+
+.bar-approval .bar-fill.is-negative {
+  background: var(--negative);
+}
+
+.bar-approval .bar-fill.is-neutral {
+  background: var(--parchment-dim);
+}
+
+.bar-mid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(239, 230, 210, 0.45);
+  transform: translateX(-50%);
+}
+
+/* movements */
+
+.movement-list {
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.movement-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.55);
+}
+
+.movement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.movement-law {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  color: var(--parchment);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movement-radicalism {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.movement-radicalism .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.movement-value {
+  flex: 0 0 auto;
+  min-width: 22px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--parchment-dim);
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ laws */
+
+.law-list {
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.law-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.55);
+}
+
+.law-row.is-in-force {
+  border-color: rgba(201, 164, 92, 0.5);
+  background: rgba(201, 164, 92, 0.07);
+}
+
+.law-row.is-enacting {
+  border-color: var(--brass-dim);
+}
+
+.law-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.law-name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--parchment);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.law-desc {
+  line-height: 1.4;
+}
+
+.law-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.law-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.law-badge {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.law-badge.is-in-force {
+  border-color: var(--brass);
+  color: var(--brass);
+}
+
+.law-badge.is-enacting {
+  border-color: var(--brass-dim);
+  color: var(--brass);
+  background: rgba(201, 164, 92, 0.12);
+}
+
+.law-badge.is-allowed {
+  border-color: rgba(239, 230, 210, 0.22);
+  color: var(--parchment-dim);
+}
+
+.law-badge.is-locked {
+  border-color: rgba(185, 176, 160, 0.25);
+  color: rgba(185, 176, 160, 0.6);
+}
+
+.law-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 90px;
+  min-width: 0;
+}
+
+.law-progress .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.law-progress-value {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--parchment-dim);
+}
+
+.law-reason {
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.law-support {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.law-support-value {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.law-action {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* stance dots */
+
+.stance-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.stance-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--parchment-dim);
+}
+
+.stance-dot.is-for {
+  box-shadow: 0 0 0 1px rgba(127, 183, 126, 0.55);
+}
+
+.stance-dot.is-against {
+  box-shadow: 0 0 0 1px rgba(217, 119, 107, 0.55);
+}
+
+/* ------------------------------------------------------------ technology */
+
+.tech-researching {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tech-researching .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tech-progress-value {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--parchment-dim);
+  white-space: nowrap;
+}
+
+.tech-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 4px 0 0;
+}
+
+.tech-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tech-column-title {
+  margin: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.tech-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.55);
+}
+
+.tech-card.is-known {
+  border-color: rgba(201, 164, 92, 0.45);
+  background: rgba(201, 164, 92, 0.07);
+}
+
+.tech-card.is-researching {
+  border-color: var(--brass-dim);
+}
+
+.tech-card.is-locked {
+  opacity: 0.55;
+}
+
+.tech-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tech-name {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--parchment);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tech-cost {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--brass);
+}
+
+.tech-requires,
+.tech-desc {
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.tech-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.tech-badge {
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tech-badge.is-known {
+  border-color: var(--brass);
+  color: var(--brass);
+}
+
+.tech-badge.is-researching {
+  border-color: var(--brass-dim);
+  color: var(--brass);
+  background: rgba(201, 164, 92, 0.12);
+}
+
+.tech-badge.is-available {
+  border-color: rgba(239, 230, 210, 0.22);
+  color: var(--parchment-dim);
+}
+
+.tech-badge.is-locked {
+  border-color: rgba(185, 176, 160, 0.25);
+  color: rgba(185, 176, 160, 0.6);
+}
+
+.tech-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 70px;
+  min-width: 0;
+}
+
+.tech-progress .bar {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tech-foot .button-small {
+  margin-left: auto;
+}
+
+@media (max-width: 380px) {
+  .tech-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------- politics top bar pills */
+
+.stat-legitimacy.is-low {
+  border-color: rgba(217, 119, 107, 0.55);
+  color: var(--negative);
+}
+
+.stat-legitimacy.is-mid {
+  border-color: rgba(201, 164, 92, 0.55);
+  color: var(--brass);
+}
+
+.stat-legitimacy.is-good {
+  border-color: rgba(127, 183, 126, 0.55);
+  color: var(--positive);
+}
+
+.stat-research.is-active {
+  border-color: var(--brass-dim);
+  color: var(--brass);
+}
+
+.stat-research.is-idle {
+  color: rgba(185, 176, 160, 0.7);
+}
+
 /* --------------------------------------------------------------- scroll */
 
 ::-webkit-scrollbar {
