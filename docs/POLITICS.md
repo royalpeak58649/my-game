@@ -75,6 +75,7 @@ Per country, in this order:
       (ties by id).
    c. *Laws* (every 52 weeks, when not enacting): among laws allowed to start (see commands), pick
       the one with the largest `Σ_{i in government} clout_i × stance(i, l)`; start it if > 0.5.
+      The AI only reforms one step forward in a group's order and never goes back (players may).
 
 ## Commands — `src/sim/politics/commands.ts`
 

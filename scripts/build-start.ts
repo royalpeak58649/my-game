@@ -12,6 +12,9 @@ import { createGameState, START_DATE } from '../src/sim/state';
 import { initEconomy } from '../src/sim/economy/init';
 import { TREASURY_PER_CAPITA } from '../src/data/economy/development';
 import { tick } from '../src/sim/tick';
+import { economyTick } from '../src/sim/economy/tick';
+import { addDays } from '../src/sim/date';
+import { initPolitics } from '../src/sim/politics/init';
 import { GOODS, GOOD_IDS } from '../src/data/economy/goods';
 import type { CountryDef, GameState, StateDef } from '../src/sim/types';
 
@@ -31,16 +34,20 @@ function summary(s: GameState): string {
   return `levels ${levels}, traded goods at floor ${(100 * atFloor / n).toFixed(0)}%, at ceiling ${(100 * atCeil / n).toFixed(0)}%`;
 }
 
-let s = initEconomy(createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null));
+// Politics is initialised so that 1836 laws and techs (trade policy, serfdom, unlocks) shape the
+// calibration, but it is frozen during warm-up: only the economy ticks.
+let s = initPolitics(initEconomy(createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null)));
+const economyOnly = (g: GameState): GameState => economyTick({ ...g, date: addDays(g.date, 7), tickCount: g.tickCount + 1 });
 console.log(`seeded: ${summary(s)}`);
 s = { ...s, economy: { ...s.economy, warmup: true } };
 for (let w = 1; w <= WARMUP_WEEKS; w++) {
-  s = tick(s);
+  s = economyOnly(s);
   if (w % 52 === 0) console.log(`warm-up year ${w / 52}: ${summary(s)}`);
 }
 const { warmup: _, ...eco } = s.economy;
 s = { ...s, economy: eco };
-for (let w = 1; w <= SETTLE_WEEKS; w++) s = tick(s);
+for (let w = 1; w <= SETTLE_WEEKS; w++) s = economyOnly(s);
+void tick;
 console.log(`settled: ${summary(s)}`);
 
 // back to the start date, keep the economy

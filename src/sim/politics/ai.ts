@@ -90,7 +90,11 @@ export function aiLawPick(country: CountryPolitics): string | null {
   let best: string | null = null;
   let bestScore = AI_MIN_SUPPORT;
   for (const lawId of startableLaws(country)) {
-    if (!LAWS[lawId]) continue;
+    const def = LAWS[lawId];
+    if (!def) continue;
+    // AI reforms one step at a time and never turns the clock back (no reviving serfdom).
+    const order = LAW_GROUPS[def.group].laws;
+    if (order.indexOf(lawId) !== order.indexOf(country.laws[def.group]) + 1) continue;
     const score = governmentSupport(country, lawId);
     if (score > bestScore) {
       best = lawId;

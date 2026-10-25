@@ -5,7 +5,9 @@
 // IG_IDS order, so the result is deterministic. No NaN is ever stored: every division is
 // guarded and every number written back is finite.
 
-import { POP_TYPE_IDS } from '../../data/economy/pops';
+import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
+import { POP_AFFINITY } from '../../data/politics/igs';
+import type { PopTypeId } from '../economy/types';
 import { IG_IDS } from '../../data/politics/igs';
 import { ENACTMENT_WEEKS, LAWS } from '../../data/politics/laws';
 import type { GameState } from '../types';
@@ -13,7 +15,7 @@ import { applyAiGovernment, applyAiLaws, applyAiResearch } from './ai';
 import {
   ANGRY_APPROVAL, GOVERNMENT_INTERVAL, LAW_INTERVAL, advanceResearch, approvalTarget,
   clamp, cloutShares, countryTags, enactmentSpeed, enactmentSupport, fin, igCloutMult,
-  legitimacyOf, nextMovements, researchPointsOf, stateStrength, statesByOwner, tierWeights,
+  legitimacyOf, nextMovements, researchPointsOf, statesByOwner, tierWeights,
 } from './internal';
 import { combineModifiers } from './modifiers';
 import type { CountryPolitics, IgId, PoliticsState } from './types';
@@ -46,6 +48,12 @@ function emptyCountryPops(): CountryPops {
   return { strength, members, solWeighted, clerks: 0, bureaucrats: 0, machinists: 0 };
 }
 
+// Affinity as a flat table: AFF[popIndex * IG_COUNT + igIndex].
+const IG_COUNT = IG_IDS.length;
+const AFF = new Float64Array(POP_TYPE_IDS.length * IG_COUNT);
+POP_TYPE_IDS.forEach((pop, p) => IG_IDS.forEach((ig, i) => { AFF[p * IG_COUNT + i] = POP_AFFINITY[pop][ig] ?? 0; }));
+const POP_TIER = POP_TYPE_IDS.map((pop) => POP_TYPES[pop].tier);
+
 /** One pass over the country's states: clout inputs, member counts and living standards. */
 function collectPops(
   state: GameState,
@@ -53,19 +61,36 @@ function collectPops(
   weights: ReturnType<typeof tierWeights>,
 ): CountryPops {
   const out = emptyCountryPops();
+  const strength = new Float64Array(IG_COUNT);
+  const members = new Float64Array(IG_COUNT);
+  const solW = new Float64Array(IG_COUNT);
+  const w = POP_TIER.map((t) => fin(weights[t], 1));
   for (const stateId of stateIds) {
     const economy = state.economy.states[stateId];
     if (!economy) continue;
-    const s = stateStrength(economy.pops, economy.sol, weights);
-    for (const ig of IG_IDS) {
-      out.strength[ig] += s.strength[ig];
-      out.members[ig] += s.membersTotal[ig];
-      out.solWeighted[ig] += s.solWeighted[ig];
+    for (let p = 0; p < POP_TYPE_IDS.length; p++) {
+      const pop = POP_TYPE_IDS[p] as PopTypeId;
+      const count = Math.max(0, fin(economy.pops[pop]));
+      if (count <= 0) continue;
+      const sol = fin(economy.sol[pop]);
+      const pw = count * (w[p] as number);
+      for (let i = 0; i < IG_COUNT; i++) {
+        const a = AFF[p * IG_COUNT + i] as number;
+        if (a === 0) continue;
+        strength[i] += pw * a;
+        members[i] += count * a;
+        solW[i] += count * a * sol;
+      }
     }
     out.clerks += fin(economy.pops.clerks);
     out.bureaucrats += fin(economy.pops.bureaucrats);
     out.machinists += fin(economy.pops.machinists);
   }
+  IG_IDS.forEach((ig, i) => {
+    out.strength[ig] = strength[i] as number;
+    out.members[ig] = members[i] as number;
+    out.solWeighted[ig] = solW[i] as number;
+  });
   return out;
 }
 
