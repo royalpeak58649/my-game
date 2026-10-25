@@ -1,6 +1,9 @@
 import type { GameState } from '../sim/types';
 
-export type MapMode = 'political' | 'states';
+export type MapMode = 'political' | 'population' | 'states';
+
+/** Which view the side panel shows. */
+export type PanelView = 'auto' | 'market' | 'construction';
 
 /** Speed 0 = paused, 1..5 = weekly tick speeds. */
 export type Speed = 0 | 1 | 2 | 3 | 4 | 5;
@@ -12,6 +15,8 @@ export interface UiState {
   hoveredStateId: string | null;
   mapMode: MapMode;
   speed: Speed;
+  /** 'auto' follows the selection (state → state view, country → country view). */
+  panelView: PanelView;
 }
 
 export type Listener<T> = (value: T) => void;
@@ -23,6 +28,7 @@ function createUiState(): UiState {
     hoveredStateId: null,
     mapMode: 'political',
     speed: 0,
+    panelView: 'auto',
   };
 }
 

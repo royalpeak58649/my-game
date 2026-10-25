@@ -1,4 +1,6 @@
 import { formatDate } from '../../sim/date';
+import { countryEconomy } from '../../sim/economy/queries';
+import { formatDelta, formatMoney } from '../format';
 import type { Speed, Store } from '../store';
 
 const SPEEDS: Exclude<Speed, 0>[] = [1, 2, 3, 4, 5];
@@ -14,13 +16,18 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
-/** Top bar: player identity, date, speed controls and placeholder readouts. */
+/** Top bar: player identity, date, economy readouts, panel shortcuts and speed controls. */
 export class TopBar {
   readonly root: HTMLElement;
   private readonly store: Store;
   private readonly swatch: HTMLElement;
   private readonly playerName: HTMLElement;
   private readonly dateLabel: HTMLElement;
+  private readonly treasurySlot: HTMLElement;
+  private readonly treasuryValue: HTMLElement;
+  private readonly netValue: HTMLElement;
+  private readonly marketButton: HTMLButtonElement;
+  private readonly constructionButton: HTMLButtonElement;
   private readonly pauseButton: HTMLButtonElement;
   private readonly pips: HTMLButtonElement[] = [];
   private readonly unsubscribers: (() => void)[] = [];
@@ -45,7 +52,23 @@ export class TopBar {
 
     const right = el('div', 'topbar-right');
     const stats = el('div', 'topbar-stats');
-    stats.append(el('span', 'stat-slot', 'Treasury —'), el('span', 'stat-slot', 'Prestige —'));
+
+    this.treasurySlot = el('span', 'stat-slot stat-treasury');
+    this.treasuryValue = el('span', 'stat-value', '—');
+    this.netValue = el('span', 'stat-delta', '');
+    this.treasurySlot.append(this.treasuryValue, this.netValue);
+
+    this.marketButton = el('button', 'stat-slot stat-button', 'Market');
+    this.marketButton.type = 'button';
+    this.marketButton.title = 'Open the market panel';
+    this.marketButton.addEventListener('click', () => this.openView('market'));
+
+    this.constructionButton = el('button', 'stat-slot stat-button', 'Construction');
+    this.constructionButton.type = 'button';
+    this.constructionButton.title = 'Open the construction panel';
+    this.constructionButton.addEventListener('click', () => this.openView('construction'));
+
+    stats.append(this.treasurySlot, this.marketButton, this.constructionButton);
 
     const controls = el('div', 'speed-controls');
     this.pauseButton = el('button', 'speed-pause');
@@ -77,6 +100,13 @@ export class TopBar {
     this.render();
   }
 
+  /** Opens the side panel on an economy view for the player's country. */
+  private openView(view: 'market' | 'construction'): void {
+    const tag = this.store.get().player;
+    if (!tag) return;
+    this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: view });
+  }
+
   private render(): void {
     const game = this.store.get();
     const ui = this.store.getUi();
@@ -93,12 +123,46 @@ export class TopBar {
       this.playerName.textContent = 'Observer';
     }
 
+    this.renderEconomy(game.player);
+
     this.pauseButton.classList.toggle('is-paused', ui.speed === 0);
     this.pauseButton.textContent = ui.speed === 0 ? '▶' : '❚❚';
     for (const pip of this.pips) {
       const speed = Number(pip.dataset['speed']);
       pip.classList.toggle('is-active', ui.speed !== 0 && speed <= ui.speed);
     }
+  }
+
+  private renderEconomy(tag: string | null): void {
+    const game = this.store.get();
+    const economy = tag ? countryEconomy(game, tag) : undefined;
+    const isPlayer = tag !== null && economy !== undefined;
+
+    this.marketButton.hidden = !isPlayer;
+    this.constructionButton.hidden = !isPlayer;
+
+    if (!economy) {
+      this.treasurySlot.hidden = true;
+      this.treasuryValue.textContent = '—';
+      this.netValue.textContent = '';
+      this.netValue.className = 'stat-delta';
+      this.treasurySlot.removeAttribute('title');
+      this.constructionButton.textContent = 'Construction';
+      return;
+    }
+
+    this.treasurySlot.hidden = false;
+    const net = economy.lastIncome - economy.lastExpenses;
+    this.treasuryValue.textContent = formatMoney(economy.treasury);
+    this.netValue.textContent = formatDelta(net);
+    this.netValue.className = `stat-delta ${net >= 0 ? 'is-positive' : 'is-negative'}`;
+    this.treasurySlot.title =
+      `Treasury ${formatMoney(economy.treasury)}\n` +
+      `Income ${formatDelta(economy.lastIncome)} / week\n` +
+      `Expenses ${formatDelta(-economy.lastExpenses)} / week\n` +
+      `Net ${formatDelta(net)} / week`;
+
+    this.constructionButton.textContent = `Construction ${Math.round(economy.constructionPoints)}/wk`;
   }
 
   dispose(): void {

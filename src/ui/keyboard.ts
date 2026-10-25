@@ -10,7 +10,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
-/** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M map mode. */
+/** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M cycles map mode. */
 export function installKeyboard(store: Store, options: KeyboardOptions): () => void {
   const handler = (event: KeyboardEvent): void => {
     if (isTypingTarget(event.target)) return;
@@ -35,7 +35,8 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
 
     if (event.key === 'm' || event.key === 'M') {
       const mode = store.getUi().mapMode;
-      store.setUi({ mapMode: mode === 'political' ? 'states' : 'political' });
+      const next = mode === 'political' ? 'population' : mode === 'population' ? 'states' : 'political';
+      store.setUi({ mapMode: next });
     }
   };
 

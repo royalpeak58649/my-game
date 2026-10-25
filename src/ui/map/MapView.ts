@@ -1,6 +1,7 @@
 import { geoNaturalEarth1, geoPath, type GeoPermissibleObjects, type GeoProjection } from 'd3-geo';
 import { feature, mesh, neighbors } from 'topojson-client';
 import type { CountryDef, StateDef } from '../../sim/types';
+import { totalPopulation } from '../../sim/economy/queries';
 import type { MapMode, Store } from '../store';
 
 /**
@@ -69,6 +70,19 @@ const SELECT_COLOR = '#ffe9a8';
 const LABEL_COLOR = '#1d2533';
 const LABEL_HALO = 'rgba(239, 230, 210, 0.85)';
 
+/** Sequential warm palette for the population map mode, low → high density. */
+const POPULATION_PALETTE: readonly string[] = [
+  '#f4ecd8',
+  '#f0dcb4',
+  '#e9c98d',
+  '#dfb268',
+  '#d0964c',
+  '#b97a3c',
+  '#9a5f31',
+  '#7a4728',
+  '#5a3320',
+];
+
 const MIN_SCALE = 1;
 const MAX_SCALE = 40;
 const DRAG_THRESHOLD = 4;
@@ -86,8 +100,7 @@ function pastelFor(id: string): string {
   return `hsl(${hue} ${sat}% ${light}%)`;
 }
 
-function emptyBBox(): BBox {
-  return { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+function emptyBBox(): BBox {  return { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
 }
 
 function bboxIsValid(b: BBox): boolean {
