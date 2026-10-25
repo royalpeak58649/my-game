@@ -6,6 +6,7 @@ import { BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings'
 import { GOODS } from '../../data/economy/goods';
 import { POP_TYPES } from '../../data/economy/pops';
 import type { StateDef } from '../types';
+import { unlockedFor } from '../politics/unlocks';
 import type { BuildingDef, CountryEconomy, EconomyState, GoodId, Market, PopTypeId, StateEconomy } from './types';
 
 const PRIVATE: BuildingDef[] = Object.values(BUILDINGS).filter((b) => b.owner !== 'government');
@@ -68,22 +69,27 @@ function consume(def: BuildingDef, methodId: string, surplus: Surplus, levels: n
 /** Peasants not already promised to open jobs in the state. */
 function freeWorkers(se: StateEconomy): number {
   let open = 0;
-  for (const inst of Object.values(se.buildings)) {
+  for (const id in se.buildings) {
+    const inst = se.buildings[id] as StateEconomy['buildings'][string];
     const def = BUILDINGS[inst.id];
-    const m = def?.methods.find((x) => x.id === inst.method) ?? def?.methods[0];
-    if (!m) continue;
-    let jobs = 0;
-    for (const n of Object.values(m.employment)) jobs += (n ?? 0) * inst.level;
+    if (!def) continue;
     let employed = 0;
-    for (const n of Object.values(inst.employed)) employed += n ?? 0;
-    open += Math.max(0, jobs - employed);
+    for (const k in inst.employed) employed += inst.employed[k as PopTypeId] ?? 0;
+    const jobs = jobsPerLevel(def) * inst.level;
+    if (jobs > employed) open += jobs - employed;
   }
   return (se.pops.peasants ?? 0) - open;
 }
 
+const jobsCache = new Map<string, number>();
 function jobsPerLevel(def: BuildingDef): number {
-  const m = def.methods[0];
-  return m ? Object.values(m.employment).reduce((a: number, b) => a + (b ?? 0), 0) : 0;
+  let j = jobsCache.get(def.id);
+  if (j === undefined) {
+    const m = def.methods[0];
+    j = m ? Object.values(m.employment).reduce((a: number, b) => a + (b ?? 0), 0) : 0;
+    jobsCache.set(def.id, j);
+  }
+  return j;
 }
 
 /** Remaining capacity for one more level, counting queued items. Infinity = uncapped. */
@@ -99,41 +105,73 @@ function room(se: StateEconomy, def: BuildingDef, queued: (id: string) => number
 interface Candidate { stateId: string; def: BuildingDef; method: string; score: number }
 
 /** Most profitable method for a new level. */
-export function bestMethod(def: BuildingDef, market: Market, surplus: Surplus): { id: string; profit: number } {
+export function bestMethod(def: BuildingDef, market: Market, surplus: Surplus, techs?: readonly string[]): { id: string; profit: number } {
   let best = { id: def.methods[0]?.id ?? '', profit: -Infinity };
   for (const m of def.methods) {
+    if (!unlockedFor(techs, m.id)) continue;
     const p = marginalProfit(def, m.id, market, surplus);
     if (p > best.profit) best = { id: m.id, profit: p };
   }
   return best;
 }
 
-function candidates(eco: EconomyState, stateIds: string[], market: Market, c: CountryEconomy, surplus: Surplus): Candidate[] {
+function candidates(
+  eco: EconomyState, stateIds: string[], market: Market, c: CountryEconomy, surplus: Surplus,
+  techs?: readonly string[], bestOnly = false,
+): Candidate[] {
   const out: Candidate[] = [];
-  const methodCache = new Map<string, { id: string; profit: number }>();
+  let best: Candidate | null = null;
+  // method choice per building type: existing method id ('' = new building) -> choice
+  const methodCache = new Map<string, Map<string, { id: string; profit: number }>>();
+  // queued levels per state and building, and jobs already promised per state
+  const queued = new Map<string, Map<string, number>>();
+  const queuedJobs = new Map<string, number>();
+  for (const q of c.queue) {
+    let m = queued.get(q.stateId);
+    if (!m) queued.set(q.stateId, (m = new Map()));
+    m.set(q.buildingId, (m.get(q.buildingId) ?? 0) + 1);
+    const def = BUILDINGS[q.buildingId];
+    if (def) queuedJobs.set(q.stateId, (queuedJobs.get(q.stateId) ?? 0) + jobsPerLevel(def));
+  }
+  const defs = PRIVATE.filter((d) => unlockedFor(techs, d.id));
+  const none = new Map<string, number>();
   for (const sid of stateIds) {
     const se = eco.states[sid];
     if (!se) continue;
-    let free = freeWorkers(se);
-    for (const q of c.queue) if (q.stateId === sid) free -= jobsPerLevel(BUILDINGS[q.buildingId] as BuildingDef);
-    const queuedHere = (id: string) => c.queue.filter((q) => q.stateId === sid && q.buildingId === id).length;
-    for (const def of PRIVATE) {
-      if (room(se, def, queuedHere) < 1) continue;
+    const free = freeWorkers(se) - (queuedJobs.get(sid) ?? 0);
+    if (free <= 0) continue;
+    const q = queued.get(sid) ?? none;
+    const queuedHere = (id: string) => q.get(id) ?? 0;
+    for (const def of defs) {
       if (free < jobsPerLevel(def)) continue; // nobody to staff it
-      const existing = se.buildings[def.id]?.method;
-      const key = `${def.id}:${existing ?? '*'}`;
-      let choice = methodCache.get(key);
+      if (room(se, def, queuedHere) < 1) continue;
+      const existing = se.buildings[def.id]?.method ?? '';
+      let byMethod = methodCache.get(def.id);
+      if (!byMethod) methodCache.set(def.id, (byMethod = new Map()));
+      let choice = byMethod.get(existing);
       if (!choice) {
-        choice = existing ? { id: existing, profit: marginalProfit(def, existing, market, surplus) } : bestMethod(def, market, surplus);
-        methodCache.set(key, choice);
+        choice = existing ? { id: existing, profit: marginalProfit(def, existing, market, surplus) } : bestMethod(def, market, surplus, techs);
+        byMethod.set(existing, choice);
       }
       if (choice.profit <= 0) continue;
-      out.push({ stateId: sid, def, method: choice.id, score: choice.profit / def.cost });
+      const score = choice.profit / def.cost;
+      if (bestOnly) {
+        if (!best || score > best.score || (score === best.score && (sid < best.stateId || (sid === best.stateId && def.id < best.def.id)))) {
+          best = { stateId: sid, def, method: choice.id, score };
+        }
+      } else out.push({ stateId: sid, def, method: choice.id, score });
     }
   }
-  // best first; deterministic tie-break
-  out.sort((a, b) => b.score - a.score || a.stateId.localeCompare(b.stateId) || a.def.id.localeCompare(b.def.id));
+  if (bestOnly) return best ? [best] : [];
+  out.sort((a, b) => (better(a, b) ? -1 : better(b, a) ? 1 : 0));
   return out;
+}
+
+/** Higher score first; deterministic tie-break by state then building id. */
+function better(a: Candidate, b: Candidate): boolean {
+  if (a.score !== b.score) return a.score > b.score;
+  if (a.stateId !== b.stateId) return a.stateId < b.stateId;
+  return a.def.id < b.def.id;
 }
 
 function addLevel(se: StateEconomy, def: BuildingDef, method: string): void {
@@ -147,7 +185,7 @@ function addLevel(se: StateEconomy, def: BuildingDef, method: string): void {
  * beat the current method by 10% and its extra inputs are reserved from the surplus, so
  * only as many buildings switch as the market can supply.
  */
-function switchMethods(eco: EconomyState, stateIds: string[], market: Market, surplus: Surplus): void {
+function switchMethods(eco: EconomyState, stateIds: string[], market: Market, surplus: Surplus, techs?: readonly string[]): void {
   for (const sid of stateIds) {
     for (const inst of Object.values(eco.states[sid]?.buildings ?? {})) {
       const def = BUILDINGS[inst.id];
@@ -155,7 +193,7 @@ function switchMethods(eco: EconomyState, stateIds: string[], market: Market, su
       const now = currentProfit(def, inst.method, market);
       let best: { id: string; profit: number } | null = null;
       for (const m of def.methods) {
-        if (m.id === inst.method) continue;
+        if (m.id === inst.method || !unlockedFor(techs, m.id)) continue;
         const p = marginalProfit(def, m.id, market, surplus, inst.level);
         if (p > now + Math.abs(now) * 0.1 && (!best || p > best.profit)) best = { id: m.id, profit: p };
       }
@@ -174,6 +212,7 @@ function switchMethods(eco: EconomyState, stateIds: string[], market: Market, su
  */
 export function investmentStep(
   eco: EconomyState, stateDefs: Record<string, StateDef>, player: string | null, warmup: boolean, week: number,
+  techsOf: (tag: string) => readonly string[] | undefined = () => undefined,
 ): void {
   const byTag = new Map<string, string[]>();
   for (const sid of Object.keys(eco.states).sort()) {
@@ -192,7 +231,8 @@ export function investmentStep(
     if (!c || !market) continue;
 
     const surplus = surplusOf(market);
-    if (week % 4 === 0) switchMethods(eco, stateIds, market, surplus);
+    const techs = techsOf(tag);
+    if (week % 4 === 0) switchMethods(eco, stateIds, market, surplus, techs);
 
     if (warmup) {
       // shrink loss makers every 4th week
@@ -216,7 +256,7 @@ export function investmentStep(
       const levels = Math.max(1, Math.ceil(pop / 2_000_000));
       const used = new Set<string>();
       let added = 0;
-      for (const p of candidates(eco, stateIds, market, c, surplus)) {
+      for (const p of candidates(eco, stateIds, market, c, surplus, techs)) {
         if (added >= levels) break;
         if (used.has(p.stateId)) continue; // at most one new level per state per week
         const se = eco.states[p.stateId];
@@ -237,8 +277,10 @@ export function investmentStep(
       else if (c.treasury < 8 * weekly && c.incomeTaxRate < 0.3) c.incomeTaxRate = Math.min(0.3, c.incomeTaxRate + 0.01);
     }
 
-    // Keep enough projects queued to absorb this week's construction points.
-    const wanted = Math.max(1, Math.ceil(c.constructionPoints / MAX_POINTS_PER_PROJECT));
+    // Keep enough projects queued to absorb the construction points, plus one spare because each
+    // country only re-plans every other week (spreads the cost of planning across ticks).
+    if ((week + tagParity(tag)) % 2 !== 0) continue;
+    const wanted = Math.max(1, Math.ceil(c.constructionPoints / MAX_POINTS_PER_PROJECT)) + 1;
     if (c.queue.length >= wanted) continue;
     // A rich treasury with little construction capacity: expand the construction sector first.
     const capital = stateIds.find((sid) => eco.states[sid]?.buildings.construction_sector) ?? stateIds[0];
@@ -247,7 +289,13 @@ export function investmentStep(
       c.queue.push({ stateId: capital, buildingId: 'construction_sector', progress: 0 });
       continue;
     }
-    const best = candidates(eco, stateIds, market, c, surplus)[0];
+    const best = candidates(eco, stateIds, market, c, surplus, techs, true)[0];
     if (best) c.queue.push({ stateId: best.stateId, buildingId: best.def.id, progress: 0 });
   }
+}
+
+function tagParity(tag: string): number {
+  let h = 0;
+  for (let i = 0; i < tag.length; i++) h += tag.charCodeAt(i);
+  return h % 2;
 }

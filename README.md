@@ -25,6 +25,7 @@ npm run data:start    # calibrated 1836 start economy (run after changing econom
 | Space | Pause / resume |
 | 1 – 5 | Game speed |
 | M | Cycle map mode (political / population / states) |
+| P / L / T | Politics / Laws / Technology |
 | Esc | Close panel |
 
 ## What exists (milestone 1)
@@ -41,6 +42,14 @@ Pops by profession, buildings with production methods, a market per country link
 trade, wages/profits/taxes, construction, and an investment AI for the other countries. The top
 bar shows your treasury and opens the Market and Construction views; clicking a state shows its
 pops and buildings and lets you queue construction. See [docs/ECONOMY.md](docs/ECONOMY.md).
+
+## Milestone 3: politics
+
+Eight interest groups whose clout follows your franchise law and pops; a government you choose
+and the legitimacy it gives you; eight law groups (governance, franchise, church, trade, labour,
+taxation, education, press) that act on the economy; movements of angry groups; and a technology
+tree that unlocks buildings, production methods and laws. The top bar shows legitimacy and
+research. See [docs/POLITICS.md](docs/POLITICS.md).
 
 ## The 1836 map is approximate
 

@@ -1,5 +1,6 @@
 import { addDays } from './date';
 import { economyTick } from './economy/tick';
+import { politicsTick } from './politics/tick';
 import type { GameState } from './types';
 
 export const DAYS_PER_TICK = 7;
@@ -11,5 +12,6 @@ export function tick(state: GameState): GameState {
     date: addDays(state.date, DAYS_PER_TICK),
     tickCount: state.tickCount + 1,
   };
-  return economyTick(advanced);
+  // Politics runs after the economy: it reads this week's pops, living standards and taxes.
+  return politicsTick(economyTick(advanced));
 }

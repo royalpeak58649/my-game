@@ -12,11 +12,11 @@ export const LAWS: Record<string, LawDef> = Object.fromEntries([
     modifiers: { radicalismMult: 0.9 }, igCloutMult: { intelligentsia: 1.3, merchants: 1.2, industrialists: 1.2 } }),
   // franchise
   L({ id: 'no_franchise', group: 'franchise', name: 'No Elections', description: 'Power follows rank and property alone.',
-    modifiers: {}, tierWeights: { subsistence: 0.05, lower: 0.2, middle: 3, upper: 60 } }),
+    modifiers: {}, tierWeights: { subsistence: 0.02, lower: 0.1, middle: 3, upper: 60 } }),
   L({ id: 'wealth_franchise', group: 'franchise', name: 'Property Franchise', description: 'Only taxpayers of means may vote.',
-    modifiers: {}, tierWeights: { subsistence: 0.1, lower: 0.5, middle: 10, upper: 40 } }),
+    modifiers: {}, tierWeights: { subsistence: 0.03, lower: 0.2, middle: 10, upper: 60 } }),
   L({ id: 'manhood_franchise', group: 'franchise', name: 'Manhood Suffrage', description: 'Every grown man has a vote.', requiresTech: 'popular_sovereignty',
-    modifiers: {}, tierWeights: { subsistence: 0.6, lower: 2, middle: 6, upper: 15 } }),
+    modifiers: {}, tierWeights: { subsistence: 0.3, lower: 2, middle: 6, upper: 15 } }),
   // church
   L({ id: 'state_church', group: 'church', name: 'State Church', description: 'One faith, upheld and funded by the state.', modifiers: { legitimacyAdd: 5, researchMult: 0.95 } }),
   L({ id: 'freedom_of_conscience', group: 'church', name: 'Freedom of Conscience', description: 'An official faith, but others are tolerated.', modifiers: {} }),

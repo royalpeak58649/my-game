@@ -1,5 +1,7 @@
 // Read-only helpers over the economy. Used by the UI and by commands.
 
+import { TECH_UNLOCKS } from '../../data/politics/techs';
+import { isUnlocked } from '../politics/unlocks';
 import { BUILDINGS } from '../../data/economy/buildings';
 import type { GameState } from '../types';
 import type {
@@ -99,6 +101,8 @@ export interface BuildableBuilding {
   current: number;
   queued: number;
   cap: number | null;
+  /** Tech id still needed before it can be built, or null. */
+  lockedBy: string | null;
 }
 
 /** Every building type with its current and queued levels in a state. */
@@ -110,6 +114,7 @@ export function buildableBuildings(state: GameState, tag: string, stateId: strin
     current: economy.buildings[def.id]?.level ?? 0,
     queued: queuedLevels(state, stateId, def.id),
     cap: buildingCap(state, stateId, def.id),
+    lockedBy: !state.politics?.countries[tag] || isUnlocked(state, tag, def.id) ? null : (TECH_UNLOCKS[def.id] ?? null),
   }));
 }
 

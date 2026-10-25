@@ -5,6 +5,8 @@ import countriesJson from '../src/data/countries.json';
 import { createGameState } from '../src/sim/state';
 import { initEconomy } from '../src/sim/economy/init';
 import { withStartEconomy } from '../src/sim/economy/start';
+import { initPolitics } from '../src/sim/politics/init';
+import { IGS } from '../src/data/politics/igs';
 import { tick } from '../src/sim/tick';
 import { GOODS, GOOD_IDS } from '../src/data/economy/goods';
 import { POP_TYPE_IDS } from '../src/data/economy/pops';
@@ -30,18 +32,26 @@ function report(s: GameState, label: string) {
     console.log(`${tag}: pop ${(pop / 1e6).toFixed(2)}M emp ${(100 * employed / pop).toFixed(1)}% sol ${(solW / pop).toFixed(1)} lv ${levels} ` +
       `treasury ${c.treasury.toFixed(0)} inc ${c.lastIncome.toFixed(0)} exp ${c.lastExpenses.toFixed(0)} cp ${c.constructionPoints.toFixed(0)} profit ${profit.toFixed(0)}` +
       `\n     floor: ${low.join(' ') || '-'} | ceiling: ${high.join(' ') || '-'}`);
+    const p = s.politics.countries[tag];
+    if (p) {
+      const igs = Object.entries(p.igs).sort((a, b) => b[1].clout - a[1].clout).slice(0, 4)
+        .map(([k, v]) => `${IGS[k as keyof typeof IGS].name} ${(v.clout * 100).toFixed(0)}% ${v.approval.toFixed(1)}`).join(', ');
+      console.log(`     legit ${p.legitimacy.toFixed(0)} gov [${p.government.join(',')}] techs ${p.techs.length} rp ${p.researchPoints.toFixed(1)} ` +
+        `res ${p.researching ?? '-'} enact ${p.enacting ? p.enacting.law + ' ' + (p.enacting.progress * 100).toFixed(0) + '%' : '-'} ` +
+        `moves ${p.movements.map((m) => m.ig + '>' + m.law + ':' + m.radicalism.toFixed(0)).join(' ') || '-'}\n     ${igs}`);
+    }
   }
 }
 
 let t0 = performance.now();
 const base = createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null);
-let s = process.env.SEED ? initEconomy(base) : withStartEconomy(base);
+let s = initPolitics(process.env.SEED ? initEconomy(base) : withStartEconomy(base));
 console.log(`init ${(performance.now() - t0).toFixed(0)} ms, states ${Object.keys(s.economy.states).length}, buildings ${Object.values(s.economy.states).reduce((n, e) => n + Object.keys(e.buildings).length, 0)}`);
 report(s, 'start');
 const times: number[] = [];
 for (let w = 1; w <= weeks; w++) {
   t0 = performance.now(); s = tick(s); times.push(performance.now() - t0);
-  if (w === 1 || w === 4 || w === 26 || w % 52 === 0) report(s, `week ${w}`);
+  if (w === 1 || w % 104 === 0) report(s, `week ${w}`);
 }
 times.sort((a, b) => a - b);
 console.log(`\ntick ms: median ${times[Math.floor(times.length / 2)].toFixed(1)}, p95 ${times[Math.floor(times.length * 0.95)].toFixed(1)}, max ${times[times.length - 1].toFixed(1)}`);

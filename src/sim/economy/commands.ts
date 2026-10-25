@@ -1,6 +1,7 @@
 // Player commands. Pure: each returns a new GameState, or the same object when invalid.
 
 import { BUILDINGS } from '../../data/economy/buildings';
+import { isUnlocked } from '../politics/unlocks';
 import type { GameState } from '../types';
 import { buildingCap } from './queries';
 import type { CountryEconomy, EconomyState, StateEconomy } from './types';
@@ -45,6 +46,8 @@ export function queueConstruction(
   const country = state.economy.countries[tag];
   if (!stateEconomy || !country) return state;
 
+  if (!techAllows(state, tag, buildingId)) return state;
+
   const cap = buildingCap(state, stateId, buildingId);
   if (cap !== null) {
     const current = stateEconomy.buildings[buildingId]?.level ?? 0;
@@ -76,6 +79,8 @@ export function setProductionMethod(
   const def = BUILDINGS[buildingId];
   if (!def) return state;
   if (!def.methods.some((m) => m.id === methodId)) return state;
+  const owner = state.states[stateId]?.owner;
+  if (owner && !techAllows(state, owner, methodId)) return state;
   const inst = stateEconomy.buildings[buildingId];
   if (!inst || inst.method === methodId) return state;
 
@@ -91,4 +96,9 @@ export function setIncomeTax(state: GameState, tag: string, rate: number): GameS
   const clamped = Math.max(MIN_INCOME_TAX, Math.min(MAX_INCOME_TAX, rate));
   if (clamped === country.incomeTaxRate) return state;
   return { ...state, economy: withCountry(state.economy, tag, { ...country, incomeTaxRate: clamped }) };
+}
+
+/** Tech gating; countries without politics data (headless tests) are unrestricted. */
+function techAllows(state: GameState, tag: string, id: string): boolean {
+  return !state.politics?.countries[tag] || isUnlocked(state, tag, id);
 }
