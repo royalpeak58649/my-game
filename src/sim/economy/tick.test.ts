@@ -128,6 +128,7 @@ function makeWorld(options: WorldOptions): GameState {
     states: stateDefs,
     countries: countryDefs,
     economy,
+    politics: { countries: {} },
   };
 }
 

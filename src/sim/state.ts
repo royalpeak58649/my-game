@@ -14,5 +14,6 @@ export function createGameState(
     states: Object.fromEntries(states.map((s) => [s.id, { ...s, centroid: [s.centroid[0], s.centroid[1]] }])),
     countries: Object.fromEntries(Object.entries(countries).map(([k, c]) => [k, { ...c }])),
     economy: { states: {}, markets: {}, countries: {} },
+    politics: { countries: {} },
   };
 }
