@@ -73,7 +73,9 @@ steps before it and last week's stored values where noted.
    `wages = Σ employed[t] × baseWage[t]`;
    `profit = revenue − inputCost − wages`. Store `lastRevenue`, `lastCosts`, `lastProfit`, `inputFill`.
    - Owner buildings: wages go to the employed pops of the state; **positive** profit goes to the
-     state's owner pop type (`aristocrats` or `capitalists`); losses are absorbed (no negative income).
+     state's owner pop type (`aristocrats` or `capitalists`). A building running at a loss pays
+     only what it earns: wages are cut pro rata to `max(0, revenue − inputCost)` so no money is
+     created; `lastProfit` still uses the full wage bill, so it keeps firing until profitable.
    - Government buildings: revenue is 0; `inputCost + wages` is paid from the treasury.
 6. **Pop income** (per state, per type): `gross = (wages + dividends) / pops[t]` for employed types;
    peasants get `subsistenceIncome`. Tax: `tax = gross × incomeTaxRate` (not on peasants);

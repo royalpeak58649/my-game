@@ -40,3 +40,6 @@ export const DEFAULT_DEVELOPMENT: Development = D(0.05, 0.01);
 /** Starting treasury per inhabitant. */
 export const TREASURY_PER_CAPITA = 0.002;
 export const DEFAULT_INCOME_TAX = 0.1;
+
+/** Weekly government upkeep per inhabitant (court, army, navy — abstracted until later systems). */
+export const UPKEEP_PER_CAPITA = 0.0002;

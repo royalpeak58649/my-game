@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BUILDINGS } from '../../data/economy/buildings';
 import { GOODS, GOOD_IDS } from '../../data/economy/goods';
-import { POP_TYPE_IDS } from '../../data/economy/pops';
+import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
 import type { GameState } from '../types';
 import type {
   BuildingInstance,
@@ -47,17 +47,25 @@ function makeMarket(): Market {
     demand: emptyQuantities(),
     buyFill: emptyFills(),
     sellFill: emptyFills(),
+    exports: emptyQuantities(),
+    imports: emptyQuantities(),
   };
 }
 
 function makeCountry(treasury = 1000): CountryEconomy {
-  return { treasury, incomeTaxRate: 0.1, lastIncome: 0, lastExpenses: 0, constructionPoints: 0, queue: [] };
+  return { treasury, incomeTaxRate: 0.1, lastIncome: 0, lastExpenses: 0, lastUpkeep: 0, constructionPoints: 0, queue: [] };
 }
 
 function makeState(pops: Partial<Record<PopTypeId, number>>, buildings: BuildingInstance[] = []): StateEconomy {
   const full = emptyPops();
   for (const [id, value] of Object.entries(pops)) full[id as PopTypeId] = value ?? 0;
+  // people already working in a building belong to that profession
+  for (const b of buildings) for (const [id, n] of Object.entries(b.employed)) full[id as PopTypeId] += n ?? 0;
   const income = emptyPops();
+  for (const id of POP_TYPE_IDS) {
+    const t = POP_TYPES[id];
+    income[id] = t.subsistenceIncome ?? (t.baseWage > 0 ? t.baseWage * 0.9 : 1);
+  }
   const sol = emptyPops();
   for (const id of POP_TYPE_IDS) sol[id] = 10;
   return {
@@ -152,8 +160,13 @@ describe('economyTick — employment', () => {
     expect(farmers).toBeGreaterThan(0);
     expect(farmers).toBeLessThanOrEqual(3600);
     expect(aristocrats).toBeLessThanOrEqual(40);
-    expect(next.economy.states.S1.pops.peasants).toBe(100000 - farmers - aristocrats);
-    expect(next.economy.states.S1.pops.farmers).toBe(0); // hired people are not counted twice
+    const pops = next.economy.states.S1.pops;
+    // hired people moved from peasants into their profession; total only grows by natural growth
+    expect(pops.farmers).toBe(farmers);
+    expect(pops.aristocrats).toBe(aristocrats);
+    const total = POP_TYPE_IDS.reduce((t, id) => t + pops[id], 0);
+    expect(total).toBeGreaterThanOrEqual(100000);
+    expect(total).toBeLessThan(100000 * 1.001);
   });
 
   it('never hires more people than there are peasants', () => {
@@ -264,7 +277,7 @@ describe('economyTick — construction', () => {
   it('completes a queued item and adds a level', () => {
     const sector = makeBuilding('construction_sector', 1, { laborers: 4000 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [sector]) } });
-    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: 0 }];
+    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
 
     const next = economyTick(state);
     const farm = next.economy.states.S1.buildings.farm;
@@ -281,7 +294,7 @@ describe('economyTick — construction', () => {
     const sector = makeBuilding('construction_sector', 1, { laborers: 4000 });
     const farm = makeBuilding('farm', 1, { farmers: 3600, aristocrats: 40 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [sector, farm]) } });
-    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: 0 }];
+    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
     const next = economyTick(state);
     expect(next.economy.states.S1.buildings.farm?.level).toBe(2);
   });
@@ -307,7 +320,7 @@ describe('economyTick — robustness', () => {
   it('does not mutate its input', () => {
     const farm = makeBuilding('farm', 1, { farmers: 3600, aristocrats: 40 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [farm]) } });
-    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: 0 }];
+    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'farm', progress: BUILDINGS.farm.cost - 1 }];
     const before = JSON.stringify(state);
     economyTick(state);
     expect(JSON.stringify(state)).toBe(before);

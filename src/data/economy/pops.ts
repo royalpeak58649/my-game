@@ -9,7 +9,7 @@ export const POP_TYPES: Record<PopTypeId, PopTypeDef> = {
   machinists: { id: 'machinists', name: 'Machinists', tier: 'lower', baseWage: 0.08, hireRate: 0.04 },
   laborers: { id: 'laborers', name: 'Laborers', tier: 'lower', baseWage: 0.05, hireRate: 0.1 },
   farmers: { id: 'farmers', name: 'Farmers', tier: 'lower', baseWage: 0.04, hireRate: 0.1 },
-  peasants: { id: 'peasants', name: 'Peasants', tier: 'lower', baseWage: 0, subsistenceIncome: 0.012, hireRate: 0 },
+  peasants: { id: 'peasants', name: 'Peasants', tier: 'subsistence', baseWage: 0, subsistenceIncome: 0.013, hireRate: 0 },
 };
 
 export const POP_TYPE_IDS = Object.keys(POP_TYPES) as PopTypeId[];
@@ -17,6 +17,10 @@ export const POP_TYPE_IDS = Object.keys(POP_TYPES) as PopTypeId[];
 // Per person per week at consumption scale 1 ("comfortable").
 // Lower basket costs ≈ 0.06 at base prices; middle ≈ 0.16; upper ≈ 0.9.
 export const NEEDS: Record<WealthTier, NeedsBasket> = {
+  // Peasants grow most of what they need; this is only what they buy (≈ 0.029 at base prices).
+  subsistence: {
+    grain: 0.0012, fish: 0.0001, wood: 0.0002, fabric: 0.00005, liquor: 0.00003,
+  },
   lower: {
     grain: 0.001, meat: 0.0002, fish: 0.0002, wood: 0.0002,
     fabric: 0.0003, clothes: 0.0001, liquor: 0.0001, groceries: 0.0001,

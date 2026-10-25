@@ -6,7 +6,7 @@ import { BUILDINGS } from '../../data/economy/buildings';
 import { DEFAULT_DEVELOPMENT, DEFAULT_INCOME_TAX, DEVELOPMENT, TREASURY_PER_CAPITA } from '../../data/economy/development';
 import type { Development } from '../../data/economy/development';
 import { GOOD_IDS, GOODS } from '../../data/economy/goods';
-import { POP_TYPE_IDS } from '../../data/economy/pops';
+import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
 import type { GameState } from '../types';
 import type {
   BuildingDef,
@@ -108,6 +108,8 @@ function emptyMarket(): Market {
     demand: emptyGoodsRecord(0),
     buyFill: emptyGoodsRecord(1),
     sellFill: emptyGoodsRecord(1),
+    exports: emptyGoodsRecord(0),
+    imports: emptyGoodsRecord(0),
   };
 }
 
@@ -117,6 +119,7 @@ function emptyCountryEconomy(countryPop: number): CountryEconomy {
     incomeTaxRate: DEFAULT_INCOME_TAX,
     lastIncome: 0,
     lastExpenses: 0,
+    lastUpkeep: 0,
     constructionPoints: 0,
     queue: [],
   };
@@ -128,12 +131,6 @@ function developmentOf(tag: string): Development {
 
 function resourceOf(def: StateEconomyDef, resource: ResourceId): number {
   return def.resources[resource] ?? 0;
-}
-
-function buildingDef(id: string): BuildingDef {
-  const def = BUILDINGS[id];
-  if (!def) throw new Error(`Unknown building id: ${id}`);
-  return def;
 }
 
 function defaultMethodId(def: BuildingDef): string {
@@ -302,7 +299,7 @@ function buildStateEconomy(
   const employedTotal = POP_TYPE_IDS.reduce((sum, id) => sum + pops[id], 0);
   pops.peasants = Math.max(0, def.population - employedTotal);
 
-  const income = emptyPops();
+  const income = startingIncome();
   const sol = emptyPops();
   for (const id of POP_TYPE_IDS) sol[id] = STARTING_SOL;
 
@@ -315,6 +312,23 @@ function buildStateEconomy(
     urbanCap: def.urbanCap,
     coastal: def.coastal,
   };
+}
+
+/**
+ * Income before the first tick: wage after the default tax for workers, subsistence for
+ * peasants and a rough dividend estimate for owners. Without this every pop would have zero
+ * income in week one, demand would vanish and all prices would collapse.
+ */
+const STARTING_OWNER_INCOME = 2;
+function startingIncome(): Record<PopTypeId, number> {
+  const income = emptyPops();
+  for (const id of POP_TYPE_IDS) {
+    const t = POP_TYPES[id];
+    if (t.subsistenceIncome !== undefined) income[id] = t.subsistenceIncome;
+    else if (t.baseWage > 0) income[id] = t.baseWage * (1 - DEFAULT_INCOME_TAX);
+    else income[id] = STARTING_OWNER_INCOME * (1 - DEFAULT_INCOME_TAX);
+  }
+  return income;
 }
 
 // ------------------------------------------------------------------ entry point

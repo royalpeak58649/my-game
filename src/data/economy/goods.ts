@@ -40,3 +40,6 @@ export const PRICE_MAX_FACTOR = 1.75;
 export const PRICE_ELASTICITY = 0.75;
 /** Fraction of the gap to the target price closed each week (smoothing). */
 export const PRICE_SMOOTHING = 0.25;
+
+/** Share of a market's surplus (or shortage) that is offered to (or sought from) the world market. */
+export const WORLD_TRADE_SHARE = 0.5;

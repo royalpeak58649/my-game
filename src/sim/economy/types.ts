@@ -22,7 +22,8 @@ export type PopTypeId =
   | 'aristocrats' | 'capitalists' | 'bureaucrats' | 'clerks' | 'shopkeepers'
   | 'machinists' | 'laborers' | 'farmers' | 'peasants';
 
-export type WealthTier = 'lower' | 'middle' | 'upper';
+/** 'subsistence' is the peasants' mostly self-provided basket. */
+export type WealthTier = 'subsistence' | 'lower' | 'middle' | 'upper';
 
 export interface PopTypeDef {
   id: PopTypeId;
@@ -110,6 +111,9 @@ export interface Market {
   buyFill: Record<GoodId, number>;
   /** Share of supply that was sold (min(1, D/S)). */
   sellFill: Record<GoodId, number>;
+  /** Amounts shipped to / received from the world market last week. */
+  exports: Record<GoodId, number>;
+  imports: Record<GoodId, number>;
 }
 
 export interface ConstructionItem {
@@ -122,7 +126,10 @@ export interface CountryEconomy {
   treasury: number;
   incomeTaxRate: number; // 0..0.5, applied to wages and dividends
   lastIncome: number;
+  /** Government buildings plus upkeep. */
   lastExpenses: number;
+  /** Abstracted court, army and navy upkeep, included in lastExpenses. */
+  lastUpkeep: number;
   constructionPoints: number; // produced last week
   queue: ConstructionItem[];
 }
