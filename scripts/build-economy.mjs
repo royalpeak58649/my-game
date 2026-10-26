@@ -193,7 +193,7 @@ async function main() {
     const habitable = absLat > 62 ? 0.1 : absLat > 55 ? 0.5 : 1;
     res.arable = Math.max(1, Math.round(p / 9000 + (s.area / 6000) * habitable));
     const forest = (absLat > 45 && absLat < 66) || absLat < 15 ? 1 : 0.3;
-    const wood = Math.round(clamp((s.area / 12000) * forest, 0, 30));
+    const wood = Math.round(clamp((s.area / 6000) * forest + p / 400000, 0, 40));
     if (wood > 0) res.wood = wood;
     if (coastal.has(s.id)) res.fish = Math.round(clamp(2 + p / 600000, 1, 12));
     // small random deposits

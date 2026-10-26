@@ -108,6 +108,7 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
       { id: 'glass_furnace', name: 'Wood-fired Furnaces', inputs: { wood: 8 }, outputs: { glass: 9 } },
     ]),
     factory('arms_workshop', 'Arms Workshops', [
+      { id: 'arms_gunsmiths', name: 'Gunsmiths', inputs: { wood: 6 }, outputs: { small_arms: 4 } },
       { id: 'arms_muskets', name: 'Musket Making', inputs: { iron: 4, wood: 4 }, outputs: { small_arms: 7 } },
     ]),
     // --- urban
