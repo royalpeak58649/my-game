@@ -1,6 +1,6 @@
 import type { GameState } from '../sim/types';
 
-export type MapMode = 'political' | 'population' | 'states';
+export type MapMode = 'political' | 'diplomacy' | 'population' | 'states';
 
 /** Which view the side panel shows. */
 export type PanelView = 'auto' | 'market' | 'construction' | 'politics' | 'laws' | 'technology';

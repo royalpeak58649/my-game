@@ -1791,3 +1791,6 @@ body {
 .ig-table .approval-cell .bar { min-width: 34px; }
 /* mood is shown by the value's colour and the tooltip; the word does not fit at 360px */
 .ig-table .approval-label { display: none; }
+
+/* third tech category (military) gets its own full-width row in the 360px panel */
+.tech-columns > .tech-column:nth-child(3) { grid-column: 1 / -1; }

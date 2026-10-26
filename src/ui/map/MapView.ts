@@ -220,10 +220,12 @@ export class MapView {
 
   private readonly projection: GeoProjection;
   private readonly shapes = new Map<string, StateShape>();
-  private readonly labels: LabelEntry[] = [];
-  private readonly countryBorders: Path2D;
+  private labels: LabelEntry[] = [];
+  private countryBorders: Path2D;
   private readonly coastlines: Path2D;
-  private readonly stateBorders: Path2D;
+  private stateBorders: Path2D;
+  private readonly topology: WorldTopology;
+  private ownershipVersion: number;
   private readonly graticule: Path2D;
 
   private view: View = { scale: 1, tx: 0, ty: 0 };
@@ -277,6 +279,17 @@ export class MapView {
     this.resize();
 
     this.unsubscribers.push(store.subscribeUi(() => this.invalidate()));
+    // Conquests change owners: rebuild owner-dependent borders and labels, and redraw every tick
+    // (fills such as population and diplomacy change over time).
+    this.topology = topology;
+    this.ownershipVersion = store.get().ownershipVersion;
+    this.unsubscribers.push(store.subscribe((game) => {
+      if (game.ownershipVersion !== this.ownershipVersion) {
+        this.ownershipVersion = game.ownershipVersion;
+        this.rebuildPolitical();
+      }
+      this.invalidate();
+    }));
   }
 
   // ---------------------------------------------------------------- geometry
@@ -313,6 +326,14 @@ export class MapView {
       if (!bboxIsValid(sink.bbox)) continue;
       this.shapes.set(id, { id, path: sink, bbox: sink.bbox });
     }
+  }
+
+  /** Recomputes everything that depends on who owns which state. */
+  private rebuildPolitical(): void {
+    this.countryBorders = this.buildMesh(this.topology, (a, b, oa, ob) => a !== b && oa !== ob);
+    this.stateBorders = this.buildMesh(this.topology, (a, b, oa, ob) => a !== b && oa === ob);
+    this.labels = [];
+    this.buildLabels(this.topology);
   }
 
   private buildMesh(
@@ -631,6 +652,31 @@ export class MapView {
       ctx.fill(shape.path);
     }
 
+    // Occupied states: diagonal stripes in the occupier's colour (political and diplomacy modes).
+    if (ui.mapMode === 'political' || ui.mapMode === 'diplomacy') {
+      ctx.save();
+      ctx.lineWidth = 2.5 / scale;
+      for (const war of game.military.wars) {
+        for (const [stateId, occupier] of Object.entries(war.occupation)) {
+          const shape = this.shapes.get(stateId);
+          if (!shape) continue;
+          ctx.save();
+          ctx.clip(shape.path);
+          ctx.strokeStyle = ui.mapMode === 'diplomacy' && occupier !== game.player ? '#7a2e2e' : (countries[occupier]?.color ?? '#000');
+          const b = shape.bbox;
+          const step = 7 / scale;
+          ctx.beginPath();
+          for (let x = b.minX - (b.maxY - b.minY); x < b.maxX; x += step) {
+            ctx.moveTo(x, b.minY);
+            ctx.lineTo(x + (b.maxY - b.minY), b.maxY);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+      ctx.restore();
+    }
+
     // Decentralized hatch.
     if (ui.mapMode === 'political') {
       ctx.save();
@@ -693,6 +739,22 @@ export class MapView {
     this.drawLabels(scale, tx, ty);
   }
 
+  /** Diplomatic map mode, seen from the player (or nothing in particular when observing). */
+  private diplomacyColor(owner: string): string {
+    const game = this.store.get();
+    const me = game.player;
+    if (!me) return game.countries[owner]?.color ?? DECENTRALIZED_COLOR;
+    if (owner === me) return '#d9ab4a';
+    const d = game.diplomacy;
+    const atWar = game.military.wars.some((w) =>
+      (w.attackers.includes(me) && w.defenders.includes(owner)) || (w.defenders.includes(me) && w.attackers.includes(owner)));
+    if (atWar) return '#7a2e2e';
+    if (d.subjects[owner] === me) return '#9cc3e0';
+    if (d.alliances.includes(me < owner ? `${me}|${owner}` : `${owner}|${me}`)) return '#4f7fb5';
+    if (d.countries[me]?.rivals.includes(owner) || d.countries[owner]?.rivals.includes(me)) return '#c25f5f';
+    return '#a9a48f';
+  }
+
   private fillFor(
     def: StateDef | undefined,
     mode: MapMode,
@@ -702,6 +764,7 @@ export class MapView {
     if (mode === 'states') return pastelFor(def.id);
     if (def.owner === null) return DECENTRALIZED_COLOR;
     if (mode === 'population') return populationColor(totalPopulation(this.store.get(), def.id) / Math.max(1, def.area));
+    if (mode === 'diplomacy') return this.diplomacyColor(def.owner);
     return countries[def.owner]?.color ?? DECENTRALIZED_COLOR;
   }
 

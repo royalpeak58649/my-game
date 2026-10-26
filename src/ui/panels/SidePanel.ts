@@ -1069,6 +1069,7 @@ export class SidePanel {
     const categories: { id: TechCategory; name: string }[] = [
       { id: 'production', name: 'Production' },
       { id: 'society', name: 'Society' },
+      { id: 'military', name: 'Military' },
     ];
     for (const category of categories) {
       const column = el('div', 'tech-column');

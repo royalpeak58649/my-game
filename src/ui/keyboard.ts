@@ -44,7 +44,8 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
 
     if (event.key === 'm' || event.key === 'M') {
       const mode = store.getUi().mapMode;
-      const next = mode === 'political' ? 'population' : mode === 'population' ? 'states' : 'political';
+      const order = ['political', 'diplomacy', 'population', 'states'] as const;
+      const next = order[(order.indexOf(mode) + 1) % order.length] ?? 'political';
       store.setUi({ mapMode: next });
       return;
     }

@@ -29,7 +29,7 @@ const MAX_BATTLES = 12;
 /** A side with no battalions loses a contact state every other week. */
 const FREE_OCCUPY_INTERVAL = 2;
 /** Exhaustion at which an AI leader accepts a white peace offer. */
-const WHITE_PEACE_EXHAUSTION = 50;
+export const WHITE_PEACE_EXHAUSTION = 50;
 
 const SIDES: readonly WarSide[] = ['attackers', 'defenders'];
 
@@ -73,7 +73,7 @@ function leaderOf(war: War, side: WarSide): string | null {
 }
 
 /** Controller of a state in one war: the occupier, else the owner. */
-function controllerIn(war: War, state: GameState, stateId: string): string | null {
+export function controllerIn(war: War, state: GameState, stateId: string): string | null {
   return war.occupation[stateId] ?? state.states[stateId]?.owner ?? null;
 }
 
@@ -118,7 +118,7 @@ function qualityOf(state: GameState, tag: string): number {
 }
 
 /** Best general by skill (ties by id), or null. */
-function bestGeneral(generals: readonly General[]): General | null {
+export function bestGeneral(generals: readonly General[]): General | null {
   let best: General | null = null;
   for (const g of generals) {
     if (!best || g.skill > best.skill || (g.skill === best.skill && g.id < best.id)) best = g;
@@ -385,7 +385,7 @@ function allocate(
 
   const nextWars = wars.map((war) => ({
     ...war,
-    fronts: war.fronts.map((front) => ({ ...front, attackerBattalions: 0, defenderBattalions: 0, attackerGeneral: null, defenderGeneral: null })),
+    fronts: war.fronts.map((front): Front => ({ ...front, attackerBattalions: 0, defenderBattalions: 0, attackerGeneral: null, defenderGeneral: null })),
   }));
 
   for (const tag of [...slots.keys()].sort()) {
@@ -447,7 +447,7 @@ function liberatable(world: World, adjacency: Adjacency, war: War, side: WarSide
   const out: string[] = [];
   for (const stateId of Object.keys(war.occupation).sort()) {
     const owner = world.controller.get(stateId);
-    if (owner === undefined) continue;
+    if (owner === undefined || owner === null) continue;
     const ownerSide = sideOf(war, owner);
     if (ownerSide !== side) continue;
     if (neighboursOf(adjacency, stateId).some((n) => world.controller.get(n) === attacker)) out.push(stateId);
