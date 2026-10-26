@@ -23,6 +23,7 @@ import type { CountryPolitics, IgId, LawGroupId, TechCategory } from '../../sim/
 import type { GameState, StateDef } from '../../sim/types';
 import { formatCount, formatDelta, formatMoney, formatPercent } from '../format';
 import type { PanelView, Store } from '../store';
+import { renderDiplomacyView, renderWarView } from './diplomacyViews';
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -248,6 +249,8 @@ export class SidePanel {
       game.tickCount,
       view === 'market' ? `${this.marketSort.key}:${this.marketSort.desc ? 1 : 0}` : '',
       view === 'politics' || view === 'laws' || view === 'technology' ? JSON.stringify(game.politics) : '',
+      view === 'diplomacy' ? JSON.stringify(game.diplomacy) : '',
+      view === 'war' ? JSON.stringify(game.military) : '',
     ].join('|');
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -270,6 +273,12 @@ export class SidePanel {
     } else if (view === 'technology') {
       this.title.textContent = 'Technology';
       this.renderTechnology(game, country?.tag ?? game.player);
+    } else if (view === 'diplomacy') {
+      this.title.textContent = 'Diplomacy';
+      renderDiplomacyView(this.body, game, this.store, country?.tag ?? game.player, ui.selectedCountryTag);
+    } else if (view === 'war') {
+      this.title.textContent = 'War';
+      renderWarView(this.body, game, this.store, country?.tag ?? game.player);
     } else if (state) {
       this.title.textContent = 'State';
       this.renderState(game, state);
