@@ -61,6 +61,8 @@ export const EXHAUSTION_BASE = 0.25;
 export const EXHAUSTION_PER_LOSS = 0.4;
 /** Weekly exhaustion per 1% of own population under occupation. */
 export const EXHAUSTION_PER_OCCUPIED = 0.05;
+/** Weekly exhaustion of a side whose convoys are all sunk (scaled by the convoy shortfall). */
+export const EXHAUSTION_PER_BLOCKADE = 0.3;
 /** A side at this exhaustion capitulates; if both do, white peace. */
 export const CAPITULATION_EXHAUSTION = 100;
 /** Wars end in white peace after this many weeks. */

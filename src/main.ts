@@ -29,6 +29,8 @@ const store = new Store(
   initMilitary(initDiplomacy(initPolitics(withStartEconomy(createGameState(states, countries, null))))),
 );
 const clock = new GameClock(store);
+// development hook for scripted UI checks (stripped from production builds)
+if (import.meta.env.DEV) (window as unknown as { __store?: Store }).__store = store;
 
 app.replaceChildren();
 app.classList.add('app-root');

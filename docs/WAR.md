@@ -1,6 +1,6 @@
 # Diplomacy and war — milestone 4 specification
 
-No navy: armies only fight across **land borders** (`src/data/adjacency.json`, symmetric
+Armies fight across **land borders** (naval invasions open fronts overseas — see docs/NAVY.md) (`src/data/adjacency.json`, symmetric
 `{ stateId: neighbourIds[] }`). Everything is deterministic: randomness comes from
 `rng(seed)` = mulberry32 over `nameHash(seed)` (see `src/data/diplomacy/names.ts`), seeded with
 war id, front id and tick. Constants live in `src/data/diplomacy/rules.ts`; 1836 data in

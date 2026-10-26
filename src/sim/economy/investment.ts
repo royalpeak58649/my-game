@@ -9,6 +9,7 @@ import type { StateDef } from '../types';
 import { unlockedFor } from '../politics/unlocks';
 import { DEFAULT_ARMY_SHARE, START_ARMIES } from '../../data/diplomacy/start1836';
 import { BATTALION_SIZE } from '../../data/diplomacy/rules';
+import { START_NAVIES } from '../../data/navy/rules';
 
 import stateEconomyJson from '../../data/stateEconomy.json';
 const POP_1836 = stateEconomyJson as unknown as Record<string, { population: number }>;
@@ -106,6 +107,7 @@ function jobsPerLevel(def: BuildingDef): number {
 /** Remaining capacity for one more level, counting queued items. Infinity = uncapped. */
 function room(se: StateEconomy, def: BuildingDef, queued: (id: string) => number): number {
   const lv = (id: string) => (se.buildings[id]?.level ?? 0) + queued(id);
+  if (def.coastal && !se.coastal) return 0;
   if (def.urban) return se.urbanCap - lv(def.id);
   if (!def.resource) return Infinity;
   const cap = se.resources[def.resource] ?? 0;
@@ -225,6 +227,7 @@ export function investmentStep(
   eco: EconomyState, stateDefs: Record<string, StateDef>, player: string | null, warmup: boolean, week: number,
   techsOf: (tag: string) => readonly string[] | undefined = () => undefined,
   atWar: (tag: string) => boolean = () => false,
+  navyOf: (tag: string) => { convoyShort: boolean } | undefined = () => undefined,
 ): void {
   const byTag = new Map<string, string[]>();
   for (const sid of Object.keys(eco.states).sort()) {
@@ -315,6 +318,28 @@ export function investmentStep(
       if (bestState && levels < target) {
         c.queue.push({ stateId: bestState, buildingId: 'barracks', progress: 0 });
         continue;
+      }
+    }
+    // Navy (docs/NAVY.md): keep the 1836 fleet (more in wartime) and enough ports for the convoys.
+    const navy = navyOf(tag);
+    if (navy && c.treasury > 12 * Math.max(1, c.lastExpenses)) {
+      const coastalIds = stateIds.filter((sid) => eco.states[sid]?.coastal);
+      const byPop = coastalIds
+        .map((sid) => ({ sid, pop: Object.values(eco.states[sid]?.pops ?? {}).reduce((a, b) => a + b, 0), free: freeWorkers(eco.states[sid] as StateEconomy) }))
+        .sort((a, b) => b.pop - a.pop || a.sid.localeCompare(b.sid));
+      if (navy.convoyShort && !c.queue.some((q) => q.buildingId === 'port')) {
+        const at = byPop.find((x) => x.free > jobsPerLevel(BUILDINGS.port as BuildingDef));
+        if (at) { c.queue.push({ stateId: at.sid, buildingId: 'port', progress: 0 }); continue; }
+      }
+      let pop = 0;
+      let levels = 0;
+      for (const sid of coastalIds) levels += eco.states[sid]?.buildings.naval_base?.level ?? 0;
+      for (const sid of stateIds) for (const n of Object.values(eco.states[sid]?.pops ?? {})) pop += n;
+      const base = START_NAVIES[tag] !== undefined ? START_NAVIES[tag] * (pop / Math.max(1, startPop(eco, stateIds, tag))) : (pop > 1_000_000 && byPop.length > 0 ? 1 : 0);
+      const target = Math.round(base * (atWar(tag) ? 1.25 : 1));
+      if (levels < target && !c.queue.some((q) => q.buildingId === 'naval_base')) {
+        const at = byPop.find((x) => x.free > jobsPerLevel(BUILDINGS.naval_base as BuildingDef));
+        if (at) { c.queue.push({ stateId: at.sid, buildingId: 'naval_base', progress: 0 }); continue; }
       }
     }
     // A rich treasury with little construction capacity: expand the construction sector first.

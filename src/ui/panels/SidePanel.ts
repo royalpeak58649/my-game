@@ -24,6 +24,7 @@ import type { GameState, StateDef } from '../../sim/types';
 import { formatCount, formatDelta, formatMoney, formatPercent } from '../format';
 import type { PanelView, Store } from '../store';
 import { renderDiplomacyView, renderWarView } from './diplomacyViews';
+import { renderNavyView } from './navyViews';
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -250,7 +251,7 @@ export class SidePanel {
       view === 'market' ? `${this.marketSort.key}:${this.marketSort.desc ? 1 : 0}` : '',
       view === 'politics' || view === 'laws' || view === 'technology' ? JSON.stringify(game.politics) : '',
       view === 'diplomacy' ? JSON.stringify(game.diplomacy) : '',
-      view === 'war' ? JSON.stringify(game.military) : '',
+      view === 'war' || view === 'navy' ? JSON.stringify(game.military) : '',
     ].join('|');
     if (signature === this.lastSignature) return;
     this.lastSignature = signature;
@@ -279,6 +280,9 @@ export class SidePanel {
     } else if (view === 'war') {
       this.title.textContent = 'War';
       renderWarView(this.body, game, this.store, country?.tag ?? game.player);
+    } else if (view === 'navy') {
+      this.title.textContent = 'Navy';
+      renderNavyView(this.body, game, this.store, country?.tag ?? game.player);
     } else if (state) {
       this.title.textContent = 'State';
       this.renderState(game, state);

@@ -9,7 +9,7 @@ import ADJACENCY_JSON from '../../data/adjacency.json';
 import { nameHash } from '../../data/diplomacy/names';
 import {
   BATTALION_SIZE, CAPITULATION_EXHAUSTION, DEFENDER_BONUS, EXHAUSTION_BASE, EXHAUSTION_PER_LOSS,
-  EXHAUSTION_PER_OCCUPIED, GENERAL_SKILL_BONUS, LOSER_CASUALTIES, MAX_WAR_WEEKS, PRESTIGE_WAR_WIN,
+  EXHAUSTION_PER_BLOCKADE, EXHAUSTION_PER_OCCUPIED, GENERAL_SKILL_BONUS, LOSER_CASUALTIES, MAX_WAR_WEEKS, PRESTIGE_WAR_WIN,
   TRUCE_WEEKS, WINNER_CASUALTIES,
 } from '../../data/diplomacy/rules';
 import { pairKey } from '../diplomacy/pair';
@@ -18,6 +18,8 @@ import type {
 } from '../diplomacy/types';
 import type { CountryEconomy, EconomyState, StateEconomy } from '../economy/types';
 import type { GameState } from '../types';
+import { OVERSEAS_SUPPLY_FLOOR } from '../../data/navy/rules';
+import { homeStates } from '../navy/convoys';
 
 /** Land borders: `{ stateId: neighbourIds[] }`, symmetric. */
 export type Adjacency = Record<string, string[]>;
@@ -294,6 +296,8 @@ interface World {
   /** Rightful owner of each state, and states by owner (occupation ignored). */
   owner: Map<string, string | null>;
   owned: Map<string, string[]>;
+  /** tag -> states land-connected to its capital (filled lazily by frontSupply). */
+  home: Map<string, Set<string>>;
 }
 
 function buildWorld(state: GameState): World {
@@ -322,7 +326,7 @@ function buildWorld(state: GameState): World {
     else controlled.set(tag, [stateId]);
     controlledPopulation.set(tag, (controlledPopulation.get(tag) ?? 0) + pop);
   }
-  return { controller, controlled, population, controlledPopulation, owner, owned };
+  return { controller, controlled, population, controlledPopulation, owner, owned, home: new Map() };
 }
 
 function neighboursOf(adjacency: Adjacency, stateId: string): string[] {
@@ -363,10 +367,16 @@ function buildFronts(war: War, world: World, adjacency: Adjacency): Front[] {
   return fronts;
 }
 
-/** Battalions a country can commit: its army, doubled while mobilised. */
+/** Battalions of `tag` at sea in naval invasions. */
+export function committedBattalions(state: GameState, tag: string): number {
+  let n = 0;
+  for (const inv of state.military.invasions ?? []) if (inv.tag === tag) n += Math.max(0, fin(inv.battalions));
+  return n;
+}
+
+/** Battalions a country can commit on land: its army (incl. mobilised conscripts) minus troops at sea. */
 function availableBattalions(state: GameState, tag: string): number {
-  // Army.battalions already includes mobilised conscripts (armyStep)
-  return Math.max(0, fin(armyOf(state, tag).battalions));
+  return Math.max(0, fin(armyOf(state, tag).battalions) - committedBattalions(state, tag));
 }
 
 /** A country's fronts in one war, with the contact-state count of each. */
@@ -432,10 +442,25 @@ function allocate(
   return { wars: nextWars, slots };
 }
 
-/** Strength of one side of a front: committed × quality × (1 + general bonus). */
-function frontStrength(state: GameState, tag: string, battalions: number, generalId: string | null): number {
+/** Strength of one side of a front: committed × quality × (1 + general bonus) × supply. */
+function frontStrength(state: GameState, tag: string, battalions: number, generalId: string | null, supply = 1): number {
   const skill = generalSkillOf(state, tag, generalId);
-  return Math.max(0, battalions) * qualityOf(state, tag) * (1 + GENERAL_SKILL_BONUS * skill);
+  return Math.max(0, battalions) * qualityOf(state, tag) * (1 + GENERAL_SKILL_BONUS * skill) * supply;
+}
+
+/**
+ * Supply of `tag`'s troops on a front (docs/NAVY.md): 1 if one of its contact states is
+ * land-connected to its capital, else carried by convoys.
+ */
+function frontSupply(state: GameState, world: World, tag: string, contacts: readonly string[]): number {
+  let home = world.home.get(tag);
+  if (!home) {
+    home = homeStates(state, (sid) => world.controller.get(sid) ?? null, [tag]).get(tag) ?? new Set<string>();
+    world.home.set(tag, home);
+  }
+  if (home.size === 0 || contacts.some((sid) => home.has(sid))) return 1;
+  const supply = Math.max(0, Math.min(1, fin(state.military.navies?.[tag]?.supply, 1)));
+  return OVERSEAS_SUPPLY_FLOOR + (1 - OVERSEAS_SUPPLY_FLOOR) * supply;
 }
 
 /** True if `stateId` is owned by `tag` or by one of its subjects. */
@@ -473,7 +498,7 @@ function liberatable(world: World, adjacency: Adjacency, war: War, side: WarSide
 }
 
 /** Removes `soldiers` from a country's barracks and soldier pops, proportionally. */
-function applyCasualties(state: GameState, tag: string, soldiers: number): GameState {
+export function applyCasualties(state: GameState, tag: string, soldiers: number): GameState {
   if (!(soldiers > 0)) return state;
   const stateIds = Object.keys(state.economy.states).sort().filter((id) => state.states[id]?.owner === tag);
   let total = 0;
@@ -539,13 +564,15 @@ function exhaustionOf(
   side: WarSide,
   losses: number,
   battalions: number,
+  blockade = 0,
 ): number {
   const { occupied, total } = occupiedShare(war, world, side);
   const lossShare = battalions > 0 ? (losses / battalions) * 100 : 0;
   const occupiedSharePct = total > 0 ? (occupied / total) * 100 : 0;
   const current = fin(war.exhaustion[side]);
   return clamp(
-    current + EXHAUSTION_BASE + EXHAUSTION_PER_LOSS * lossShare + EXHAUSTION_PER_OCCUPIED * occupiedSharePct,
+    current + EXHAUSTION_BASE + EXHAUSTION_PER_LOSS * lossShare + EXHAUSTION_PER_OCCUPIED * occupiedSharePct
+      + EXHAUSTION_PER_BLOCKADE * blockade,
     0,
     100,
   );
@@ -591,15 +618,22 @@ function stepWar(
   // 3. Battles
   const losses: Record<WarSide, number> = { attackers: 0, defenders: 0 };
   const battles: Battle[] = [];
+  // beachheads taken this week (docs/NAVY.md): not counter-attacked until next week
+  const landedNow = new Set<string>();
+  for (const w of state.military.wars) {
+    for (const b of w.battles) if (b.kind === 'landing' && b.won && b.tick === tick && b.stateId) landedNow.add(b.stateId);
+  }
   let occupation: Record<string, string> = { ...current.occupation };
 
   for (const front of current.fronts) {
-    const attackerStrength = frontStrength(state, front.attacker, front.attackerBattalions, front.attackerGeneral);
-    const defenderStrength = frontStrength(state, front.defender, front.defenderBattalions, front.defenderGeneral);
-    if (attackerStrength <= 0 && defenderStrength <= 0) continue;
-
     const attackerContacts = contactStates(world, adjacency, front.attacker, front.defender);
     const defenderContacts = contactStates(world, adjacency, front.defender, front.attacker);
+    const attackerStrength = frontStrength(state, front.attacker, front.attackerBattalions, front.attackerGeneral, frontSupply(state, world, front.attacker, attackerContacts));
+    const defenderStrength = frontStrength(state, front.defender, front.defenderBattalions, front.defenderGeneral, frontSupply(state, world, front.defender, defenderContacts));
+    if (attackerStrength <= 0 && defenderStrength <= 0) continue;
+    // troops that landed this week dig in before the first counter-attack (docs/NAVY.md)
+    if ([...attackerContacts, ...defenderContacts].some((sid) => landedNow.has(sid))) continue;
+
     const contested = leastPopulous(world, defenderContacts) ?? leastPopulous(world, attackerContacts);
     const defenderOnOwnSoil = contested !== null && onOwnSoil(state, front.defender, contested);
     const attackerOnOwnSoil = contested !== null && onOwnSoil(state, front.attacker, contested);
@@ -640,7 +674,7 @@ function stepWar(
 
     let captured: string | null = null;
     if (won) {
-      const own = liberatable(world, adjacency, { ...current, occupation }, attackSide, attackTag);
+      const own = liberatable(world, adjacency, { ...current, occupation }, attackSide, attackTag).filter((sid) => !landedNow.has(sid));
       const target = own.length > 0 ? leastPopulous(world, own) : leastPopulous(world, attackerIsAttacking ? defenderContacts : attackerContacts);
       if (target !== null) {
         occupation = { ...occupation, [target]: attackTag };
@@ -676,11 +710,18 @@ function stepWar(
   // 6. Exhaustion
   const sideBattalions = (side: WarSide): number =>
     sideTags(current, side).reduce((sum, tag) => sum + Math.max(0, fin(armyOf(state, tag).battalions)), 0);
+  // blockade: the leader's convoy shortfall caused by enemy raiding (docs/NAVY.md)
+  const blockadeOf = (side: WarSide): number => {
+    const leader = leaderOf(current, side);
+    const navy = leader ? state.military.navies?.[leader] : undefined;
+    if (!navy || !(navy.convoyCapacity > 0)) return 0;
+    return clamp(fin(navy.convoysLost) / navy.convoyCapacity, 0, 1);
+  };
   current = {
     ...current,
     exhaustion: {
-      attackers: exhaustionOf(current, world, 'attackers', losses.attackers, sideBattalions('attackers')),
-      defenders: exhaustionOf(current, world, 'defenders', losses.defenders, sideBattalions('defenders')),
+      attackers: exhaustionOf(current, world, 'attackers', losses.attackers, sideBattalions('attackers'), blockadeOf('attackers')),
+      defenders: exhaustionOf(current, world, 'defenders', losses.defenders, sideBattalions('defenders'), blockadeOf('defenders')),
     },
   };
 
@@ -698,9 +739,11 @@ function stepWar(
   // a side capitulates when exhausted or when (nearly) all of its land is occupied
   const defendersOut = current.exhaustion.defenders >= CAPITULATION_EXHAUSTION || current.warScore >= CAPITULATION_SCORE || conceded;
   const attackersOut = current.exhaustion.attackers >= CAPITULATION_EXHAUSTION || current.warScore <= -CAPITULATION_SCORE;
-  // a war with no land front for a year (no navy yet) ends in white peace
+  // a war with no land front and no invasion for a year ends in white peace
   const age = tick - current.startedTick;
-  const tooLong = age >= MAX_WAR_WEEKS || (current.fronts.length === 0 && age >= NO_FRONT_WEEKS);
+  if (current.fronts.length > 0) current = { ...current, lastFightTick: tick };
+  const quiet = tick - (current.lastFightTick ?? current.startedTick);
+  const tooLong = age >= MAX_WAR_WEEKS || (current.fronts.length === 0 && quiet >= NO_FRONT_WEEKS);
 
   if (defendersOut && !attackersOut) {
     next = enforceGoals(next, current.goals, attackerLeader ?? '', defenderLeader ?? '');

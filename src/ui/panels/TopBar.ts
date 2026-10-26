@@ -1,3 +1,4 @@
+import { convoyNeed, convoysAvailable, navyOf } from '../../sim/navy/navy';
 import { formatDate } from '../../sim/date';
 import { countryEconomy } from '../../sim/economy/queries';
 import { politicsOf } from '../../sim/politics/queries';
@@ -37,6 +38,7 @@ export class TopBar {
   private readonly prestigeButton: HTMLButtonElement;
   private readonly warPill: HTMLButtonElement;
   private readonly crisisPill: HTMLButtonElement;
+  private readonly navyButton: HTMLButtonElement;
   private readonly pauseButton: HTMLButtonElement;
   private readonly pips: HTMLButtonElement[] = [];
   private readonly unsubscribers: (() => void)[] = [];
@@ -110,7 +112,12 @@ export class TopBar {
     this.crisisPill.title = 'Open the diplomacy panel (D)';
     this.crisisPill.addEventListener('click', () => this.openView('diplomacy'));
 
-    stats.append(this.prestigeButton, this.warPill, this.crisisPill);
+    this.navyButton = el('button', 'stat-slot stat-button stat-navy', 'Convoys —');
+    this.navyButton.type = 'button';
+    this.navyButton.title = 'Open the navy panel (N)';
+    this.navyButton.addEventListener('click', () => this.openView('navy'));
+
+    stats.append(this.prestigeButton, this.navyButton, this.warPill, this.crisisPill);
 
     const controls = el('div', 'speed-controls');
     this.pauseButton = el('button', 'speed-pause');
@@ -255,6 +262,7 @@ export class TopBar {
     const diplomacy = tag ? game.diplomacy.countries[tag] : undefined;
 
     this.prestigeButton.hidden = !country;
+    this.navyButton.hidden = !country;
     this.warPill.hidden = !country;
     this.crisisPill.hidden = !country;
     if (!tag || !country) {
@@ -273,6 +281,16 @@ export class TopBar {
       `Prestige ${prestige}\n` +
       `Rank #${rank}${greatPower ? ' — Great Power' : ''}\n` +
       'Open the diplomacy panel (D)';
+
+    const navy = navyOf(game, tag);
+    const need = convoyNeed(navy);
+    const available = convoysAvailable(navy);
+    this.navyButton.textContent = `⚓ ${Math.round(navy.flotillas)} · Convoys ${Math.round(Math.min(need, available))}/${Math.round(available)}`;
+    this.navyButton.className = `stat-slot stat-button stat-navy${navy.supply < 0.999 ? ' is-low' : ''}`;
+    this.navyButton.title =
+      `Flotillas ${navy.flotillas.toFixed(1)}\n` +
+      `Convoys ${available.toFixed(0)} available, ${need.toFixed(0)} needed (supply ${Math.round(navy.supply * 100)}%)\n` +
+      'Open the navy panel (N)';
 
     const wars = warsOf(game, tag);
     this.warPill.hidden = wars.length === 0;

@@ -4,7 +4,7 @@
 import stateEconomyJson from '../../data/stateEconomy.json';
 import { BUILDINGS } from '../../data/economy/buildings';
 import { DEFAULT_DEVELOPMENT, DEFAULT_INCOME_TAX, DEVELOPMENT, TREASURY_PER_CAPITA } from '../../data/economy/development';
-import { seedArmies } from './armies';
+import { seedArmies, seedNavies } from './armies';
 import type { Development } from '../../data/economy/development';
 import { GOOD_IDS, GOODS } from '../../data/economy/goods';
 import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
@@ -367,5 +367,6 @@ export function initEconomy(state: GameState): GameState {
 
   const economy: EconomyState = { states, markets, countries };
   seedArmies(state, economy);
+  seedNavies(state, economy);
   return { ...state, economy };
 }

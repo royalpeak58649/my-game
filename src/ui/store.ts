@@ -11,7 +11,8 @@ export type PanelView =
   | 'laws'
   | 'technology'
   | 'diplomacy'
-  | 'war';
+  | 'war'
+  | 'navy';
 
 /** Speed 0 = paused, 1..5 = weekly tick speeds. */
 export type Speed = 0 | 1 | 2 | 3 | 4 | 5;

@@ -57,8 +57,16 @@ research. See [docs/POLITICS.md](docs/POLITICS.md).
 Relations, defensive alliances, rivals and subjects (starting from the 1836 pacts); prestige and
 the great-power ranking; diplomatic plays where third parties take sides before the target yields
 or war breaks out; armies of soldiers in barracks, generals and mobilisation; land fronts, weekly
-battles, occupation, war exhaustion and peace terms that move borders. There is no navy yet, so
-countries without a land border cannot reach each other. See [docs/WAR.md](docs/WAR.md).
+battles, occupation, war exhaustion and peace terms that move borders. See [docs/WAR.md](docs/WAR.md).
+
+## Milestone 5: navy
+
+Sea zones and sea lanes generated from the coastlines (no canals in 1836, Arctic iced over);
+naval bases raise flotillas and admirals; ports produce convoys that overseas states, sea trade
+and armies abroad use up (the classic convoy model, before transport ships became units); fleets
+split between raiding enemy convoys and escorting their own; naval invasions sail, fight the enemy
+fleet and land against the garrison to open a front overseas. The navy panel (N), an invasion
+planner in the war panel and fleet / route markers on the map. See [docs/NAVY.md](docs/NAVY.md).
 
 ## The 1836 map is approximate
 

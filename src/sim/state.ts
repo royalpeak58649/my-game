@@ -16,7 +16,7 @@ export function createGameState(
     economy: { states: {}, markets: {}, countries: {} },
     politics: { countries: {} },
     diplomacy: { relations: {}, alliances: [], subjects: {}, truces: {}, countries: {}, plays: [], ranking: [], nextPlayId: 1 },
-    military: { armies: {}, wars: [], nextWarId: 1 },
+    military: { armies: {}, wars: [], nextWarId: 1, navies: {}, invasions: [], nextInvasionId: 1 },
     ownershipVersion: 0,
   };
 }

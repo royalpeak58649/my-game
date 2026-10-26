@@ -4,6 +4,10 @@
 // shares everything else with the input. Plays are processed in id order and countries in sorted
 // tag order, so the result is deterministic.
 
+import { AI_SUPERIORITY } from '../../data/navy/rules';
+import { escortStrength, homeZones } from '../navy/invasions';
+import { navyOf } from '../navy/navy';
+import { seaPath, zoneOfState } from '../navy/seas';
 import adjacencyJson from '../../data/adjacency.json';
 import {
   AI_PLAY_INTERVAL, AI_PLAY_STRENGTH_RATIO, BACK_DOWN_RATIO, GREAT_POWER_COUNT, PLAY_WEEKS,
@@ -154,10 +158,33 @@ export function possibleWarGoals(state: GameState, tag: string, target: string):
   if (!isGreatPower(state, target) && overlordOf(state, target) === null) {
     goals.push({ kind: 'make_subject', holder: tag, target });
   }
-  for (const stateId of adjacentStates(state, target, tag)) {
+  const adjacent = adjacentStates(state, target, tag);
+  for (const stateId of adjacent) {
     goals.push({ kind: 'conquer_state', holder: tag, target, stateId });
   }
+  // with a fleet, any coastal state the fleet can reach (docs/NAVY.md)
+  const taken = new Set(adjacent);
+  for (const stateId of overseasStates(state, tag, target)) {
+    if (!taken.has(stateId)) goals.push({ kind: 'conquer_state', holder: tag, target, stateId });
+  }
   return goals;
+}
+
+/** Coastal states of `target` that `tag`'s fleet can reach by sea (none without a fleet). */
+export function overseasStates(state: GameState, tag: string, target: string): string[] {
+  if (navyOf(state, tag).flotillas < 1) return [];
+  const from = homeZones(state, tag);
+  if (from.length === 0) return [];
+  const reachable = new Map<string, boolean>();
+  const out: string[] = [];
+  for (const stateId of Object.keys(state.economy.states).sort()) {
+    if (state.states[stateId]?.owner !== target || !state.economy.states[stateId]?.coastal) continue;
+    const zone = zoneOfState(stateId);
+    if (!zone) continue;
+    if (!reachable.has(zone)) reachable.set(zone, seaPath(from, zone) !== null);
+    if (reachable.get(zone)) out.push(stateId);
+  }
+  return out;
 }
 
 /** True if `goal` is one of `allowed` (same kind, holder, target and state). */
@@ -372,7 +399,11 @@ export function playStep(state: GameState): GameState {
 
 /** The AI's preferred goal against `target`: the most populous adjacent state. */
 function aiGoal(state: GameState, tag: string, target: string): WarGoal | null {
-  const adjacent = adjacentStates(state, target, tag);
+  let adjacent = adjacentStates(state, target, tag);
+  // no border: an overseas state, if our fleet rules the waves over theirs
+  if (adjacent.length === 0 && escortStrength(state, tag) > escortStrength(state, target) * AI_SUPERIORITY * 1.5) {
+    adjacent = overseasStates(state, tag, target);
+  }
   if (adjacent.length === 0) return null;
   // Ask for a border province, not the heartland: the most populous adjacent state holding at most
   // AI_MAX_STAKE of the target's people (else nothing — the AI does not gamble on existential wars).

@@ -10,6 +10,7 @@ import statesJson from '../src/data/states.json';
 import countriesJson from '../src/data/countries.json';
 import { createGameState, START_DATE } from '../src/sim/state';
 import { initEconomy } from '../src/sim/economy/init';
+import { seedPorts } from '../src/sim/economy/armies';
 import { TREASURY_PER_CAPITA } from '../src/data/economy/development';
 import { tick } from '../src/sim/tick';
 import { economyTick } from '../src/sim/economy/tick';
@@ -46,6 +47,12 @@ for (let w = 1; w <= WARMUP_WEEKS; w++) {
 }
 const { warmup: _, ...eco } = s.economy;
 s = { ...s, economy: eco };
+// ports are sized to the convoy needs of the calibrated sea trade (docs/NAVY.md)
+{
+  const economy = structuredClone(s.economy);
+  seedPorts(s, economy);
+  s = { ...s, economy };
+}
 for (let w = 1; w <= SETTLE_WEEKS; w++) s = economyOnly(s);
 void tick;
 console.log(`settled: ${summary(s)}`);

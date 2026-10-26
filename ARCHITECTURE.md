@@ -38,6 +38,7 @@ Each system adds its data to `GameState`, a step to `tick()`, and its panels to 
 1. **Economy** — pops per state (culture, religion, profession, wealth), buildings with
    production methods, goods and a market with supply/demand pricing, construction queue.
 2. **Politics** — interest groups, legitimacy, laws, political movements, technology.
-3. **Diplomacy & war** — relations, diplomatic plays, fronts, generals, mobilization
-   (no navy).
-4. **AI** for non-player countries.
+3. **Diplomacy & war** — relations, diplomatic plays, fronts, generals, mobilization.
+4. **Navy** — sea zones, fleets and admirals, convoys (ports vs. overseas states, sea trade and
+   armies abroad), convoy raiding, naval invasions (`src/sim/navy/`, docs/NAVY.md).
+5. **AI** for non-player countries.

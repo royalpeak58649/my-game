@@ -95,7 +95,10 @@ export interface Front {
 
 export interface Battle {
   tick: number;
+  /** Front id, or for naval battles and landings the sea zone id. */
   front: string;
+  /** Land battle (default), naval battle, or landing from the sea. */
+  kind?: 'land' | 'naval' | 'landing';
   /** Which side attacked and whether it won. */
   attackingSide: WarSide;
   won: boolean;
@@ -122,10 +125,53 @@ export interface War {
   /** Most recent battles, newest first (at most 12). */
   battles: Battle[];
   startedTick: number;
+  /** Last tick with a land front or a naval invasion under way (NO_FRONT_WEEKS white peace). */
+  lastFightTick?: number;
+}
+
+// ------------------------------------------------------------------ navy (docs/NAVY.md)
+
+export interface Navy {
+  /** Flotillas from staffed naval bases (1 per FLOTILLA_SIZE sailors). Weekly computed. */
+  flotillas: number;
+  /** 0.4..1: supplies obtained by the naval bases. Weekly computed. */
+  quality: number;
+  admirals: General[];
+  /** Share of the fleet sent raiding enemy convoys in wartime (the rest escorts and defends). */
+  raidShare: number;
+  /** Convoys from staffed ports. Weekly computed. */
+  convoyCapacity: number;
+  /** Convoys sunk by raiders and not yet replaced. */
+  convoysLost: number;
+  /** Convoys needed by overseas states and by sea trade. Weekly computed. */
+  convoyNeedOverseas: number;
+  convoyNeedTrade: number;
+  /** min(1, available / needed): trade access and overseas army supply. Weekly computed. */
+  supply: number;
+  /** States not land-connected to the capital. Weekly computed. */
+  overseasStates: number;
+}
+
+export interface Invasion {
+  id: number;
+  warId: number;
+  tag: string;
+  /** State to land in. */
+  target: string;
+  /** Sea zones: where the fleet sails from and the target's zone. */
+  from: string;
+  zone: string;
+  battalions: number;
+  weeksLeft: number;
+  admiral: string | null;
+  startedTick: number;
 }
 
 export interface MilitaryState {
   armies: Record<string, Army>;
   wars: War[];
   nextWarId: number;
+  navies: Record<string, Navy>;
+  invasions: Invasion[];
+  nextInvasionId: number;
 }

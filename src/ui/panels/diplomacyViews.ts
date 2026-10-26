@@ -32,6 +32,7 @@ import { backDown, capitulate, joinPlay, offerWhitePeace, setMobilized, startPla
 import type { DiplomaticPlay, PlaySide, War, WarGoal, WarSide } from '../../sim/diplomacy/types';
 import type { GameState } from '../../sim/types';
 import { formatCount } from '../format';
+import { invasionSection, zoneName } from './navyViews';
 import type { Store } from '../store';
 
 const MINUS = '\u2212';
@@ -688,7 +689,7 @@ function warCard(state: GameState, store: Store, subject: string, war: War): HTM
   const fronts = war.fronts.filter((front) => front.attacker === subject || front.defender === subject);
   const shownFronts = fronts.length > 0 ? fronts : war.fronts;
   if (shownFronts.length === 0) {
-    card.append(el('p', 'muted small', 'No fronts: the armies do not share a border.'));
+    card.append(el('p', 'muted small', 'No fronts: the armies do not share a border. Land troops from the sea to open one.'));
   } else {
     const table = el('table', 'data-table war-fronts');
     const thead = el('thead');
@@ -709,6 +710,8 @@ function warCard(state: GameState, store: Store, subject: string, war: War): HTM
     card.append(table);
   }
 
+  card.append(invasionSection(state, store, subject, war));
+
   // --- battles
   card.append(sectionTitle('Last battles'));
   if (war.battles.length === 0) {
@@ -723,9 +726,11 @@ function warCard(state: GameState, store: Store, subject: string, war: War): HTM
     for (const battle of war.battles.slice(0, 6)) {
       const row = el('tr');
       row.append(el('td', 'num', String(battle.tick)));
-      row.append(el('td', 'col-name', battle.front));
+      const where = battle.kind === 'naval' ? `⚓ ${zoneName(battle.front)}` : battle.kind === 'landing' ? `Landing · ${zoneName(battle.front)}` : battle.front;
+      row.append(el('td', 'col-name', where));
       const won = battle.won ? 'Won' : 'Lost';
-      const cell = el('td', `battle-result ${battle.won ? 'is-positive' : 'is-negative'}`, `${sideLabel(battle.attackingSide)} ${won}`);
+      const cell = el('td', `battle-result ${battle.won ? 'is-positive' : 'is-negative'}`, `${battle.attackingSide === 'attackers' ? 'Att.' : 'Def.'} ${won.toLowerCase()}`);
+      cell.title = `${sideLabel(battle.attackingSide)} attacked and ${won.toLowerCase()} (losses ${battle.attackerLosses.toFixed(1)} / ${battle.defenderLosses.toFixed(1)} bn)`;
       row.append(cell);
       const stateName = battle.stateId ? (state.states[battle.stateId]?.name ?? battle.stateId) : '—';
       row.append(el('td', 'col-name', stateName));

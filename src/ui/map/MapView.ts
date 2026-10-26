@@ -3,6 +3,8 @@ import { feature, mesh, neighbors } from 'topojson-client';
 import type { CountryDef, StateDef } from '../../sim/types';
 import { totalPopulation } from '../../sim/economy/queries';
 import type { MapMode, Store } from '../store';
+import { seaPath, seaZone, zoneOfState } from '../../sim/navy/seas';
+import type { GameState } from '../../sim/types';
 
 /**
  * Minimal structural view of the TopoJSON file we consume. Declared locally so
@@ -737,6 +739,145 @@ export class MapView {
     ctx.restore();
 
     this.drawLabels(scale, tx, ty);
+    this.drawNaval(game, scale, tx, ty);
+  }
+
+  /** Screen position of a [lon, lat] point, or null when it does not project. */
+  private toScreen(lonLat: readonly [number, number], scale: number, tx: number, ty: number): [number, number] | null {
+    const p = this.projection([lonLat[0], lonLat[1]]);
+    if (!p) return null;
+    return [p[0] * scale + tx, p[1] * scale + ty];
+  }
+
+  /**
+   * Naval overlay (docs/NAVY.md): fleet badges at their home waters, invasion routes with the
+   * troop convoy's position, and recent naval battles and landings.
+   */
+  private drawNaval(game: GameState, scale: number, tx: number, ty: number): void {
+    const ctx = this.ctx;
+    const half = (this.projection.scale() * Math.PI) * scale; // half the world's width on screen
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // fleets: the player's and every belligerent's, else the largest navies
+    const atWar = new Set<string>();
+    for (const war of game.military.wars) for (const t of [...war.attackers, ...war.defenders]) atWar.add(t);
+    const navies = Object.entries(game.military.navies ?? {})
+      .filter(([, n]) => n.flotillas >= 1)
+      .sort((a, b) => b[1].flotillas - a[1].flotillas || a[0].localeCompare(b[0]));
+    const shown = navies.filter(([t]) => t === game.player || atWar.has(t));
+    const fleets = shown.length > 0 ? shown : navies.slice(0, 8);
+    const used = new Map<string, number>();
+    for (const [tag, navy] of fleets) {
+      const zone = this.homeWaters(game, tag);
+      const anchor = zone ? seaZone(zone)?.anchor : undefined;
+      const at = anchor ? this.toScreen(anchor, scale, tx, ty) : null;
+      if (!at) continue;
+      const k = used.get(zone as string) ?? 0;
+      used.set(zone as string, k + 1);
+      const [x, y] = [at[0], at[1] + k * 18];
+      const label = `⚓ ${Math.round(navy.flotillas)}`;
+      ctx.font = '600 11px "Inter", system-ui, sans-serif';
+      const w = ctx.measureText(label).width + 12;
+      ctx.fillStyle = 'rgba(20, 27, 39, 0.82)';
+      ctx.strokeStyle = game.countries[tag]?.color ?? '#c9a45c';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(x - w / 2, y - 8, w, 16, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#efe6d2';
+      ctx.fillText(label, x, y + 0.5);
+    }
+
+    // invasions under way
+    for (const inv of game.military.invasions ?? []) {
+      const route = seaPath([inv.from], inv.zone)?.path ?? [inv.zone];
+      const pts: [number, number][] = [];
+      for (const z of route) {
+        const a = seaZone(z)?.anchor;
+        const p = a ? this.toScreen(a, scale, tx, ty) : null;
+        if (p) pts.push(p);
+      }
+      const target = game.states[inv.target];
+      const tp = target ? this.toScreen(target.centroid, scale, tx, ty) : null;
+      if (tp) pts.push(tp);
+      if (pts.length === 0) continue;
+      const color = game.countries[inv.tag]?.color ?? '#c9a45c';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => {
+        const prev = pts[i - 1];
+        if (i === 0 || (prev && Math.abs(x - prev[0]) > half)) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // the troop convoy: along the route by the share of the voyage done
+      const total = Math.max(1, game.tickCount - inv.startedTick + inv.weeksLeft);
+      const done = Math.max(0, Math.min(1, 1 - inv.weeksLeft / total));
+      const seg = Math.min(pts.length - 1, Math.floor(done * (pts.length - 1)));
+      const a = pts[seg] as [number, number];
+      const b = pts[Math.min(pts.length - 1, seg + 1)] as [number, number];
+      const f = done * (pts.length - 1) - seg;
+      const cx = Math.abs(b[0] - a[0]) > half ? a[0] : a[0] + (b[0] - a[0]) * f;
+      const cy = Math.abs(b[0] - a[0]) > half ? a[1] : a[1] + (b[1] - a[1]) * f;
+      ctx.fillStyle = color;
+      ctx.strokeStyle = '#141b27';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#efe6d2';
+      ctx.font = '700 9px "Inter", system-ui, sans-serif';
+      ctx.fillText(String(Math.round(inv.battalions)), cx, cy + 0.5);
+      if (tp) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(tp[0], tp[1], 9, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // naval battles and landings of the last four weeks
+    for (const war of game.military.wars) {
+      for (const b of war.battles) {
+        if (!b.kind || b.kind === 'land' || game.tickCount - b.tick > 4) continue;
+        const where = b.kind === 'landing' && b.stateId ? game.states[b.stateId]?.centroid : seaZone(b.front)?.anchor;
+        const p = where ? this.toScreen(where, scale, tx, ty) : null;
+        if (!p) continue;
+        ctx.font = '700 15px system-ui, sans-serif';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#141b27';
+        const glyph = b.kind === 'naval' ? '⚔' : '⚑';
+        ctx.strokeText(glyph, p[0], p[1] - 14);
+        ctx.fillStyle = b.won ? '#e8c46a' : '#d0705a';
+        ctx.fillText(glyph, p[0], p[1] - 14);
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Sea zone of the country's largest naval base (where its fleet is drawn). */
+  private homeWaters(game: GameState, tag: string): string | null {
+    let best: string | null = null;
+    let bestLevel = 0;
+    for (const sid of Object.keys(game.economy.states).sort()) {
+      if (game.states[sid]?.owner !== tag) continue;
+      const level = game.economy.states[sid]?.buildings.naval_base?.level ?? 0;
+      if (level > bestLevel) {
+        bestLevel = level;
+        best = sid;
+      }
+    }
+    return best ? zoneOfState(best) : null;
   }
 
   /** Diplomatic map mode, seen from the player (or nothing in particular when observing). */

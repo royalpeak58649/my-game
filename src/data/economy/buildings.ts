@@ -127,6 +127,16 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
       methods: [{ id: 'barracks_line', name: 'Line Infantry', inputs: { small_arms: 0.3 }, outputs: {}, employment: { soldiers: 1000 } }],
     },
     {
+      // one level = one flotilla of FLOTILLA_SIZE sailors; ships need timber, canvas and repairs
+      id: 'naval_base', name: 'Naval Base', group: 'government', owner: 'government', coastal: true, cost: 200,
+      methods: [{ id: 'naval_sail', name: 'Ships of the Line', inputs: { wood: 0.8 }, outputs: {}, employment: { soldiers: 500 } }],
+    },
+    {
+      // one level = CONVOYS_PER_PORT convoys for overseas states, sea trade and armies abroad
+      id: 'port', name: 'Port', group: 'government', owner: 'government', coastal: true, cost: 150,
+      methods: [{ id: 'port_harbour', name: 'Harbour', inputs: { wood: 1 }, outputs: {}, employment: { laborers: 1500 } }],
+    },
+    {
       id: 'construction_sector', name: 'Construction Sector', group: 'government', owner: 'government', cost: 150,
       methods: [
         { id: 'construction_wood', name: 'Wooden Buildings', inputs: { wood: 10, fabric: 2 }, outputs: {}, construction: 5, employment: { laborers: 4000 } },

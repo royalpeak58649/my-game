@@ -8,6 +8,7 @@
 import { BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings';
 import { UPKEEP_PER_CAPITA } from '../../data/economy/development';
 import { MOBILIZATION_MULT, MOBILIZED_UPKEEP } from '../../data/diplomacy/rules';
+import { TRADE_FLOOR } from '../../data/navy/rules';
 import {
   GOODS, GOOD_IDS, PRICE_ELASTICITY, PRICE_MAX_FACTOR, PRICE_MIN_FACTOR, PRICE_SMOOTHING, WORLD_TRADE_SHARE,
 } from '../../data/economy/goods';
@@ -135,7 +136,12 @@ export function economyTick(state: GameState): GameState {
   const markets = tags.map((t) => eco.markets[t] as Market);
   // law and technology effects per market (see docs/POLITICS.md, "Economy hooks")
   const mods: Modifiers[] = tags.map((t) => state.politics?.countries[t]?.modifiers ?? {});
-  const tradeShare = Float64Array.from(mods, (x) => x.tradeShare ?? WORLD_TRADE_SHARE);
+  // sea trade needs convoys: a shortfall cuts world-market access (docs/NAVY.md)
+  const tradeShare = Float64Array.from(mods, (x, i) => {
+    const navy = state.military?.navies?.[tags[i] as string];
+    const supply = navy && navy.convoyNeedTrade > 0 ? navy.supply : 1;
+    return (x.tradeShare ?? WORLD_TRADE_SHARE) * (TRADE_FLOOR + (1 - TRADE_FLOOR) * supply);
+  });
   const hireMult = Float64Array.from(mods, (x) => x.hireRateMult ?? 1);
   const wageMult = Float64Array.from(mods, (x) => x.wageMult ?? 1);
   const taxEff = Float64Array.from(mods, (x) => x.taxEfficiency ?? 1);
@@ -486,6 +492,12 @@ export function economyTick(state: GameState): GameState {
     eco, state.states, state.player, eco.warmup === true, state.tickCount,
     (tag) => state.politics?.countries[tag]?.techs,
     (tag) => (state.military?.wars ?? []).some((w) => w.attackers.includes(tag) || w.defenders.includes(tag)),
+    (tag) => {
+      const navy = state.military?.navies?.[tag];
+      if (!navy) return undefined;
+      const need = navy.convoyNeedOverseas + navy.convoyNeedTrade;
+      return { convoyShort: navy.convoyCapacity - navy.convoysLost < need * 1.05 && navy.convoyCapacity < need * 1.5 + 1 };
+    },
   );
   return next;
 }

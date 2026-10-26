@@ -70,6 +70,8 @@ export interface BuildingDef {
   resource?: ResourceId;
   /** Urban buildings are capped by StateEconomy.urbanCap. */
   urban?: boolean;
+  /** Only in coastal states (naval bases, ports). */
+  coastal?: boolean;
   /** Construction points needed for one level. */
   cost: number;
   /** First entry is the default. Exactly one is active per building. */

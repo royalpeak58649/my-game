@@ -4,6 +4,7 @@
 import type { Army, MilitaryState } from '../diplomacy/types';
 import type { GameState } from '../types';
 import { armyStep } from './armies';
+import { navyStep } from '../navy/navy';
 
 /** Country tags that own at least one state with an economy, sorted. */
 function existingTags(state: GameState): string[] {
@@ -27,6 +28,9 @@ export function initMilitary(state: GameState): GameState {
       generals: previous?.generals ?? [],
     };
   }
-  const military: MilitaryState = { ...state.military, armies };
-  return armyStep({ ...state, military });
+  const military: MilitaryState = {
+    ...state.military, armies,
+    navies: state.military.navies ?? {}, invasions: state.military.invasions ?? [], nextInvasionId: state.military.nextInvasionId ?? 1,
+  };
+  return navyStep(armyStep({ ...state, military }));
 }

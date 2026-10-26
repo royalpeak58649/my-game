@@ -59,10 +59,16 @@ for (let w = 1; w <= weeks; w++) {
   for (const p of s.diplomacy.plays) if (!seenPlays.has(p.id)) { seenPlays.add(p.id); console.log(`${s.date.year}-${s.date.month}: PLAY ${nm(p.initiator)} -> ${nm(p.target)} [${p.goals.map((g) => g.kind + (g.stateId ? ':' + s.states[g.stateId]?.name : '')).join(', ')}]`); }
   for (const war of s.military.wars) if (!seenWars.has(war.id)) { seenWars.add(war.id); console.log(`${s.date.year}-${s.date.month}: WAR ${war.name}: ${war.attackers.join(',')} vs ${war.defenders.join(',')}`); }
   for (const war of before.military.wars) if (!s.military.wars.some((x) => x.id === war.id)) console.log(`${s.date.year}-${s.date.month}: PEACE ${war.name} after ${s.tickCount - war.startedTick} wk, score ${war.warScore.toFixed(0)}, exh ${war.exhaustion.attackers.toFixed(0)}/${war.exhaustion.defenders.toFixed(0)}, battles ${war.battles.length}`);
+  for (const inv of s.military.invasions) if (!before.military.invasions.some((i) => i.id === inv.id)) console.log(`${s.date.year}-${s.date.month}: INVASION ${nm(inv.tag)} sails ${inv.battalions.toFixed(0)} bn to ${s.states[inv.target]?.name} (${inv.weeksLeft} wk)`);
+  for (const war of s.military.wars) for (const b of war.battles) if (b.tick === s.tickCount && b.kind && b.kind !== 'land') console.log(`${s.date.year}-${s.date.month}:   ${b.kind.toUpperCase()} in ${war.name} at ${b.front}: ${b.won ? 'won' : 'lost'}${b.stateId ? ' -> ' + s.states[b.stateId]?.name : ''} (losses ${b.attackerLosses.toFixed(1)}/${b.defenderLosses.toFixed(1)})`);
   if (s.ownershipVersion !== before.ownershipVersion) {
     for (const id of Object.keys(s.states)) if (s.states[id]!.owner !== before.states[id]!.owner) console.log(`   ${s.states[id]!.name}: ${nm(before.states[id]!.owner ?? '-')} -> ${nm(s.states[id]!.owner ?? '-')}`);
   }
-  if (w === 1 || w % 104 === 0) report(s, `week ${w}`);
+  if (w === 1 || w % 104 === 0) {
+    report(s, `week ${w}`);
+    const nv = Object.entries(s.military.navies).sort((a, b) => b[1].flotillas - a[1].flotillas).slice(0, 8);
+    console.log('   navies: ' + nv.map(([t, n]) => `${t} ${n.flotillas.toFixed(0)}fl ${(n.convoyCapacity - n.convoysLost).toFixed(0)}/${(n.convoyNeedOverseas + n.convoyNeedTrade).toFixed(0)}cv ${(n.supply * 100).toFixed(0)}%`).join(', '));
+  }
 }
 times.sort((a, b) => a - b);
 console.log(`\ntick ms: median ${times[Math.floor(times.length / 2)].toFixed(1)}, p95 ${times[Math.floor(times.length * 0.95)].toFixed(1)}, max ${times[times.length - 1].toFixed(1)}`);

@@ -84,6 +84,7 @@ export function buildingCap(state: GameState, stateId: string, buildingId: strin
   if (!def) return null;
   const economy = state.economy.states[stateId];
   if (!economy) return null;
+  if (def.coastal && !economy.coastal) return 0;
 
   if (def.resource) {
     const available = economy.resources[def.resource] ?? 0;

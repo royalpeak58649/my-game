@@ -5,8 +5,10 @@ import type { GameState } from '../types';
 import { armyStep } from './armies';
 import { aiPlays, playStep } from './plays';
 import { warStep } from './wars';
+import { navyStep } from '../navy/navy';
+import { aiInvasions, invasionStep } from '../navy/invasions';
 
-/** Advances the military simulation by one week. */
+/** Advances the military simulation by one week (docs/WAR.md and docs/NAVY.md, "Tick order"). */
 export function warTick(state: GameState): GameState {
-  return aiPlays(warStep(playStep(armyStep(state))));
+  return aiPlays(aiInvasions(warStep(invasionStep(playStep(navyStep(armyStep(state)))))));
 }

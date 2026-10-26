@@ -11,7 +11,8 @@
     "data:economy": "node scripts/build-economy.mjs",
     "data:start": "vite-node scripts/build-start.ts",
     "soak": "vite-node scripts/soak.ts --",
-    "data:adjacency": "node scripts/build-adjacency.mjs"
+    "data:adjacency": "node scripts/build-adjacency.mjs",
+    "data:seas": "node scripts/build-seas.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
