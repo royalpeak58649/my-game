@@ -482,7 +482,11 @@ export function economyTick(state: GameState): GameState {
   }
 
   // ============================================================ 10. investment
-  investmentStep(eco, state.states, state.player, eco.warmup === true, state.tickCount, (tag) => state.politics?.countries[tag]?.techs);
+  investmentStep(
+    eco, state.states, state.player, eco.warmup === true, state.tickCount,
+    (tag) => state.politics?.countries[tag]?.techs,
+    (tag) => (state.military?.wars ?? []).some((w) => w.attackers.includes(tag) || w.defenders.includes(tag)),
+  );
   return next;
 }
 

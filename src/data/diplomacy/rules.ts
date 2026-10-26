@@ -19,21 +19,24 @@ export const INFLUENCE_BASE = 3;
 export const INFLUENCE_PER_10M = 1;
 export const GREAT_POWER_INFLUENCE = 3;
 
-// --- prestige: GDP/PRESTIGE_GDP_DIV + battalions × PRESTIGE_PER_BATTALION + techs × PRESTIGE_PER_TECH
-export const PRESTIGE_GDP_DIV = 2000;
-export const PRESTIGE_PER_BATTALION = 0.2;
-export const PRESTIGE_PER_TECH = 3;
+// --- prestige: base + GDP/PRESTIGE_GDP_DIV + industry GDP/PRESTIGE_INDUSTRY_DIV
+//               + battalions × PRESTIGE_PER_BATTALION + techs × PRESTIGE_PER_TECH + bonus
+// Industry and technology count for far more than sheer size: a great power is a modern one.
+export const PRESTIGE_GDP_DIV = 8000;
+export const PRESTIGE_INDUSTRY_DIV = 400;
+export const PRESTIGE_PER_BATTALION = 0.1;
+export const PRESTIGE_PER_TECH = 12;
 /** Prestige bonus for a won war (decays 1%/week via the weekly recompute baseline). */
 export const PRESTIGE_WAR_WIN = 25;
 
 // --- plays
 export const PLAY_WEEKS = 8;
 /** At resolution the target backs down if its side's strength < this × the initiator side's. */
-export const BACK_DOWN_RATIO = 0.5;
+export const BACK_DOWN_RATIO = 0.33;
 /** AI considers starting a play every N weeks. */
 export const AI_PLAY_INTERVAL = 26;
 /** AI only targets a neighbour it outguns by this ratio. */
-export const AI_PLAY_STRENGTH_RATIO = 2.5;
+export const AI_PLAY_STRENGTH_RATIO = 1.5;
 export const TRUCE_WEEKS = 260;
 
 // --- armies

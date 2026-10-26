@@ -7,6 +7,17 @@ import { GOODS } from '../../data/economy/goods';
 import { POP_TYPES } from '../../data/economy/pops';
 import type { StateDef } from '../types';
 import { unlockedFor } from '../politics/unlocks';
+import { DEFAULT_ARMY_SHARE, START_ARMIES } from '../../data/diplomacy/start1836';
+import { BATTALION_SIZE } from '../../data/diplomacy/rules';
+
+import stateEconomyJson from '../../data/stateEconomy.json';
+const POP_1836 = stateEconomyJson as unknown as Record<string, { population: number }>;
+/** 1836 population of the states a country holds now (START_ARMIES scale with growth since). */
+function startPop(_eco: EconomyState, stateIds: string[], _tag: string): number {
+  let p = 0;
+  for (const sid of stateIds) p += POP_1836[sid]?.population ?? 0;
+  return p;
+}
 import type { BuildingDef, CountryEconomy, EconomyState, GoodId, Market, PopTypeId, StateEconomy } from './types';
 
 const PRIVATE: BuildingDef[] = Object.values(BUILDINGS).filter((b) => b.owner !== 'government');
@@ -213,6 +224,7 @@ function switchMethods(eco: EconomyState, stateIds: string[], market: Market, su
 export function investmentStep(
   eco: EconomyState, stateDefs: Record<string, StateDef>, player: string | null, warmup: boolean, week: number,
   techsOf: (tag: string) => readonly string[] | undefined = () => undefined,
+  atWar: (tag: string) => boolean = () => false,
 ): void {
   const byTag = new Map<string, string[]>();
   for (const sid of Object.keys(eco.states).sort()) {
@@ -282,6 +294,29 @@ export function investmentStep(
     if ((week + tagParity(tag)) % 2 !== 0) continue;
     const wanted = Math.max(1, Math.ceil(c.constructionPoints / MAX_POINTS_PER_PROJECT)) + 1;
     if (c.queue.length >= wanted) continue;
+    // Keep the army at its peacetime size (1836 strength scaled with population), more in wartime.
+    const barracksQueued = c.queue.some((q) => q.buildingId === 'barracks');
+    if (!barracksQueued && c.treasury > 12 * Math.max(1, c.lastExpenses)) {
+      let pop = 0;
+      let levels = 0;
+      let bestState: string | null = null;
+      let bestPop = -1;
+      for (const sid of stateIds) {
+        const se = eco.states[sid];
+        if (!se) continue;
+        let p = 0;
+        for (const n of Object.values(se.pops)) p += n;
+        pop += p;
+        levels += se.buildings.barracks?.level ?? 0;
+        if (p > bestPop) { bestPop = p; bestState = sid; }
+      }
+      const base = START_ARMIES[tag] !== undefined ? START_ARMIES[tag] * (pop / Math.max(1, startPop(eco, stateIds, tag))) : (pop * DEFAULT_ARMY_SHARE) / BATTALION_SIZE;
+      const target = Math.round(base * (atWar(tag) ? 1.5 : 1));
+      if (bestState && levels < target) {
+        c.queue.push({ stateId: bestState, buildingId: 'barracks', progress: 0 });
+        continue;
+      }
+    }
     // A rich treasury with little construction capacity: expand the construction sector first.
     const capital = stateIds.find((sid) => eco.states[sid]?.buildings.construction_sector) ?? stateIds[0];
     const sectorQueued = c.queue.some((q) => q.buildingId === 'construction_sector');

@@ -24,8 +24,9 @@ npm run data:start    # calibrated 1836 start economy (run after changing econom
 | Click a state | Open its panel |
 | Space | Pause / resume |
 | 1 – 5 | Game speed |
-| M | Cycle map mode (political / population / states) |
+| M | Cycle map mode (political / diplomacy / population / states) |
 | P / L / T | Politics / Laws / Technology |
+| D / W | Diplomacy / War |
 | Esc | Close panel |
 
 ## What exists (milestone 1)
@@ -50,6 +51,14 @@ and the legitimacy it gives you; eight law groups (governance, franchise, church
 taxation, education, press) that act on the economy; movements of angry groups; and a technology
 tree that unlocks buildings, production methods and laws. The top bar shows legitimacy and
 research. See [docs/POLITICS.md](docs/POLITICS.md).
+
+## Milestone 4: diplomacy and war
+
+Relations, defensive alliances, rivals and subjects (starting from the 1836 pacts); prestige and
+the great-power ranking; diplomatic plays where third parties take sides before the target yields
+or war breaks out; armies of soldiers in barracks, generals and mobilisation; land fronts, weekly
+battles, occupation, war exhaustion and peace terms that move borders. There is no navy yet, so
+countries without a land border cannot reach each other. See [docs/WAR.md](docs/WAR.md).
 
 ## The 1836 map is approximate
 
