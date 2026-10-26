@@ -1,6 +1,8 @@
 import { formatDate } from '../../sim/date';
 import { countryEconomy } from '../../sim/economy/queries';
 import { politicsOf } from '../../sim/politics/queries';
+import { isGreatPower, rankOf } from '../../sim/diplomacy/queries';
+import { playsOf, warsOf } from '../../sim/war/queries';
 import { TECHS } from '../../data/politics/techs';
 import { formatDelta, formatMoney } from '../format';
 import type { PanelView, Speed, Store } from '../store';
@@ -32,6 +34,9 @@ export class TopBar {
   private readonly constructionButton: HTMLButtonElement;
   private readonly legitimacyButton: HTMLButtonElement;
   private readonly researchButton: HTMLButtonElement;
+  private readonly prestigeButton: HTMLButtonElement;
+  private readonly warPill: HTMLButtonElement;
+  private readonly crisisPill: HTMLButtonElement;
   private readonly pauseButton: HTMLButtonElement;
   private readonly pips: HTMLButtonElement[] = [];
   private readonly unsubscribers: (() => void)[] = [];
@@ -90,6 +95,23 @@ export class TopBar {
       this.researchButton,
     );
 
+    this.prestigeButton = el('button', 'stat-slot stat-button stat-prestige', 'Prestige —');
+    this.prestigeButton.type = 'button';
+    this.prestigeButton.title = 'Open the diplomacy panel (D)';
+    this.prestigeButton.addEventListener('click', () => this.openView('diplomacy'));
+
+    this.warPill = el('button', 'stat-slot stat-button stat-war', 'At war');
+    this.warPill.type = 'button';
+    this.warPill.title = 'Open the war panel (W)';
+    this.warPill.addEventListener('click', () => this.openView('war'));
+
+    this.crisisPill = el('button', 'stat-slot stat-button stat-crisis', 'Crisis');
+    this.crisisPill.type = 'button';
+    this.crisisPill.title = 'Open the diplomacy panel (D)';
+    this.crisisPill.addEventListener('click', () => this.openView('diplomacy'));
+
+    stats.append(this.prestigeButton, this.warPill, this.crisisPill);
+
     const controls = el('div', 'speed-controls');
     this.pauseButton = el('button', 'speed-pause');
     this.pauseButton.type = 'button';
@@ -145,6 +167,7 @@ export class TopBar {
 
     this.renderEconomy(game.player);
     this.renderPolitics(game.player);
+    this.renderDiplomacy(game.player);
 
     this.pauseButton.classList.toggle('is-paused', ui.speed === 0);
     this.pauseButton.textContent = ui.speed === 0 ? '▶' : '❚❚';
@@ -223,6 +246,51 @@ export class TopBar {
       this.researchButton.className = 'stat-slot stat-button stat-research is-idle';
       this.researchButton.title = 'No technology is being researched. Open the technology panel (T)';
     }
+  }
+
+  /** Prestige, war and crisis pills; hidden for observers. */
+  private renderDiplomacy(tag: string | null): void {
+    const game = this.store.get();
+    const country = tag ? game.countries[tag] : undefined;
+    const diplomacy = tag ? game.diplomacy.countries[tag] : undefined;
+
+    this.prestigeButton.hidden = !country;
+    this.warPill.hidden = !country;
+    this.crisisPill.hidden = !country;
+    if (!tag || !country) {
+      this.prestigeButton.className = 'stat-slot stat-button stat-prestige';
+      this.warPill.className = 'stat-slot stat-button stat-war';
+      this.crisisPill.className = 'stat-slot stat-button stat-crisis';
+      return;
+    }
+
+    const prestige = Math.round(diplomacy?.prestige ?? 0);
+    const rank = rankOf(game, tag);
+    const greatPower = isGreatPower(game, tag);
+    this.prestigeButton.textContent = `Prestige ${prestige} · #${rank}`;
+    this.prestigeButton.className = `stat-slot stat-button stat-prestige${greatPower ? ' is-gp' : ''}`;
+    this.prestigeButton.title =
+      `Prestige ${prestige}\n` +
+      `Rank #${rank}${greatPower ? ' — Great Power' : ''}\n` +
+      'Open the diplomacy panel (D)';
+
+    const wars = warsOf(game, tag);
+    this.warPill.hidden = wars.length === 0;
+    this.warPill.textContent = wars.length === 1 ? 'At war' : `At war (${wars.length})`;
+    this.warPill.title =
+      `${wars.map((war) => war.name).join('\n')}\n` +
+      'Open the war panel (W)';
+
+    const plays = playsOf(game, tag);
+    this.crisisPill.hidden = plays.length === 0;
+    this.crisisPill.textContent = 'Crisis';
+    this.crisisPill.title =
+      plays
+        .map((play) => {
+          const other = play.initiator === tag ? play.target : play.initiator;
+          return `Diplomatic play against ${game.countries[other]?.name ?? other} — ${play.weeksLeft} weeks left`;
+        })
+        .join('\n') + '\nOpen the diplomacy panel (D)';
   }
 
   dispose(): void {

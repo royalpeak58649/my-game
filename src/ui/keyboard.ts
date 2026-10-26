@@ -18,7 +18,7 @@ function openPlayerView(store: Store, view: PanelView): void {
 }
 
 /** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M cycles map mode,
- *  P politics, L laws, T technology. */
+ *  P politics, L laws, T technology, D diplomacy, W war. */
 export function installKeyboard(store: Store, options: KeyboardOptions): () => void {
   const handler = (event: KeyboardEvent): void => {
     if (isTypingTarget(event.target)) return;
@@ -61,6 +61,14 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
     }
     if (key === 't') {
       openPlayerView(store, 'technology');
+      return;
+    }
+    if (key === 'd') {
+      openPlayerView(store, 'diplomacy');
+      return;
+    }
+    if (key === 'w') {
+      openPlayerView(store, 'war');
     }
   };
 
