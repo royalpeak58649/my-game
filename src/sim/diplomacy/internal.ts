@@ -2,8 +2,10 @@
 // Not part of the public diplomacy API: everything here is pure and works on plain values.
 
 import { GREAT_POWER_COUNT, INFLUENCE_BASE, INFLUENCE_PER_10M, GREAT_POWER_INFLUENCE } from '../../data/diplomacy/rules';
-import { gdp } from '../economy/queries';
 import type { GameState } from '../types';
+import { BASE_PRESTIGE } from '../../data/diplomacy/start1836';
+import { PRESTIGE_INDUSTRY_DIV } from '../../data/diplomacy/rules';
+import { countryStats } from '../aggregates';
 import { pairKey } from './pair';
 import type { CountryDiplomacy, DiplomacyState, PairKey } from './types';
 
@@ -24,33 +26,17 @@ export function sortedUnique(tags: readonly string[]): string[] {
 
 /** True if `tag` owns at least one state that has an economy. */
 export function countryExists(state: GameState, tag: string): boolean {
-  for (const [stateId, stateDef] of Object.entries(state.states)) {
-    if (stateDef.owner !== tag) continue;
-    if (state.economy.states[stateId]) return true;
-  }
-  return false;
+  return countryStats(state).existingSet.has(tag);
 }
 
 /** Every existing country tag, sorted. */
 export function existingCountries(state: GameState): string[] {
-  const tags = new Set<string>();
-  for (const stateId of Object.keys(state.economy.states)) {
-    const owner = state.states[stateId]?.owner;
-    if (owner) tags.add(owner);
-  }
-  return [...tags].sort();
+  return [...countryStats(state).existing];
 }
 
 /** Total population of a country (Σ pops of its states). */
 export function populationOf(state: GameState, tag: string): number {
-  let total = 0;
-  for (const [stateId, stateDef] of Object.entries(state.states)) {
-    if (stateDef.owner !== tag) continue;
-    const economy = state.economy.states[stateId];
-    if (!economy) continue;
-    for (const count of Object.values(economy.pops)) total += count;
-  }
-  return total;
+  return countryStats(state).population.get(tag) ?? 0;
 }
 
 /** Battalions of a country (0 when it has no army). */
@@ -149,16 +135,23 @@ export function prestigeOf(
   perBattalion: number,
   perTech: number,
 ): number {
-  const gdpValue = gdp(state, tag);
+  const stats = countryStats(state);
+  const gdpValue = stats.gdp.get(tag) ?? 0;
+  const industry = stats.industryGdp.get(tag) ?? 0;
   const battalions = battalionsOf(state, tag);
   const techs = techsOf(state, tag).length;
-  const raw = gdpValue / gdpDiv + battalions * perBattalion + techs * perTech + fin(country.prestigeBonus);
+  const raw = (BASE_PRESTIGE[tag] ?? 0) + gdpValue / gdpDiv + industry / PRESTIGE_INDUSTRY_DIV
+    + battalions * perBattalion + techs * perTech + fin(country.prestigeBonus);
   return Number.isFinite(raw) ? raw : 0;
 }
 
 /** Ranking of existing countries by prestige desc, ties by tag. */
 export function rankingOf(state: GameState, diplomacy: DiplomacyState): string[] {
+  // subjects rank after every independent country, so they can never be great powers
   return existingCountries(state).sort((a, b) => {
+    const sa = diplomacy.subjects[a] !== undefined ? 1 : 0;
+    const sb = diplomacy.subjects[b] !== undefined ? 1 : 0;
+    if (sa !== sb) return sa - sb;
     const diff = fin(diplomacy.countries[b]?.prestige) - fin(diplomacy.countries[a]?.prestige);
     return diff !== 0 ? diff : a < b ? -1 : a > b ? 1 : 0;
   });

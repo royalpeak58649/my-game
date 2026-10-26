@@ -6,6 +6,8 @@ import { createGameState } from '../src/sim/state';
 import { initEconomy } from '../src/sim/economy/init';
 import { withStartEconomy } from '../src/sim/economy/start';
 import { initPolitics } from '../src/sim/politics/init';
+import { initDiplomacy } from '../src/sim/diplomacy/init';
+import { initMilitary } from '../src/sim/war/init';
 import { IGS } from '../src/data/politics/igs';
 import { tick } from '../src/sim/tick';
 import { GOODS, GOOD_IDS } from '../src/data/economy/goods';
@@ -45,12 +47,21 @@ function report(s: GameState, label: string) {
 
 let t0 = performance.now();
 const base = createGameState(statesJson as StateDef[], countriesJson as Record<string, CountryDef>, null);
-let s = initPolitics(process.env.SEED ? initEconomy(base) : withStartEconomy(base));
+let s = initMilitary(initDiplomacy(initPolitics(process.env.SEED ? initEconomy(base) : withStartEconomy(base))));
 console.log(`init ${(performance.now() - t0).toFixed(0)} ms, states ${Object.keys(s.economy.states).length}, buildings ${Object.values(s.economy.states).reduce((n, e) => n + Object.keys(e.buildings).length, 0)}`);
 report(s, 'start');
 const times: number[] = [];
+const seenWars = new Set<number>(), seenPlays = new Set<number>();
+const nm = (t: string) => s.countries[t]?.name ?? t;
 for (let w = 1; w <= weeks; w++) {
+  const before = s;
   t0 = performance.now(); s = tick(s); times.push(performance.now() - t0);
+  for (const p of s.diplomacy.plays) if (!seenPlays.has(p.id)) { seenPlays.add(p.id); console.log(`${s.date.year}-${s.date.month}: PLAY ${nm(p.initiator)} -> ${nm(p.target)} [${p.goals.map((g) => g.kind + (g.stateId ? ':' + s.states[g.stateId]?.name : '')).join(', ')}]`); }
+  for (const war of s.military.wars) if (!seenWars.has(war.id)) { seenWars.add(war.id); console.log(`${s.date.year}-${s.date.month}: WAR ${war.name}: ${war.attackers.join(',')} vs ${war.defenders.join(',')}`); }
+  for (const war of before.military.wars) if (!s.military.wars.some((x) => x.id === war.id)) console.log(`${s.date.year}-${s.date.month}: PEACE ${war.name} after ${s.tickCount - war.startedTick} wk, score ${war.warScore.toFixed(0)}, exh ${war.exhaustion.attackers.toFixed(0)}/${war.exhaustion.defenders.toFixed(0)}, battles ${war.battles.length}`);
+  if (s.ownershipVersion !== before.ownershipVersion) {
+    for (const id of Object.keys(s.states)) if (s.states[id]!.owner !== before.states[id]!.owner) console.log(`   ${s.states[id]!.name}: ${nm(before.states[id]!.owner ?? '-')} -> ${nm(s.states[id]!.owner ?? '-')}`);
+  }
   if (w === 1 || w % 104 === 0) report(s, `week ${w}`);
 }
 times.sort((a, b) => a - b);

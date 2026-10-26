@@ -13,6 +13,7 @@ import { pairKey } from '../diplomacy/pair';
 import type {
   DiplomaticPlay, DiplomacyState, MilitaryState, PlaySide, WarGoal,
 } from '../diplomacy/types';
+import { countryStats } from '../aggregates';
 import type { GameState } from '../types';
 import { armyStrength } from './armies';
 import { enforceGoals, rng, startWar } from './wars';
@@ -235,20 +236,20 @@ function joinStep(state: GameState, play: DiplomaticPlay): void {
       continue;
     }
 
-    // Overlords join the side opposing anyone attacking their subject.
+    // Overlords stand with their subjects (defending one under attack).
     let joined = false;
     for (const [subject, subjectOverlord] of Object.entries(state.diplomacy.subjects)) {
       if (subjectOverlord !== tag) continue;
-      if (subject === play.initiator) { addSupporter(play, 'target', tag); joined = true; break; }
-      if (subject === play.target) { addSupporter(play, 'initiator', tag); joined = true; break; }
+      if (subject === play.target) { addSupporter(play, 'target', tag); joined = true; break; }
+      if (subject === play.initiator) { addSupporter(play, 'initiator', tag); joined = true; break; }
     }
     if (joined) continue;
 
-    // Allies of exactly one leader join that leader.
+    // Alliances are defensive: allies of the target (and not of the initiator) come to its aid.
     const withInitiator = allied(state, tag, play.initiator);
     const withTarget = allied(state, tag, play.target);
-    if (withInitiator !== withTarget) {
-      addSupporter(play, withInitiator ? 'initiator' : 'target', tag);
+    if (withTarget && !withInitiator) {
+      addSupporter(play, 'target', tag);
       continue;
     }
 
@@ -289,6 +290,23 @@ function mobilizeAll(military: MilitaryState, tags: readonly string[]): void {
   }
 }
 
+/** Share of the target's population demanded (subjugation counts as everything). */
+export function stakeOf(state: GameState, play: DiplomaticPlay): number {
+  const total = countryStats(state).population.get(play.target) ?? 0;
+  let stake = 0;
+  for (const g of play.goals) {
+    if (g.kind === 'make_subject') return 1;
+    if (g.kind === 'humiliate') stake += 0.02;
+    if (g.kind === 'conquer_state' && g.stateId && total > 0) stake += statePopulation(state, g.stateId) / total;
+  }
+  return stake;
+}
+
+/** An AI target only yields without a fight when less than this share of its people is at stake. */
+export const BACK_DOWN_MAX_STAKE = 0.1;
+/** The AI never demands a state holding more than this share of the target's people. */
+export const AI_MAX_STAKE = 0.12;
+
 /**
  * Resolves a play whose countdown reached 0: the target backs down, the initiator backs down,
  * or war breaks out. Returns the new state.
@@ -299,7 +317,7 @@ function resolvePlay(state: GameState, play: DiplomaticPlay): GameState {
   const initiatorIsAi = play.initiator !== state.player;
   const targetIsAi = play.target !== state.player;
 
-  if (targetIsAi && targetStrength < BACK_DOWN_RATIO * initiatorStrength) {
+  if (targetIsAi && targetStrength < BACK_DOWN_RATIO * initiatorStrength && stakeOf(state, play) < BACK_DOWN_MAX_STAKE) {
     // The target backs down: the goals are enforced at once.
     const diplomacy: DiplomacyState = structuredClone(state.diplomacy);
     removePlay(diplomacy, play.id);
@@ -356,10 +374,14 @@ export function playStep(state: GameState): GameState {
 function aiGoal(state: GameState, tag: string, target: string): WarGoal | null {
   const adjacent = adjacentStates(state, target, tag);
   if (adjacent.length === 0) return null;
+  // Ask for a border province, not the heartland: the most populous adjacent state holding at most
+  // AI_MAX_STAKE of the target's people (else nothing — the AI does not gamble on existential wars).
+  const total = countryStats(state).population.get(target) ?? 0;
   let best: string | null = null;
   let bestPop = -1;
   for (const stateId of adjacent) {
     const pop = statePopulation(state, stateId);
+    if (total > 0 && pop > total * AI_MAX_STAKE) continue;
     if (pop > bestPop || (pop === bestPop && best !== null && stateId < best)) {
       best = stateId;
       bestPop = pop;
@@ -399,8 +421,11 @@ export function aiPlays(state: GameState): GameState {
       if (busy(current, target)) continue;
       const opposing = opposingSideStrength(current, target);
       if (!(opposing * AI_PLAY_STRENGTH_RATIO < own)) continue;
-      const hostile = rivals(current, tag, target) || relations(current, tag, target) < AI_PLAY_HOSTILE_RELATIONS;
-      const score = (hostile ? 1 : 0) * 1e9 + (own - opposing);
+      // AI only quarrels with its own rivals (or countries it is truly hostile to, as after a war)
+      const ownRival = current.diplomacy.countries[tag]?.rivals.includes(target) ?? false;
+      const hostile = ownRival || relations(current, tag, target) < AI_PLAY_HOSTILE_RELATIONS * 2.5;
+      if (!hostile) continue;
+      const score = own - opposing;
       if (best === null || score > bestScore || (score === bestScore && target < best)) {
         best = target;
         bestScore = score;

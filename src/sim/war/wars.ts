@@ -30,6 +30,10 @@ const MAX_BATTLES = 12;
 const FREE_OCCUPY_INTERVAL = 2;
 /** Exhaustion at which an AI leader accepts a white peace offer. */
 export const WHITE_PEACE_EXHAUSTION = 50;
+/** Weeks a war without any land front lasts before white peace. */
+export const NO_FRONT_WEEKS = 52;
+/** War score at which the losing side capitulates outright. */
+export const CAPITULATION_SCORE = 90;
 
 const SIDES: readonly WarSide[] = ['attackers', 'defenders'];
 
@@ -285,6 +289,9 @@ interface World {
   population: Map<string, number>;
   /** tag -> Σ population of the states it controls. */
   controlledPopulation: Map<string, number>;
+  /** Rightful owner of each state, and states by owner (occupation ignored). */
+  owner: Map<string, string | null>;
+  owned: Map<string, string[]>;
 }
 
 function buildWorld(state: GameState): World {
@@ -292,8 +299,17 @@ function buildWorld(state: GameState): World {
   const controlled = new Map<string, string[]>();
   const population = new Map<string, number>();
   const controlledPopulation = new Map<string, number>();
+  const owner = new Map<string, string | null>();
+  const owned = new Map<string, string[]>();
 
   for (const stateId of Object.keys(state.states).sort()) {
+    const own = state.states[stateId]?.owner ?? null;
+    owner.set(stateId, own);
+    if (own !== null) {
+      const l = owned.get(own);
+      if (l) l.push(stateId);
+      else owned.set(own, [stateId]);
+    }
     const tag = controllerOf(state, stateId);
     controller.set(stateId, tag);
     const pop = populationOf(state.economy.states[stateId]);
@@ -304,7 +320,7 @@ function buildWorld(state: GameState): World {
     else controlled.set(tag, [stateId]);
     controlledPopulation.set(tag, (controlledPopulation.get(tag) ?? 0) + pop);
   }
-  return { controller, controlled, population, controlledPopulation };
+  return { controller, controlled, population, controlledPopulation, owner, owned };
 }
 
 function neighboursOf(adjacency: Adjacency, stateId: string): string[] {
@@ -347,9 +363,8 @@ function buildFronts(war: War, world: World, adjacency: Adjacency): Front[] {
 
 /** Battalions a country can commit: its army, doubled while mobilised. */
 function availableBattalions(state: GameState, tag: string): number {
-  const army = armyOf(state, tag);
-  const battalions = Math.max(0, fin(army.battalions));
-  return army.mobilized ? battalions * 2 : battalions;
+  // Army.battalions already includes mobilised conscripts (armyStep)
+  return Math.max(0, fin(armyOf(state, tag).battalions));
 }
 
 /** A country's fronts in one war, with the contact-state count of each. */
@@ -446,7 +461,7 @@ function leastPopulous(world: World, candidates: readonly string[]): string | nu
 function liberatable(world: World, adjacency: Adjacency, war: War, side: WarSide, attacker: string): string[] {
   const out: string[] = [];
   for (const stateId of Object.keys(war.occupation).sort()) {
-    const owner = world.controller.get(stateId);
+    const owner = world.owner.get(stateId); // the rightful owner, not the occupier
     if (owner === undefined || owner === null) continue;
     const ownerSide = sideOf(war, owner);
     if (ownerSide !== side) continue;
@@ -496,7 +511,7 @@ function occupiedShare(war: War, world: World, side: WarSide): { occupied: numbe
   let occupied = 0;
   let total = 0;
   for (const tag of sideTags(war, side)) {
-    for (const stateId of world.controlled.get(tag) ?? []) {
+    for (const stateId of world.owned.get(tag) ?? []) { // owned, not controlled: occupied land still counts as ours
       const pop = world.population.get(stateId) ?? 0;
       total += pop;
       const occupier = war.occupation[stateId];
@@ -567,8 +582,8 @@ function stepWar(
   const tick = state.tickCount;
 
   // 1. Fronts
-  const fronts = buildFronts(war, world, adjacency);
-  let current: War = { ...war, fronts };
+  // fronts were built and battalions allocated across all wars in warStep; keep them
+  let current: War = { ...war };
 
   // 2. Allocation (over all wars of the country, done by the caller)
   // 3. Battles
@@ -670,9 +685,12 @@ function stepWar(
   // 7. Peace
   const attackerLeader = leaderOf(current, 'attackers');
   const defenderLeader = leaderOf(current, 'defenders');
-  const defendersOut = current.exhaustion.defenders >= CAPITULATION_EXHAUSTION;
-  const attackersOut = current.exhaustion.attackers >= CAPITULATION_EXHAUSTION;
-  const tooLong = tick - current.startedTick >= MAX_WAR_WEEKS;
+  // a side capitulates when exhausted or when (nearly) all of its land is occupied
+  const defendersOut = current.exhaustion.defenders >= CAPITULATION_EXHAUSTION || current.warScore >= CAPITULATION_SCORE;
+  const attackersOut = current.exhaustion.attackers >= CAPITULATION_EXHAUSTION || current.warScore <= -CAPITULATION_SCORE;
+  // a war with no land front for a year (no navy yet) ends in white peace
+  const age = tick - current.startedTick;
+  const tooLong = age >= MAX_WAR_WEEKS || (current.fronts.length === 0 && age >= NO_FRONT_WEEKS);
 
   if (defendersOut && !attackersOut) {
     next = enforceGoals(next, current.goals, attackerLeader ?? '', defenderLeader ?? '');

@@ -9,6 +9,7 @@
 import adjacencyJson from '../../data/adjacency.json';
 import { ALLIANCE_MIN_RELATIONS, GREAT_POWER_COUNT } from '../../data/diplomacy/rules';
 import type { GameState } from '../types';
+import { countryStats } from '../aggregates';
 import { pairKey } from './pair';
 import type { PairKey } from './types';
 
@@ -68,33 +69,17 @@ function addNeighbour(map: Map<string, Set<string>>, tag: string, other: string)
 
 /** True if `tag` owns at least one state that has an economy. */
 export function countryExists(state: GameState, tag: string): boolean {
-  for (const [stateId, stateDef] of Object.entries(state.states)) {
-    if (stateDef.owner !== tag) continue;
-    if (state.economy.states[stateId]) return true;
-  }
-  return false;
+  return countryStats(state).existingSet.has(tag);
 }
 
 /** Every existing country tag, sorted. */
 export function existingCountries(state: GameState): string[] {
-  const tags = new Set<string>();
-  for (const stateId of Object.keys(state.economy.states)) {
-    const owner = state.states[stateId]?.owner;
-    if (owner) tags.add(owner);
-  }
-  return [...tags].sort();
+  return [...countryStats(state).existing];
 }
 
 /** Total population of a country (Σ pops of its states). */
 export function populationOf(state: GameState, tag: string): number {
-  let total = 0;
-  for (const [stateId, stateDef] of Object.entries(state.states)) {
-    if (stateDef.owner !== tag) continue;
-    const economy = state.economy.states[stateId];
-    if (!economy) continue;
-    for (const count of Object.values(economy.pops)) total += count;
-  }
-  return total;
+  return countryStats(state).population.get(tag) ?? 0;
 }
 
 // ------------------------------------------------------------------ relations and pacts

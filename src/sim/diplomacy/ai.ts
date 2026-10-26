@@ -8,9 +8,9 @@ import { ALLIANCE_MIN_RELATIONS } from '../../data/diplomacy/rules';
 import type { GameState } from '../types';
 import {
   addAlliance, areAllied, existingCountries, fin, freeInfluenceOf, isGreatPower, isRivalOf,
-  neighboursOf, relationsOf, removeAlliance, removeRival, rivalsEitherWay, stopImproving, tagParity,
+  relationsOf, removeAlliance, removeRival, rivalsEitherWay, stopImproving, tagParity,
 } from './internal';
-import { allianceAcceptance, borders } from './queries';
+import { allianceAcceptance, borders, neighboursOf } from './queries';
 import { bumpRelations } from './steps';
 import type { DiplomacyState } from './types';
 

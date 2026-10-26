@@ -31,8 +31,13 @@ export const START_RIVALRIES: [string, string][] = [
 export const START_ARMIES: Record<string, number> = {
   RUS: 600, QNG: 600, AUS: 300, FRA: 300, EIC: 200, OTT: 150, EGY: 130, PRU: 130, GBR: 100,
   SPA: 100, JAP: 80, PER: 60, SIK: 70, SAR: 40, SIC: 40, BAV: 40, SWE: 30, NET: 30, BEL: 30,
-  MEX: 30, BRZ: 20, POR: 20, DEN: 15, USA: 10, HAN: 15, WUR: 15, SAX: 12, SWI: 10, GRE: 8,
+  MEX: 30, BRZ: 20, POR: 20, DEN: 15, USA: 35, HAN: 15, WUR: 15, SAX: 12, SWI: 10, GRE: 8,
 };
 
 /** Share of the population under arms for unlisted countries. */
 export const DEFAULT_ARMY_SHARE = 0.003;
+
+/** Standing of the traditional powers of the Concert of Europe (permanent base prestige). */
+export const BASE_PRESTIGE: Record<string, number> = {
+  GBR: 300, FRA: 200, RUS: 200, AUS: 200, PRU: 120, OTT: 60, SPA: 40, USA: 40, QNG: 40, NET: 30, SWE: 20,
+};

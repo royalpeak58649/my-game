@@ -82,7 +82,7 @@ of `tag` (land) — all with `holder = tag`, `target = target`.
 Weekly, per play:
 1. **Joining** (countries that are not leaders, not already on a side, not the player):
    subjects join their overlord's side; overlords join the side opposing anyone attacking their subject;
-   allies of exactly one leader join that leader; a great power that is a rival of one leader and has
+   alliances are defensive — allies of the target (and not of the initiator) join the target; a great power that is a rival of one leader and has
    relations ≥ 20 with the other joins the other.
    The player joins only via `joinPlay(state, tag, playId, side)`.
 2. `weeksLeft -= 1`. At 0 resolve:
@@ -127,9 +127,9 @@ Weekly, per war (wars in id order):
    population − the same for attackers) × 100, clamped ±100.
 6. **Exhaustion** per side += `EXHAUSTION_BASE + EXHAUSTION_PER_LOSS × (losses / side battalions × 100) +
    EXHAUSTION_PER_OCCUPIED × (occupied own population %)`; clamp 0..100.
-7. **Peace**: defenders ≥ `CAPITULATION_EXHAUSTION` → defenders capitulate → enforce all goals;
+7. **Peace**: defenders ≥ `CAPITULATION_EXHAUSTION` exhaustion or war score ≥ 90 → defenders capitulate → enforce all goals;
    attackers ≥ it → attackers capitulate → no goals, attacker leader `prestigeBonus −= 10`;
-   both, or war older than `MAX_WAR_WEEKS` → white peace. `capitulate(state, tag, warId)` (leader) and
+   both, war older than `MAX_WAR_WEEKS`, or a war with no land front for `NO_FRONT_WEEKS` (52) → white peace. `capitulate(state, tag, warId)` (leader) and
    `offerWhitePeace(state, tag, warId)` (accepted by an AI leader whose exhaustion ≥ 50 or whose
    war score ≤ 0 from its own side's view) end it too.
 
