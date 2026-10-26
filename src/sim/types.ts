@@ -1,6 +1,7 @@
 import type { GameDate } from './date';
 import type { EconomyState } from './economy/types';
 import type { PoliticsState } from './politics/types';
+import type { DiplomacyState, MilitaryState } from './diplomacy/types';
 
 export interface StateDef {
   id: string;
@@ -26,4 +27,8 @@ export interface GameState {
   countries: Record<string, CountryDef>;
   economy: EconomyState;
   politics: PoliticsState;
+  diplomacy: DiplomacyState;
+  military: MilitaryState;
+  /** Incremented whenever a state changes owner (the map rebuilds its borders). */
+  ownershipVersion: number;
 }

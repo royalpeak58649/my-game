@@ -38,6 +38,8 @@ export interface Modifiers {
   industryOutputMult?: number;
   /** Added to legitimacy (points). */
   legitimacyAdd?: number;
+  /** Multiplier on army strength. */
+  armyQualityMult?: number;
   /** Multiplier on movement radicalism growth. */
   radicalismMult?: number;
 }
@@ -62,7 +64,7 @@ export interface LawGroupDef {
   laws: string[]; // LawDef ids, from most traditional to most progressive
 }
 
-export type TechCategory = 'production' | 'society';
+export type TechCategory = 'production' | 'society' | 'military';
 
 export interface TechDef {
   id: string;

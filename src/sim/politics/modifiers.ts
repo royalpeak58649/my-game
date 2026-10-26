@@ -7,7 +7,7 @@ import type { LawGroupId, Modifiers, Movement } from './types';
 
 /** Multiplicative fields: every source multiplies into the result. */
 const MULTIPLICATIVE = [
-  'researchMult', 'taxEfficiency', 'upkeepMult', 'hireRateMult', 'wageMult',
+  'researchMult', 'taxEfficiency', 'upkeepMult', 'hireRateMult', 'wageMult', 'armyQualityMult',
   'outputMult', 'industryOutputMult', 'radicalismMult',
 ] as const;
 

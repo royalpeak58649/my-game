@@ -7,6 +7,7 @@
 
 import { BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings';
 import { UPKEEP_PER_CAPITA } from '../../data/economy/development';
+import { MOBILIZATION_MULT, MOBILIZED_UPKEEP } from '../../data/diplomacy/rules';
 import {
   GOODS, GOOD_IDS, PRICE_ELASTICITY, PRICE_MAX_FACTOR, PRICE_MIN_FACTOR, PRICE_SMOOTHING, WORLD_TRADE_SHARE,
 } from '../../data/economy/goods';
@@ -141,6 +142,9 @@ export function economyTick(state: GameState): GameState {
   const outMult = Float64Array.from(mods, (x) => x.outputMult ?? 1);
   const indMult = Float64Array.from(mods, (x) => (x.outputMult ?? 1) * (x.industryOutputMult ?? 1));
   const upkeepMult = new Map(tags.map((t, i) => [t, mods[i]?.upkeepMult ?? 1]));
+  // mobilised armies consume twice the small arms and cost conscript pay (docs/WAR.md)
+  const mobilized = tags.map((t) => state.military?.armies[t]?.mobilized === true);
+  const armyInput = Float64Array.from(mobilized, (m) => (m ? MOBILIZATION_MULT : 1));
 
   const refs: SRef[] = [];
   for (const id of Object.keys(eco.states).sort()) {
@@ -258,7 +262,7 @@ export function economyTick(state: GameState): GameState {
       }
       inst.inputFill = fill;
       for (let k = 0; k < v.inputs.idx.length; k++) {
-        demand[base + (v.inputs.idx[k] as number)] += level * (v.inputs.amt[k] as number) * staff;
+        demand[base + (v.inputs.idx[k] as number)] += level * (v.inputs.amt[k] as number) * staff * (br.def.id === 'barracks' ? (armyInput[r.m] as number) : 1);
       }
       const scale = level * staff * fill * ((br.def.group === 'industry' ? indMult[r.m] : outMult[r.m]) as number);
       for (let k = 0; k < v.outputs.idx.length; k++) {
@@ -355,7 +359,7 @@ export function economyTick(state: GameState): GameState {
       let inputCost = 0;
       for (let k = 0; k < v.inputs.idx.length; k++) {
         const i = base + (v.inputs.idx[k] as number);
-        inputCost += level * (v.inputs.amt[k] as number) * staff * (buyFill[i] as number) * (price[i] as number);
+        inputCost += level * (v.inputs.amt[k] as number) * staff * (buyFill[i] as number) * (price[i] as number) * (br.def.id === 'barracks' ? (armyInput[r.m] as number) : 1);
       }
       let wageBill = 0;
       const wm = wageMult[r.m] as number;
@@ -414,7 +418,8 @@ export function economyTick(state: GameState): GameState {
     const c = eco.countries[tag] as CountryEconomy;
     const a = byTag.get(tag);
     if (!a) continue;
-    const upkeep = a.pop * UPKEEP_PER_CAPITA * (upkeepMult.get(tag) ?? 1);
+    const army = state.military?.armies[tag];
+    const upkeep = a.pop * UPKEEP_PER_CAPITA * (upkeepMult.get(tag) ?? 1) + (army?.mobilized ? army.battalions * MOBILIZED_UPKEEP : 0);
     c.lastIncome = a.inc;
     c.lastUpkeep = upkeep;
     c.lastExpenses = a.exp + upkeep;

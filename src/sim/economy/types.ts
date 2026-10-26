@@ -20,7 +20,7 @@ export interface GoodDef {
 
 export type PopTypeId =
   | 'aristocrats' | 'capitalists' | 'bureaucrats' | 'clerks' | 'shopkeepers'
-  | 'machinists' | 'laborers' | 'farmers' | 'peasants';
+  | 'machinists' | 'laborers' | 'farmers' | 'soldiers' | 'peasants';
 
 /** 'subsistence' is the peasants' mostly self-provided basket. */
 export type WealthTier = 'subsistence' | 'lower' | 'middle' | 'upper';

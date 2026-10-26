@@ -10,7 +10,8 @@
     "data": "node --max-old-space-size=6000 scripts/build-map.mjs",
     "data:economy": "node scripts/build-economy.mjs",
     "data:start": "vite-node scripts/build-start.ts",
-    "soak": "vite-node scripts/soak.ts --"
+    "soak": "vite-node scripts/soak.ts --",
+    "data:adjacency": "node scripts/build-adjacency.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",

@@ -48,14 +48,15 @@ export const START_LAWS: Record<string, LawOverrides> = {
   HAI: LATIN_REPUBLIC, LIB: LATIN_REPUBLIC,
 };
 
-const TIER_A = ['enlightenment', 'political_economy', 'academies', 'rotation_farming', 'mechanical_tools', 'mechanical_spinning', 'steam_engines', 'canals', 'iron_construction'];
-const TIER_B = ['enlightenment', 'political_economy', 'academies', 'rotation_farming', 'mechanical_tools', 'mechanical_spinning', 'canals'];
+const TIER_A = ['line_drill', 'enlightenment', 'political_economy', 'academies', 'rotation_farming', 'mechanical_tools', 'mechanical_spinning', 'steam_engines', 'canals', 'iron_construction'];
+const TIER_B = ['line_drill', 'enlightenment', 'political_economy', 'academies', 'rotation_farming', 'mechanical_tools', 'mechanical_spinning', 'canals'];
 const TIER_C = ['enlightenment', 'rotation_farming', 'mechanical_tools'];
 
 export const START_TECHS: Record<string, string[]> = {
   GBR: TIER_A, BEL: TIER_A,
   FRA: TIER_B, PRU: TIER_B, NET: TIER_B, USA: TIER_B, SWI: TIER_B, SAX: TIER_B,
-  AUS: [...TIER_C, 'mechanical_spinning'], RUS: [...TIER_C, 'mechanical_spinning'], EGY: [...TIER_C, 'mechanical_spinning'],
+  AUS: [...TIER_C, 'mechanical_spinning', 'line_drill'], RUS: [...TIER_C, 'mechanical_spinning', 'line_drill'],
+  EGY: [...TIER_C, 'mechanical_spinning', 'line_drill'], OTT: ['line_drill'],
   BAV: TIER_C, WUR: TIER_C, HAN: TIER_C, HES: TIER_C, THU: TIER_C, MEC: TIER_C, DEN: TIER_C, SWE: TIER_C, NOR: TIER_C,
   SAR: TIER_C, TUS: TIER_C, PAP: TIER_C, SIC: TIER_C, PRM: TIER_C, MOD: TIER_C, SPA: TIER_C, POR: TIER_C,
 };

@@ -22,6 +22,7 @@ export const POP_AFFINITY: PopAffinity = {
   machinists: { workers: 0.8, intelligentsia: 0.2 },
   laborers: { workers: 0.7, clergy: 0.3 },
   farmers: { peasantry: 0.7, clergy: 0.3 },
+  soldiers: { army: 0.6, peasantry: 0.4 },
   peasants: { peasantry: 0.7, clergy: 0.3 },
 };
 

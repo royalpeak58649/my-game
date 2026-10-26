@@ -121,6 +121,11 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
       methods: [{ id: 'admin_clerical', name: 'Clerical Offices', inputs: { paper: 2 }, outputs: {}, employment: { bureaucrats: 1500, clerks: 500 } }],
     },
     {
+      // one level = one battalion of BATTALION_SIZE soldiers; muskets wear out and need replacing
+      id: 'barracks', name: 'Barracks', group: 'government', owner: 'government', cost: 150,
+      methods: [{ id: 'barracks_line', name: 'Line Infantry', inputs: { small_arms: 0.3 }, outputs: {}, employment: { soldiers: 1000 } }],
+    },
+    {
       id: 'construction_sector', name: 'Construction Sector', group: 'government', owner: 'government', cost: 150,
       methods: [
         { id: 'construction_wood', name: 'Wooden Buildings', inputs: { wood: 10, fabric: 2 }, outputs: {}, construction: 5, employment: { laborers: 4000 } },

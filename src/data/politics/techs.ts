@@ -13,6 +13,12 @@ export const TECHS: Record<string, TechDef> = Object.fromEntries([
   T({ id: 'steam_engines', name: 'Stationary Steam Engines', category: 'production', cost: 900, requires: ['mechanical_spinning', 'mechanical_tools'], description: 'Engines free mills from the riverbank.', modifiers: { industryOutputMult: 1.1 } }),
   T({ id: 'interchangeable_parts', name: 'Interchangeable Parts', category: 'production', cost: 1000, requires: ['mechanical_tools'], description: 'Gauges and jigs make every part fit every copy.', modifiers: { industryOutputMult: 1.05 } }),
   T({ id: 'railways', name: 'Railways', category: 'production', cost: 1500, requires: ['steam_engines', 'iron_construction'], description: 'Locomotives on iron rails bind markets together.', modifiers: { tradeShareAdd: 0.1, outputMult: 1.03 } }),
+  // military
+  T({ id: 'line_drill', name: 'Line Drill', category: 'military', cost: 300, requires: [], description: 'Standardised drill turns conscripts into steady infantry.', modifiers: { armyQualityMult: 1.05 } }),
+  T({ id: 'percussion_caps', name: 'Percussion Caps', category: 'military', cost: 600, requires: ['line_drill'], description: 'Muskets that fire in the rain.', modifiers: { armyQualityMult: 1.1 } }),
+  T({ id: 'field_artillery', name: 'Horse Artillery', category: 'military', cost: 700, requires: ['line_drill'], description: 'Light guns that keep pace with the columns.', modifiers: { armyQualityMult: 1.1 } }),
+  T({ id: 'general_staff', name: 'General Staff', category: 'military', cost: 900, requires: ['line_drill', 'statistics'], description: 'Planning, maps and railway timetables for war.', modifiers: { armyQualityMult: 1.1 } }),
+  T({ id: 'rifled_muskets', name: 'Rifled Muskets', category: 'military', cost: 1300, requires: ['percussion_caps', 'interchangeable_parts'], description: 'Accurate fire at four hundred paces.', modifiers: { armyQualityMult: 1.25 } }),
   // society
   T({ id: 'enlightenment', name: 'Enlightenment Thought', category: 'society', cost: 200, requires: [], description: 'Reason, inquiry and the rights of man.' }),
   T({ id: 'political_economy', name: 'Political Economy', category: 'society', cost: 400, requires: ['enlightenment'], description: 'The science of wealth, trade and taxes.' }),
@@ -41,7 +47,6 @@ export const TECH_UNLOCKS: Record<string, string> = {
   // buildings
   textile_mill: 'mechanical_spinning',
   steel_mill: 'crucible_steel',
-  arms_workshop: 'interchangeable_parts',
 };
 
 /** Research points per week: base + per educated person (bureaucrats count half). */

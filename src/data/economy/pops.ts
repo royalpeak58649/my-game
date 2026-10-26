@@ -9,6 +9,7 @@ export const POP_TYPES: Record<PopTypeId, PopTypeDef> = {
   machinists: { id: 'machinists', name: 'Machinists', tier: 'lower', baseWage: 0.08, hireRate: 0.04 },
   laborers: { id: 'laborers', name: 'Laborers', tier: 'lower', baseWage: 0.05, hireRate: 0.1 },
   farmers: { id: 'farmers', name: 'Farmers', tier: 'lower', baseWage: 0.04, hireRate: 0.1 },
+  soldiers: { id: 'soldiers', name: 'Soldiers', tier: 'lower', baseWage: 0.05, hireRate: 0.08 },
   peasants: { id: 'peasants', name: 'Peasants', tier: 'subsistence', baseWage: 0, subsistenceIncome: 0.013, hireRate: 0 },
 };
 

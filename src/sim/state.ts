@@ -15,5 +15,8 @@ export function createGameState(
     countries: Object.fromEntries(Object.entries(countries).map(([k, c]) => [k, { ...c }])),
     economy: { states: {}, markets: {}, countries: {} },
     politics: { countries: {} },
+    diplomacy: { relations: {}, alliances: [], subjects: {}, truces: {}, countries: {}, plays: [], ranking: [], nextPlayId: 1 },
+    military: { armies: {}, wars: [], nextWarId: 1 },
+    ownershipVersion: 0,
   };
 }
