@@ -1,5 +1,8 @@
 # 1836
 
+> Working on the code? Start with [AGENTS.md](AGENTS.md) (commands, layout, rules) and
+> [docs/HANDOVER.md](docs/HANDOVER.md) (current state, open questions).
+
 An original grand-strategy game set in 1836: guide a nation through economy, politics,
 diplomacy and war on a map of the whole world. Built from scratch with open geographic
 data; no assets, UI designs or data from any commercial game are used.
