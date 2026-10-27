@@ -1,0 +1,11 @@
+.git
+.agents
+.codex
+node_modules
+dist
+data-raw
+*.log
+.env
+.env.*
+*.key
+*.pem

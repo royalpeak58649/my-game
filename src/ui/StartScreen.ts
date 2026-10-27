@@ -1,7 +1,11 @@
 import type { GameState } from '../sim/types';
+import { addLanguageOptions, type Language } from './i18n';
 
 export interface StartScreenOptions {
   onStart: (tag: string | null) => void;
+  onLoad: () => void;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
 }
 
 interface CountryEntry {
@@ -55,10 +59,25 @@ export class StartScreen {
     this.list.setAttribute('role', 'list');
 
     const footer = el('div', 'start-footer');
+    const languageWrap = el('label', 'language-picker');
+    languageWrap.append(el('span', 'language-label', 'Language'));
+    const languageSelect = el('select', 'language-select');
+    languageSelect.setAttribute('aria-label', 'Language');
+    addLanguageOptions(languageSelect);
+    languageSelect.value = options.language;
+    languageSelect.addEventListener('change', () => {
+      options.onLanguageChange(languageSelect.value as Language);
+    });
+    languageWrap.append(languageSelect);
+    const actions = el('div', 'start-footer-actions');
+    const load = el('button', 'button-secondary', 'Load Game');
+    load.type = 'button';
+    load.addEventListener('click', options.onLoad);
     const observe = el('button', 'button-secondary', 'Observe');
     observe.type = 'button';
     observe.addEventListener('click', () => this.options.onStart(null));
-    footer.append(observe);
+    actions.append(load, observe);
+    footer.append(languageWrap, actions);
 
     card.append(title, subtitle, this.search, this.list, footer);
     this.root.append(card);

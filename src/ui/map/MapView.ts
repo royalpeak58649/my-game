@@ -498,6 +498,17 @@ export class MapView {
     this.invalidate();
   }
 
+  /** Moves the rendered map by a number of screen pixels. */
+  panBy(screenX: number, screenY: number): void {
+    this.view = {
+      ...this.view,
+      tx: this.view.tx + screenX,
+      ty: this.view.ty + screenY,
+    };
+    this.clampView();
+    this.invalidate();
+  }
+
   /** Pans and zooms so that the given state fills a comfortable part of the view. */
   focusState(stateId: string, targetScale = 6): void {
     const shape = this.shapes.get(stateId);
@@ -512,6 +523,13 @@ export class MapView {
       ty: this.height / 2 - cy * scale,
     };
     this.clampView();
+    this.invalidate();
+  }
+
+  /** Rebuilds ownership-dependent geometry after replacing the entire game state. */
+  reloadGameState(): void {
+    this.ownershipVersion = this.store.get().ownershipVersion;
+    this.rebuildPolitical();
     this.invalidate();
   }
 

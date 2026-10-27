@@ -1,10 +1,12 @@
 import type { GameState } from '../sim/types';
+import { initialLanguage, type Language } from './i18n';
 
 export type MapMode = 'political' | 'diplomacy' | 'population' | 'states';
 
 /** Which view the side panel shows. */
 export type PanelView =
   | 'auto'
+  | 'overview'
   | 'market'
   | 'construction'
   | 'politics'
@@ -24,6 +26,7 @@ export interface UiState {
   hoveredStateId: string | null;
   mapMode: MapMode;
   speed: Speed;
+  language: Language;
   /** 'auto' follows the selection (state → state view, country → country view). */
   panelView: PanelView;
 }
@@ -37,6 +40,7 @@ function createUiState(): UiState {
     hoveredStateId: null,
     mapMode: 'political',
     speed: 0,
+    language: initialLanguage(),
     panelView: 'auto',
   };
 }

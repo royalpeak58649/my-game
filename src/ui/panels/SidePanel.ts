@@ -23,6 +23,7 @@ import type { CountryPolitics, IgId, LawGroupId, TechCategory } from '../../sim/
 import type { GameState, StateDef } from '../../sim/types';
 import { formatCount, formatDelta, formatMoney, formatPercent } from '../format';
 import type { PanelView, Store } from '../store';
+import { renderBriefingView } from './briefingViews';
 import { renderDiplomacyView, renderWarView } from './diplomacyViews';
 import { renderNavyView } from './navyViews';
 
@@ -259,7 +260,10 @@ export class SidePanel {
     const scrollTop = this.body.scrollTop;
     this.body.replaceChildren();
 
-    if (view === 'market') {
+    if (view === 'overview') {
+      this.title.textContent = 'Strategic Briefing';
+      renderBriefingView(this.body, game, this.store, country?.tag ?? game.player);
+    } else if (view === 'market') {
       this.title.textContent = 'Market';
       this.renderMarket(game, country?.tag ?? game.player);
     } else if (view === 'construction') {
@@ -586,6 +590,12 @@ export class SidePanel {
     }
 
     const actions = el('div', 'panel-actions');
+    const overviewButton = el('button', 'button-secondary button-small', 'Overview');
+    overviewButton.type = 'button';
+    overviewButton.title = 'National strategic briefing (O)';
+    overviewButton.addEventListener('click', () => {
+      this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'overview' });
+    });
     const marketButton = el('button', 'button-secondary button-small', 'Market');
     marketButton.type = 'button';
     marketButton.addEventListener('click', () => {
@@ -614,7 +624,7 @@ export class SidePanel {
     techButton.addEventListener('click', () => {
       this.store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: 'technology' });
     });
-    actions.append(marketButton, constructionButton, politicsButton, lawsButton, techButton);
+    actions.append(overviewButton, marketButton, constructionButton, politicsButton, lawsButton, techButton);
     this.body.append(actions);
   }
 

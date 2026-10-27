@@ -511,7 +511,7 @@ function renderOwnDiplomacy(container: HTMLElement, state: GameState, store: Sto
     const row = el('div', 'dip-war-row');
     row.append(el('span', 'dip-war-name', war.name));
     row.append(
-      button('Open war', () => store.setUi({ selectedCountryTag: player, selectedStateId: null, panelView: 'war' }), 'Open the war view (W).'),
+      button('Open war', () => store.setUi({ selectedCountryTag: player, selectedStateId: null, panelView: 'war' }), 'Open the war view (Shift+W).'),
     );
     container.append(row);
   }

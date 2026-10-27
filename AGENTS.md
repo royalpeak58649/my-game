@@ -15,6 +15,7 @@ npm run soak -- 520    # headless 10-year run: wars, peace, navies, tick time, w
 npx vite-node scripts/navy-report.ts            # fleets and convoys at the start
 npx vite-node scripts/scenario-invasion.ts      # Britain vs Qing over Hong Kong (naval war)
 WAR=FRA,GBR,GBR_04 npx vite-node scripts/scenario-invasion.ts   # any attacker,target,goal state
+docker compose up -d --build                    # production Nginx container (amd64/arm64)
 ```
 
 Node 22. In dev builds the store is exposed as `window.__store`, for scripted UI checks with
@@ -35,8 +36,10 @@ src/sim/            pure simulation (no DOM): every function GameState -> GameSt
 src/data/           static data; the *.json files are GENERATED (see "Data pipeline")
   economy/ politics/ diplomacy/ navy/   hand-written rules, constants and 1836 setup (.ts)
 src/ui/             DOM panels + canvas map; reads GameState and calls sim commands
+  i18n.ts             English/Korean/Japanese/Chinese DOM translation and language persistence
+  saveGame.ts         versioned JSON save/load, validation and file download
   map/MapView.ts      projection, borders, labels, occupation stripes, naval overlay
-  panels/             TopBar, SidePanel (state/country/market/construction/politics/laws/tech),
+  panels/             TopBar, SidePanel (overview/state/country/market/construction/politics/laws/tech),
                       diplomacyViews (diplomacy, war), navyViews (navy, invasion planner)
 scripts/            Node data pipeline + soak/scenario tools
 docs/               the rules of each system: ECONOMY, POLITICS, WAR, NAVY

@@ -19,18 +19,34 @@ npm run data:economy  # 1836 population and resources per state
 npm run data:start    # calibrated 1836 start economy (run after changing economy data)
 ```
 
+## Deployment
+
+The repository includes an ARM64-compatible multi-stage Docker build and Nginx configuration.
+For an Oracle Cloud Ampere A1 Always Free instance, follow
+[docs/DEPLOY_ORACLE_ARM.md](docs/DEPLOY_ORACLE_ARM.md).
+
 ## Controls
 
 | Input | Action |
 | --- | --- |
 | Drag / wheel | Pan / zoom the map |
+| W / A / S / D | Pan the map |
 | Click a state | Open its panel |
 | Space | Pause / resume |
 | 1 – 5 | Game speed |
 | M | Cycle map mode (political / diplomacy / population / states) |
+| O | Open the national strategic briefing |
 | P / L / T | Politics / Laws / Technology |
-| D / W | Diplomacy / War |
+| Shift+D / Shift+W | Diplomacy / War |
 | Esc | Close panel |
+
+The language selector on the start screen and top bar supports English, Korean, Japanese and
+Simplified Chinese. The selected language is saved in the browser. Historical country and state
+names remain in their source form.
+
+Use Load Game on the start screen, or Save and Load in the top bar, to exchange versioned JSON
+save files. Loading pauses the simulation and restores the player, date, economy, politics,
+diplomacy, military and current borders.
 
 ## What exists (milestone 1)
 
@@ -70,6 +86,12 @@ and armies abroad use up (the classic convoy model, before transport ships becam
 split between raiding enemy convoys and escorting their own; naval invasions sail, fight the enemy
 fleet and land against the garrison to open a front overseas. The navy panel (N), an invasion
 planner in the war panel and fleet / route markers on the map. See [docs/NAVY.md](docs/NAVY.md).
+
+## Strategic briefing
+
+Click the player country in the top bar or press O to open a national overview. It combines
+finances, markets, politics, research, diplomacy and military logistics into prioritised signals,
+with direct links to the detailed panel for each issue.
 
 ## The 1836 map is approximate
 

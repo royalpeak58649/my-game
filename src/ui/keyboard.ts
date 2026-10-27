@@ -2,7 +2,10 @@ import type { PanelView, Speed, Store } from './store';
 
 export interface KeyboardOptions {
   onClosePanel: () => void;
+  onPanMap: (screenX: number, screenY: number) => void;
 }
+
+const PAN_STEP = 72;
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -10,15 +13,16 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
-/** Opens a politics view for the player's country (no-op for observers). */
+/** Opens a national view for the player's country (no-op for observers). */
 function openPlayerView(store: Store, view: PanelView): void {
   const tag = store.get().player;
   if (!tag) return;
   store.setUi({ selectedCountryTag: tag, selectedStateId: null, panelView: view });
 }
 
-/** Global keyboard shortcuts: Space pause, 1-5 speed, Esc close, M cycles map mode,
- *  P politics, L laws, T technology, D diplomacy, W war, N navy. */
+/** Global keyboard shortcuts: WASD pan, Space pause, 1-5 speed, Esc close,
+ *  M map mode, O overview, P politics, L laws, T technology,
+ *  Shift+D diplomacy, Shift+W war and N navy. */
 export function installKeyboard(store: Store, options: KeyboardOptions): () => void {
   const handler = (event: KeyboardEvent): void => {
     if (isTypingTarget(event.target)) return;
@@ -50,7 +54,43 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
       return;
     }
 
+    if (event.shiftKey && event.code === 'KeyD') {
+      event.preventDefault();
+      openPlayerView(store, 'diplomacy');
+      return;
+    }
+    if (event.shiftKey && event.code === 'KeyW') {
+      event.preventDefault();
+      openPlayerView(store, 'war');
+      return;
+    }
+
+    if (event.code === 'KeyW') {
+      event.preventDefault();
+      options.onPanMap(0, PAN_STEP);
+      return;
+    }
+    if (event.code === 'KeyA') {
+      event.preventDefault();
+      options.onPanMap(PAN_STEP, 0);
+      return;
+    }
+    if (event.code === 'KeyS') {
+      event.preventDefault();
+      options.onPanMap(0, -PAN_STEP);
+      return;
+    }
+    if (event.code === 'KeyD') {
+      event.preventDefault();
+      options.onPanMap(-PAN_STEP, 0);
+      return;
+    }
+
     const key = event.key.toLowerCase();
+    if (key === 'o') {
+      openPlayerView(store, 'overview');
+      return;
+    }
     if (key === 'p') {
       openPlayerView(store, 'politics');
       return;
@@ -61,14 +101,6 @@ export function installKeyboard(store: Store, options: KeyboardOptions): () => v
     }
     if (key === 't') {
       openPlayerView(store, 'technology');
-      return;
-    }
-    if (key === 'd') {
-      openPlayerView(store, 'diplomacy');
-      return;
-    }
-    if (key === 'w') {
-      openPlayerView(store, 'war');
       return;
     }
     if (key === 'n') {

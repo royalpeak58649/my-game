@@ -6,6 +6,7 @@ import { isGreatPower, rankOf } from '../../sim/diplomacy/queries';
 import { playsOf, warsOf } from '../../sim/war/queries';
 import { TECHS } from '../../data/politics/techs';
 import { formatDelta, formatMoney } from '../format';
+import { addLanguageOptions, type Language } from '../i18n';
 import type { PanelView, Speed, Store } from '../store';
 
 const SPEEDS: Exclude<Speed, 0>[] = [1, 2, 3, 4, 5];
@@ -21,12 +22,19 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+export interface TopBarOptions {
+  onPlayerClick: () => void;
+  onSave: () => void;
+  onLoad: () => void;
+}
+
 /** Top bar: player identity, date, economy readouts, panel shortcuts and speed controls. */
 export class TopBar {
   readonly root: HTMLElement;
   private readonly store: Store;
   private readonly swatch: HTMLElement;
   private readonly playerName: HTMLElement;
+  private readonly languageSelect: HTMLSelectElement;
   private readonly dateLabel: HTMLElement;
   private readonly treasurySlot: HTMLElement;
   private readonly treasuryValue: HTMLElement;
@@ -43,19 +51,38 @@ export class TopBar {
   private readonly pips: HTMLButtonElement[] = [];
   private readonly unsubscribers: (() => void)[] = [];
 
-  constructor(store: Store, onPlayerClick: () => void) {
+  constructor(store: Store, options: TopBarOptions) {
     this.store = store;
     this.root = el('header', 'topbar');
 
     const left = el('div', 'topbar-left');
     const playerButton = el('button', 'player-chip');
     playerButton.type = 'button';
-    playerButton.title = 'Open country panel';
+    playerButton.title = 'Open national briefing (O)';
     this.swatch = el('span', 'swatch');
     this.playerName = el('span', 'player-name', '—');
     playerButton.append(this.swatch, this.playerName);
-    playerButton.addEventListener('click', onPlayerClick);
-    left.append(playerButton);
+    playerButton.addEventListener('click', options.onPlayerClick);
+
+    this.languageSelect = el('select', 'language-select');
+    this.languageSelect.title = 'Language';
+    this.languageSelect.setAttribute('aria-label', 'Language');
+    addLanguageOptions(this.languageSelect);
+    this.languageSelect.value = store.getUi().language;
+    this.languageSelect.addEventListener('change', () => {
+      store.setUi({ language: this.languageSelect.value as Language });
+    });
+    const fileActions = el('div', 'topbar-file-actions');
+    const saveButton = el('button', 'topbar-file-button', 'Save');
+    saveButton.type = 'button';
+    saveButton.title = 'Save the current game';
+    saveButton.addEventListener('click', options.onSave);
+    const loadButton = el('button', 'topbar-file-button', 'Load');
+    loadButton.type = 'button';
+    loadButton.title = 'Load a saved game';
+    loadButton.addEventListener('click', options.onLoad);
+    fileActions.append(saveButton, loadButton);
+    left.append(playerButton, this.languageSelect, fileActions);
 
     const center = el('div', 'topbar-center');
     this.dateLabel = el('div', 'date-label', '1 January 1836');
@@ -99,17 +126,17 @@ export class TopBar {
 
     this.prestigeButton = el('button', 'stat-slot stat-button stat-prestige', 'Prestige —');
     this.prestigeButton.type = 'button';
-    this.prestigeButton.title = 'Open the diplomacy panel (D)';
+    this.prestigeButton.title = 'Open the diplomacy panel (Shift+D)';
     this.prestigeButton.addEventListener('click', () => this.openView('diplomacy'));
 
     this.warPill = el('button', 'stat-slot stat-button stat-war', 'At war');
     this.warPill.type = 'button';
-    this.warPill.title = 'Open the war panel (W)';
+    this.warPill.title = 'Open the war panel (Shift+W)';
     this.warPill.addEventListener('click', () => this.openView('war'));
 
     this.crisisPill = el('button', 'stat-slot stat-button stat-crisis', 'Crisis');
     this.crisisPill.type = 'button';
-    this.crisisPill.title = 'Open the diplomacy panel (D)';
+    this.crisisPill.title = 'Open the diplomacy panel (Shift+D)';
     this.crisisPill.addEventListener('click', () => this.openView('diplomacy'));
 
     this.navyButton = el('button', 'stat-slot stat-button stat-navy', 'Convoys —');
@@ -159,6 +186,7 @@ export class TopBar {
   private render(): void {
     const game = this.store.get();
     const ui = this.store.getUi();
+    this.languageSelect.value = ui.language;
     this.dateLabel.textContent = formatDate(game.date);
 
     const player = game.player ? game.countries[game.player] : undefined;
@@ -280,7 +308,7 @@ export class TopBar {
     this.prestigeButton.title =
       `Prestige ${prestige}\n` +
       `Rank #${rank}${greatPower ? ' — Great Power' : ''}\n` +
-      'Open the diplomacy panel (D)';
+      'Open the diplomacy panel (Shift+D)';
 
     const navy = navyOf(game, tag);
     const need = convoyNeed(navy);
@@ -297,7 +325,7 @@ export class TopBar {
     this.warPill.textContent = wars.length === 1 ? 'At war' : `At war (${wars.length})`;
     this.warPill.title =
       `${wars.map((war) => war.name).join('\n')}\n` +
-      'Open the war panel (W)';
+      'Open the war panel (Shift+W)';
 
     const plays = playsOf(game, tag);
     this.crisisPill.hidden = plays.length === 0;
@@ -308,7 +336,7 @@ export class TopBar {
           const other = play.initiator === tag ? play.target : play.initiator;
           return `Diplomatic play against ${game.countries[other]?.name ?? other} — ${play.weeksLeft} weeks left`;
         })
-        .join('\n') + '\nOpen the diplomacy panel (D)';
+        .join('\n') + '\nOpen the diplomacy panel (Shift+D)';
   }
 
   dispose(): void {

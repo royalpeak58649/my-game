@@ -1,0 +1,16 @@
+name: grand-strategy-1836
+
+services:
+  game:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: grand-strategy-1836:latest
+    restart: unless-stopped
+    ports:
+      - "${GAME_PORT:-80}:80"
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

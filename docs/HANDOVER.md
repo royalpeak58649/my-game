@@ -20,7 +20,16 @@ undecided and what is known to be rough.
 | 4 | Diplomacy and war: relations, alliances, subjects, rivals, prestige and the great-power ranking, diplomatic plays, armies and generals, land fronts, occupation, war score, exhaustion, peace | `docs/WAR.md` |
 | 5 | Navy: sea zones, naval bases and ports, the convoy model from before Victoria 3's "Great Wave" update, convoy raiding, naval invasions, navy UI | `docs/NAVY.md` |
 
-There are 97 tests, all passing. A 20-year soak run is stable: no NaN, and borders change
+The UI also has a national strategic briefing (player chip or O) that prioritises live financial,
+market, political, diplomatic and military signals and links to the relevant detailed panel.
+It supports English, Korean, Japanese and Simplified Chinese from the start screen and top bar;
+the browser remembers the selection. Geographic proper names remain in their source form.
+Games can be saved to and loaded from versioned JSON files. Loading validates the file against
+the current map and country data before replacing the running state.
+Production deployment is packaged as a multi-stage Node/Nginx container that builds natively on
+amd64 or ARM64; `docs/DEPLOY_ORACLE_ARM.md` covers Oracle Cloud Ampere A1 setup.
+
+There are 106 tests, all passing. A 20-year soak run is stable: no NaN, and borders change
 through AI wars.
 
 ## Not implemented (needs a design decision with the owner first)
@@ -29,8 +38,7 @@ through AI wars.
 - **Culture and religion**: pops have no culture or religion yet.
 - **Slavery**: deliberately left out until it is designed. It is a sensitive topic.
 - Elections and parties, migration, pop growth beyond the basics, trade routes between specific
-  countries (trade is one world pool), events and journal entries, and save and load (the state
-  is plain JSON, so this should be straightforward).
+  countries (trade is one world pool), and events and journal entries.
 - Unit-level fleets, ship types and naval technologies (the navy is abstract flotillas).
 
 ## Known rough edges
@@ -54,8 +62,9 @@ through AI wars.
 
 ## Where to start
 
-- To learn the code, run `npm run dev`, play as the United Kingdom and open the panels with the
-  keyboard: P politics, L laws, T technology, D diplomacy, W war, N navy, M map mode.
+- To learn the code, run `npm run dev`, play as the United Kingdom and move the map with WASD.
+  Open panels with O briefing, P politics, L laws, T technology, Shift+D diplomacy, Shift+W war,
+  N navy and M map mode.
 - Then read `src/sim/tick.ts` and one system's doc alongside its code. `navy/` is the smallest
   complete system.
 - To check a change end to end, use `npm run soak` and `scripts/scenario-invasion.ts`.
