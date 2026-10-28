@@ -628,9 +628,18 @@ export class MapView {
   private hitTest(screenX: number, screenY: number): string | null {
     const [wx, wy] = this.toWorld(screenX, screenY);
     const ctx = this.ctx;
-    for (const shape of this.shapes.values()) {
-      if (!bboxContains(shape.bbox, wx, wy)) continue;
-      if (ctx.isPointInPath(shape.path, wx, wy)) return shape.id;
+    // Rendering leaves the device-pixel-ratio transform on the canvas context. The explicit
+    // Path2D hit test must run in the same unscaled projected coordinates used to build paths;
+    // otherwise high-DPI displays shift/narrow the clickable area away from the visible state.
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    try {
+      for (const shape of this.shapes.values()) {
+        if (!bboxContains(shape.bbox, wx, wy)) continue;
+        if (ctx.isPointInPath(shape.path, wx, wy)) return shape.id;
+      }
+    } finally {
+      ctx.restore();
     }
     return null;
   }

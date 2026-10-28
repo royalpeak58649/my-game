@@ -44,6 +44,9 @@ The language selector on the start screen and top bar supports English, Korean, 
 Simplified Chinese. The selected language is saved in the browser. Historical country and state
 names remain in their source form.
 
+The left navigation rail mirrors the panel shortcuts, so the strategic briefing, politics, laws,
+technology, diplomacy, war, navy and map modes can all be opened with one click.
+
 Use Load Game on the start screen, or Save and Load in the top bar, to exchange versioned JSON
 save files. Loading pauses the simulation and restores the player, date, economy, politics,
 diplomacy, military and current borders.

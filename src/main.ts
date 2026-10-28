@@ -14,6 +14,7 @@ import { Store } from './ui/store';
 import { GameClock } from './ui/clock';
 import { MapView } from './ui/map/MapView';
 import { TopBar } from './ui/panels/TopBar';
+import { NavRail } from './ui/panels/NavRail';
 import { SidePanel } from './ui/panels/SidePanel';
 import { Tooltip } from './ui/Tooltip';
 import { StartScreen } from './ui/StartScreen';
@@ -42,6 +43,9 @@ mapHost.className = 'map-host';
 app.appendChild(mapHost);
 
 const map = new MapView(store, mapHost, worldTopo);
+
+const navRail = new NavRail(store);
+app.appendChild(navRail.root);
 
 const mapGuide = document.createElement('div');
 mapGuide.className = 'map-guide';
@@ -184,6 +188,7 @@ Object.assign(window, {
       if (noticeTimer !== null) window.clearTimeout(noticeTimer);
       removeKeyboard();
       tooltip.dispose();
+      navRail.dispose();
       sidePanel.dispose();
       topBar.dispose();
       map.dispose();

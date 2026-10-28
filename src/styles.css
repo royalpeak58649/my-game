@@ -8,6 +8,7 @@
   --brass-dim: #8d7440;
   --border: rgba(201, 164, 92, 0.28);
   --radius: 6px;
+  --nav-rail-width: 52px;
   --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
@@ -297,14 +298,133 @@ body {
   border-color: var(--brass);
 }
 
+/* ----------------------------------------------------- navigation rail */
+
+.nav-rail {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  bottom: 0;
+  z-index: 30;
+  width: var(--nav-rail-width);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 8px 5px;
+  background: linear-gradient(90deg, rgba(22, 29, 40, 0.98), rgba(29, 37, 51, 0.94));
+  border-right: 1px solid var(--border);
+  box-shadow: 4px 0 14px rgba(0, 0, 0, 0.2);
+}
+
+.nav-rail-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-rail-map-group {
+  margin-top: auto;
+  margin-bottom: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 0;
+}
+
+.nav-rail-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: rgba(38, 48, 63, 0.58);
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-family: var(--font-serif);
+}
+
+.nav-rail-button:hover:not(:disabled),
+.nav-rail-button:focus-visible,
+.nav-rail-button.is-active {
+  border-color: var(--brass-dim);
+  background: rgba(201, 164, 92, 0.14);
+  color: var(--brass);
+  outline: none;
+}
+
+.nav-rail-button.is-active {
+  box-shadow: inset 3px 0 0 var(--brass);
+}
+
+.nav-rail-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.nav-rail-glyph {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.nav-rail-label {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 9px);
+  z-index: 40;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.98);
+  color: var(--parchment);
+  font: 12px var(--font-sans);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(4px, -50%);
+  transition: opacity 100ms ease, transform 100ms ease;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.28);
+}
+
+.nav-rail-button:hover:not(:disabled) .nav-rail-label,
+.nav-rail-button:focus-visible .nav-rail-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.nav-rail-button.is-map-mode::after {
+  content: '';
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brass);
+}
+
+.nav-rail-button.is-map-mode[data-mode='diplomacy']::after {
+  background: #d9776b;
+}
+
+.nav-rail-button.is-map-mode[data-mode='population']::after {
+  background: #7fb77e;
+}
+
+.nav-rail-button.is-map-mode[data-mode='states']::after {
+  background: #7fa7d9;
+}
+
 /* ----------------------------------------------------------- side panel */
 
 .side-panel {
   position: absolute;
   top: 52px;
-  left: 0;
+  left: var(--nav-rail-width);
   bottom: 0;
-  width: min(420px, calc(100vw - 24px));
+  width: min(420px, calc(100vw - var(--nav-rail-width) - 12px));
   display: flex;
   flex-direction: column;
   background: var(--navy);
