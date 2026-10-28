@@ -31,7 +31,7 @@ For an Oracle Cloud Ampere A1 Always Free instance, follow
 | --- | --- |
 | Drag / wheel | Pan / zoom the map |
 | W / A / S / D | Pan the map |
-| Click a state | Open its panel |
+| Left-click a state | Open its details and construction controls |
 | Space | Pause / resume |
 | 1 – 5 | Game speed |
 | M | Cycle map mode (political / diplomacy / population / states) |

@@ -582,6 +582,7 @@ export class MapView {
     }
 
     const hit = this.hitTest(sx, sy);
+    this.canvas.classList.toggle('has-state-hover', hit !== null);
     if (hit !== this.store.getUi().hoveredStateId) {
       this.store.setUi({ hoveredStateId: hit });
     }
@@ -599,17 +600,19 @@ export class MapView {
     const rect = this.canvas.getBoundingClientRect();
     const hit = this.hitTest(event.clientX - rect.left, event.clientY - rect.top);
     if (hit === null) {
-      this.store.setUi({ selectedStateId: null, selectedCountryTag: null });
+      this.store.setUi({ selectedStateId: null, selectedCountryTag: null, panelView: 'auto' });
       return;
     }
     const def = this.store.get().states[hit];
     this.store.setUi({
       selectedStateId: hit,
       selectedCountryTag: def?.owner ?? null,
+      panelView: 'auto',
     });
   };
 
   private readonly handlePointerLeave = (): void => {
+    this.canvas.classList.remove('has-state-hover');
     if (this.store.getUi().hoveredStateId !== null) {
       this.store.setUi({ hoveredStateId: null });
     }

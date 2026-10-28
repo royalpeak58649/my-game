@@ -30,6 +30,10 @@ const TEXT: Record<string, Localized> = {
   'Game loaded.': ['게임을 불러왔습니다.', 'ゲームを読み込みました。', '游戏已加载。'],
   'Could not save game.': ['게임을 저장하지 못했습니다.', 'ゲームを保存できませんでした。', '无法保存游戏。'],
   'Could not load save.': ['저장 파일을 불러오지 못했습니다.', 'セーブを読み込めませんでした。', '无法加载存档。'],
+  'Click a state to open details and construction': ['주를 클릭해 상세 정보와 건설 메뉴 열기', '州をクリックして詳細と建設を開く', '点击地区打开详情和建设'],
+  'Drag or WASD to move · Wheel to zoom': ['드래그 또는 WASD로 이동 · 휠로 확대/축소', 'ドラッグまたはWASDで移動・ホイールでズーム', '拖动或使用WASD移动 · 滚轮缩放'],
+  'Choose a building below to add one level to the construction queue.': ['아래 건물을 선택하면 건설 대기열에 1단계가 추가됩니다.', '下の施設を選ぶと建設キューに1レベル追加されます。', '选择下方建筑可向建设队列添加一级。'],
+  'Construction is only available in your own states.': ['건설은 자국의 주에서만 할 수 있습니다.', '建設は自国の州でのみ行えます。', '只能在本国地区进行建设。'],
   'Language': ['언어', '言語', '语言'],
   'A world on the edge of steam and empire. Choose the nation you will guide.': [
     '증기와 제국의 시대가 시작됩니다. 이끌 국가를 선택하세요.',

@@ -43,6 +43,15 @@ app.appendChild(mapHost);
 
 const map = new MapView(store, mapHost, worldTopo);
 
+const mapGuide = document.createElement('div');
+mapGuide.className = 'map-guide';
+const guidePrimary = document.createElement('strong');
+guidePrimary.textContent = 'Click a state to open details and construction';
+const guideSecondary = document.createElement('span');
+guideSecondary.textContent = 'Drag or WASD to move · Wheel to zoom';
+mapGuide.append(guidePrimary, guideSecondary);
+app.appendChild(mapGuide);
+
 const loadInput = document.createElement('input');
 loadInput.type = 'file';
 loadInput.accept = '.json,application/json';
@@ -180,6 +189,7 @@ Object.assign(window, {
       map.dispose();
       clock.dispose();
       startScreen.dispose();
+      mapGuide.remove();
       loadInput.remove();
       saveNotice.remove();
     },

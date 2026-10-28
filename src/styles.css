@@ -55,6 +55,35 @@ body {
   cursor: grabbing;
 }
 
+.map-canvas.has-state-hover:not(.is-dragging) {
+  cursor: pointer;
+}
+
+.map-guide {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 15;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 8px 12px;
+  border: 1px solid rgba(201, 164, 92, 0.34);
+  border-radius: var(--radius);
+  background: rgba(22, 29, 40, 0.88);
+  color: var(--parchment-dim);
+  font-size: 11px;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+}
+
+.map-guide strong {
+  color: var(--parchment);
+  font-weight: 600;
+}
+
 /* --------------------------------------------------------------- top bar */
 
 .topbar {
@@ -273,14 +302,14 @@ body {
 .side-panel {
   position: absolute;
   top: 52px;
-  right: 0;
+  left: 0;
   bottom: 0;
-  width: 360px;
+  width: min(420px, calc(100vw - 24px));
   display: flex;
   flex-direction: column;
   background: var(--navy);
-  border-left: 1px solid var(--border);
-  transform: translateX(100%);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
   transition: transform 180ms ease-out;
   z-index: 25;
   box-shadow: none;
@@ -290,7 +319,7 @@ body {
 .side-panel.is-open {
   transform: translateX(0);
   visibility: visible;
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
 }
 
 .side-panel-header {
@@ -715,6 +744,20 @@ body {
 
 .side-panel-body > p.muted {
   margin: 6px 0 12px;
+  line-height: 1.45;
+}
+
+.state-action-hint {
+  margin-top: -2px !important;
+}
+
+.panel-notice {
+  margin: 12px 0;
+  padding: 9px 10px;
+  border-left: 3px solid var(--brass-dim);
+  background: rgba(201, 164, 92, 0.08);
+  color: var(--parchment-dim);
+  font-size: 12px;
   line-height: 1.45;
 }
 

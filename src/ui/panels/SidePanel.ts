@@ -180,7 +180,7 @@ export interface SidePanelOptions {
   onFocusState: (stateId: string) => void;
 }
 
-/** Right-hand detail panel for a selected state or country, plus market and construction views. */
+/** Left-hand detail panel for a selected state or country, plus market and construction views. */
 export class SidePanel {
   readonly root: HTMLElement;
   private readonly store: Store;
@@ -191,6 +191,8 @@ export class SidePanel {
   private marketSort: MarketSort = { key: 'name', desc: false };
   /** Signature of the last rendered view, to skip redundant rebuilds. */
   private lastSignature = '';
+  /** View and selection identity, used to reset scroll when the context changes. */
+  private lastContext = '';
 
   constructor(store: Store, options: SidePanelOptions) {
     this.store = store;
@@ -239,23 +241,33 @@ export class SidePanel {
     // Never rebuild the DOM while the panel is hidden.
     if (!open) {
       this.lastSignature = '';
+      this.lastContext = '';
       return;
     }
 
     const view: PanelView = ui.panelView;
+    const context = [view, state?.id ?? '', country?.tag ?? '', game.player ?? ''].join('|');
+    const economySignature = state
+      ? JSON.stringify({
+          state: game.economy.states[state.id],
+          country: state.owner ? game.economy.countries[state.owner] : undefined,
+        })
+      : country
+        ? JSON.stringify(game.economy.countries[country.tag])
+        : '';
     const signature = [
-      view,
-      state?.id ?? '',
-      country?.tag ?? '',
-      game.player ?? '',
+      context,
       game.tickCount,
+      view === 'auto' || view === 'construction' ? economySignature : '',
       view === 'market' ? `${this.marketSort.key}:${this.marketSort.desc ? 1 : 0}` : '',
       view === 'politics' || view === 'laws' || view === 'technology' ? JSON.stringify(game.politics) : '',
       view === 'diplomacy' ? JSON.stringify(game.diplomacy) : '',
       view === 'war' || view === 'navy' ? JSON.stringify(game.military) : '',
     ].join('|');
     if (signature === this.lastSignature) return;
+    const preserveScroll = context === this.lastContext;
     this.lastSignature = signature;
+    this.lastContext = context;
 
     const scrollTop = this.body.scrollTop;
     this.body.replaceChildren();
@@ -297,7 +309,7 @@ export class SidePanel {
       this.title.textContent = 'Details';
     }
 
-    this.body.scrollTop = scrollTop;
+    this.body.scrollTop = preserveScroll ? scrollTop : 0;
   }
 
   // ------------------------------------------------------------------ state
@@ -350,6 +362,15 @@ export class SidePanel {
     }
 
     const isPlayer = game.player !== null && state.owner === game.player;
+
+    // Construction is the primary state action, so keep it above long pop/building tables.
+    if (isPlayer) {
+      this.body.append(sectionTitle('Build'));
+      this.body.append(el('p', 'muted small state-action-hint', 'Choose a building below to add one level to the construction queue.'));
+      this.renderBuildSection(game, state, state.owner);
+    } else if (game.player !== null) {
+      this.body.append(el('p', 'panel-notice', 'Construction is only available in your own states.'));
+    }
 
     // --- pops
     this.body.append(sectionTitle('Pops'));
@@ -408,11 +429,6 @@ export class SidePanel {
       this.body.append(table);
     }
 
-    // --- build
-    if (isPlayer) {
-      this.body.append(sectionTitle('Build'));
-      this.renderBuildSection(game, state, state.owner);
-    }
   }
 
   private appendBuildingRows(tbody: HTMLElement, inst: BuildingInstance, def: BuildingDef, editable: boolean): void {
