@@ -137,7 +137,7 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
       methods: [{ id: 'port_harbour', name: 'Harbour', inputs: { wood: 1 }, outputs: {}, employment: { laborers: 1500 } }],
     },
     {
-      id: 'construction_sector', name: 'Construction Sector', group: 'government', owner: 'government', cost: 150,
+      id: 'construction_sector', name: 'Construction Sector', group: 'government', owner: 'government', cost: 20,
       methods: [
         { id: 'construction_wood', name: 'Wooden Buildings', inputs: { wood: 10, fabric: 2 }, outputs: {}, construction: 5, employment: { laborers: 4000 } },
         { id: 'construction_iron', name: 'Iron Frames', inputs: { wood: 6, iron: 4, tools: 1 }, outputs: {}, construction: 8, employment: { laborers: 4000 } },
@@ -147,6 +147,9 @@ export const BUILDINGS: Record<string, BuildingDef> = Object.fromEntries(
 );
 
 export const BUILDING_IDS = Object.keys(BUILDINGS);
+
+/** Construction available to every country even without a construction sector. */
+export const BASE_CONSTRUCTION_POINTS = 5;
 
 /** Max construction points a single queued project can absorb per week. */
 export const MAX_POINTS_PER_PROJECT = 10;

@@ -44,7 +44,8 @@ coastal) and the owner's `DEVELOPMENT` (or `DEFAULT_DEVELOPMENT`):
    `peasants`. `income` and `sol` start from step 7 of a dry run or simply 0 / 10.
 5. Markets: `prices[g] = basePrice`, supply/demand 0, `buyFill = sellFill = 1`.
 6. Countries: `treasury = countryPop × TREASURY_PER_CAPITA`, `incomeTaxRate = DEFAULT_INCOME_TAX`,
-   empty queue.
+   `constructionPoints = 5` base capacity, empty queue. Every country can therefore start its
+   first project without owning a construction sector.
 
 ## Weekly tick — `economyTick(state: GameState): GameState`
 
@@ -84,9 +85,9 @@ steps before it and last week's stored values where noted.
 7. **Government**: `lastIncome = Σ tax`, `lastExpenses = Σ government building costs`,
    `treasury += lastIncome − lastExpenses`. If the treasury is negative, government buildings run at
    50% staffing the next week (fire down to half) until it is positive again.
-8. **Construction**: `constructionPoints = Σ construction output`. Walk the queue in order; each
+8. **Construction**: `constructionPoints = 5 base + Σ construction output`. Walk the queue in order; each
    item takes up to `MAX_POINTS_PER_PROJECT` until points run out. When `progress ≥ cost`, add one
-   level (with the default method) and remove the item.
+   level (with the default method) and remove the item. A construction sector costs 20 points.
 9. **Population growth** (per state): `peasants += pops_total × yearlyGrowth(avg sol) / 52`
    (rounded), so new people enter as peasants.
 

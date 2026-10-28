@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import statesJson from '../../data/states.json';
 import countriesJson from '../../data/countries.json';
 import stateEconomyJson from '../../data/stateEconomy.json';
-import { BUILDINGS } from '../../data/economy/buildings';
+import { BASE_CONSTRUCTION_POINTS, BUILDINGS } from '../../data/economy/buildings';
 import { POP_TYPE_IDS } from '../../data/economy/pops';
 import { createGameState } from '../state';
 import type { CountryDef, StateDef } from '../types';
@@ -85,6 +85,7 @@ describe('initEconomy', () => {
     for (const tag of Object.keys(countries)) {
       expect(economy.economy.markets[tag], tag).toBeDefined();
       expect(economy.economy.countries[tag], tag).toBeDefined();
+      expect(economy.economy.countries[tag]?.constructionPoints).toBe(BASE_CONSTRUCTION_POINTS);
       expect(economy.economy.countries[tag]?.queue).toEqual([]);
     }
   });

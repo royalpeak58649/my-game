@@ -29,7 +29,7 @@ the current map and country data before replacing the running state.
 Production deployment is packaged as a multi-stage Node/Nginx container that builds natively on
 amd64 or ARM64; `docs/DEPLOY_ORACLE_ARM.md` covers Oracle Cloud Ampere A1 setup.
 
-There are 106 tests, all passing. A 20-year soak run is stable: no NaN, and borders change
+There are 107 tests, all passing. A 20-year soak run is stable: no NaN, and borders change
 through AI wars.
 
 ## Not implemented (needs a design decision with the owner first)
@@ -59,6 +59,10 @@ through AI wars.
 - **The economy has a calibration bias**: about 40% of traded goods sit at the price ceiling in
   1836, mostly because of scarce industrial inputs. Rebalancing has to go through
   `npm run data:start`.
+- **Construction now has 5 free base points per country and construction sectors cost 20 points.**
+  This removes the zero-capacity trap for small countries, but rich AI countries expand capacity
+  quickly over a decade; the current 10-year soak reaches roughly 329 points for Britain and 445
+  for the United States.
 
 ## Where to start
 

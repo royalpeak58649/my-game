@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BUILDINGS } from '../../data/economy/buildings';
+import { BASE_CONSTRUCTION_POINTS, BUILDINGS } from '../../data/economy/buildings';
 import { GOODS, GOOD_IDS } from '../../data/economy/goods';
 import { POP_TYPES, POP_TYPE_IDS } from '../../data/economy/pops';
 import type { GameState } from '../types';
@@ -279,6 +279,17 @@ describe('economyTick — money', () => {
 });
 
 describe('economyTick — construction', () => {
+  it('provides base construction without a construction sector', () => {
+    expect(BUILDINGS.construction_sector.cost).toBe(20);
+    const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, []) } });
+    state.economy.countries.AAA.queue = [{ stateId: 'S1', buildingId: 'construction_sector', progress: 0 }];
+    state.player = 'AAA';
+
+    const next = economyTick(state);
+    expect(next.economy.countries.AAA.constructionPoints).toBe(BASE_CONSTRUCTION_POINTS);
+    expect(next.economy.countries.AAA.queue[0]?.progress).toBe(BASE_CONSTRUCTION_POINTS);
+  });
+
   it('completes a queued item and adds a level', () => {
     const sector = makeBuilding('construction_sector', 1, { laborers: 4000 });
     const state = makeWorld({ states: { S1: makeState({ peasants: 50000 }, [sector]) } });

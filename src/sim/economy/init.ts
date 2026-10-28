@@ -2,7 +2,7 @@
 // Pure: returns a new GameState and never mutates the input.
 
 import stateEconomyJson from '../../data/stateEconomy.json';
-import { BUILDINGS } from '../../data/economy/buildings';
+import { BASE_CONSTRUCTION_POINTS, BUILDINGS } from '../../data/economy/buildings';
 import { DEFAULT_DEVELOPMENT, DEFAULT_INCOME_TAX, DEVELOPMENT, TREASURY_PER_CAPITA } from '../../data/economy/development';
 import { seedArmies, seedNavies } from './armies';
 import type { Development } from '../../data/economy/development';
@@ -121,7 +121,7 @@ function emptyCountryEconomy(countryPop: number): CountryEconomy {
     lastIncome: 0,
     lastExpenses: 0,
     lastUpkeep: 0,
-    constructionPoints: 0,
+    constructionPoints: BASE_CONSTRUCTION_POINTS,
     queue: [],
   };
 }

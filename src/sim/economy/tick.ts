@@ -5,7 +5,7 @@
 // works on flat typed arrays (market × good, state × pop type) and writes the results back
 // into the plain records at the end, which keeps a world-sized tick in the low tens of ms.
 
-import { BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings';
+import { BASE_CONSTRUCTION_POINTS, BUILDINGS, MAX_POINTS_PER_PROJECT } from '../../data/economy/buildings';
 import { UPKEEP_PER_CAPITA } from '../../data/economy/development';
 import { MOBILIZATION_MULT, MOBILIZED_UPKEEP } from '../../data/diplomacy/rules';
 import { TRADE_FLOOR } from '../../data/navy/rules';
@@ -422,14 +422,13 @@ export function economyTick(state: GameState): GameState {
   }
   for (const tag of Object.keys(eco.countries).sort()) {
     const c = eco.countries[tag] as CountryEconomy;
-    const a = byTag.get(tag);
-    if (!a) continue;
+    const a = byTag.get(tag) ?? { inc: 0, exp: 0, pts: 0, pop: 0 };
     const army = state.military?.armies[tag];
     const upkeep = a.pop * UPKEEP_PER_CAPITA * (upkeepMult.get(tag) ?? 1) + (army?.mobilized ? army.battalions * MOBILIZED_UPKEEP : 0);
     c.lastIncome = a.inc;
     c.lastUpkeep = upkeep;
     c.lastExpenses = a.exp + upkeep;
-    c.constructionPoints = a.pts;
+    c.constructionPoints = BASE_CONSTRUCTION_POINTS + a.pts;
     c.treasury = fin(c.treasury) + a.inc - a.exp - upkeep;
   }
 
