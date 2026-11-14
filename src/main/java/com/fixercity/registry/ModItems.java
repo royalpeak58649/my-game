@@ -11,6 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import com.fixercity.item.LongswordItem;
 import com.fixercity.item.RevolverItem;
+import com.fixercity.item.KurokumoBladeItem;
+import com.fixercity.item.LiuGauntletItem;
+import com.fixercity.item.RustyPipeItem;
+import com.fixercity.item.SevenCaneItem;
+import com.fixercity.item.ShiBladeItem;
+import com.fixercity.item.ThumbRifleItem;
+import com.fixercity.item.ZweiGreatswordItem;
 import java.util.List;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ArmorItem;
@@ -54,6 +61,38 @@ public final class ModItems {
     /** 탄환: 도시에서 총알은 비싸다. */
     public static final DeferredItem<Item> FIXER_BULLET = REGISTER.registerSimpleItem("fixer_bullet",
             new Item.Properties().stacksTo(32));
+
+    // ---- 조직 전용 무기 (맞는 책장을 끼면 공명) ----
+    /** 고철. 쥐 패거리의 파이프용. */
+    public static final Tier SCRAP = new SimpleTier(
+            BlockTags.INCORRECT_FOR_STONE_TOOL, 220, 4.0F, 1.0F, 8, () -> Ingredient.of(Items.IRON_NUGGET));
+
+    /** 녹슨 쇠파이프: 공격력 6, 공속 1.4, 타격. */
+    public static final DeferredItem<RustyPipeItem> RUSTY_PIPE = REGISTER.register("rusty_pipe",
+            () -> new RustyPipeItem(SCRAP, new Item.Properties().attributes(SwordItem.createAttributes(SCRAP, 4, -2.6F))));
+    /** 츠바이 대검: 공격력 10, 공속 0.9, 참격. */
+    public static final DeferredItem<ZweiGreatswordItem> ZWEI_GREATSWORD = REGISTER.register("zwei_greatsword",
+            () -> new ZweiGreatswordItem(FIXER_STEEL, new Item.Properties().rarity(Rarity.UNCOMMON)
+                    .attributes(SwordItem.createAttributes(FIXER_STEEL, 7, -3.1F))));
+    /** 시 협회 발도검: 공격력 7, 공속 1.8, 참격. */
+    public static final DeferredItem<ShiBladeItem> SHI_BLADE = REGISTER.register("shi_blade",
+            () -> new ShiBladeItem(FIXER_STEEL, new Item.Properties().rarity(Rarity.UNCOMMON)
+                    .attributes(SwordItem.createAttributes(FIXER_STEEL, 4, -2.2F))));
+    /** 리우 권갑: 공격력 6, 공속 2.6, 타격. */
+    public static final DeferredItem<LiuGauntletItem> LIU_GAUNTLET = REGISTER.register("liu_gauntlet",
+            () -> new LiuGauntletItem(FIXER_STEEL, new Item.Properties().rarity(Rarity.UNCOMMON)
+                    .attributes(SwordItem.createAttributes(FIXER_STEEL, 3, -1.4F))));
+    /** 세븐 지팡이검: 공격력 6, 공속 2.0, 관통. */
+    public static final DeferredItem<SevenCaneItem> SEVEN_CANE = REGISTER.register("seven_cane",
+            () -> new SevenCaneItem(FIXER_STEEL, new Item.Properties().rarity(Rarity.UNCOMMON)
+                    .attributes(SwordItem.createAttributes(FIXER_STEEL, 3, -2.0F))));
+    /** 쿠로쿠모 장도: 공격력 8, 공속 1.6, 참격. */
+    public static final DeferredItem<KurokumoBladeItem> KUROKUMO_BLADE = REGISTER.register("kurokumo_blade",
+            () -> new KurokumoBladeItem(FIXER_STEEL, new Item.Properties().rarity(Rarity.RARE)
+                    .attributes(SwordItem.createAttributes(FIXER_STEEL, 5, -2.4F))));
+    /** 엄지 제식 소총: 4발, 관통 3. */
+    public static final DeferredItem<ThumbRifleItem> THUMB_RIFLE = REGISTER.register("thumb_rifle",
+            () -> new ThumbRifleItem(new Item.Properties().stacksTo(1).durability(400).rarity(Rarity.RARE)));
 
     // ---- 해결사 정장 ----
     public static final DeferredItem<FixerArmorItem> FIXER_HAT = armor("fixer_hat", ModArmorMaterials.FIXER_SUIT, ArmorItem.Type.HELMET, 18);

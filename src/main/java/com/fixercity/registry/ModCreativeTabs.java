@@ -21,6 +21,13 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.FIXER_DAGGER.get());
                         output.accept(ModItems.FIXER_REVOLVER.get());
                         output.accept(ModItems.FIXER_BULLET.get());
+                        output.accept(ModItems.RUSTY_PIPE.get());
+                        output.accept(ModItems.ZWEI_GREATSWORD.get());
+                        output.accept(ModItems.SHI_BLADE.get());
+                        output.accept(ModItems.LIU_GAUNTLET.get());
+                        output.accept(ModItems.SEVEN_CANE.get());
+                        output.accept(ModItems.THUMB_RIFLE.get());
+                        output.accept(ModItems.KUROKUMO_BLADE.get());
                         ModItems.FIXER_SUIT_SET.forEach(i -> output.accept(i.get()));
                         ModItems.HEAVY_COAT_SET.forEach(i -> output.accept(i.get()));
                         output.accept(ModItems.BLANK_KEY_PAGE.get());

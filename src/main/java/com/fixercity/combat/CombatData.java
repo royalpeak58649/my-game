@@ -18,6 +18,14 @@ public class CombatData {
     private long staggeredUntil;
     /** 마지막으로 물리 공격을 가한 시각 (시 협회 일격필살용). */
     public long lastDealt = Long.MIN_VALUE / 2;
+    /** 츠바이 수호 태세가 끝나는 시각. */
+    public long guardUntil;
+    /** 수호 태세가 공명 상태인지. */
+    public boolean guardEmpowered;
+
+    public boolean isGuarding(long now) {
+        return now < guardUntil;
+    }
 
     private void update(long now, float max) {
         if (stagger < 0) {

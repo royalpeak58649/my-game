@@ -3,7 +3,7 @@ package com.fixercity.combat;
 import com.fixercity.effect.ExposedEffect;
 import com.fixercity.item.DaggerItem;
 import com.fixercity.item.HasDamageKind;
-import com.fixercity.item.RevolverItem;
+import com.fixercity.item.GunItem;
 import com.fixercity.keypage.DamageKind;
 import com.fixercity.keypage.KeyPage;
 import com.fixercity.keypage.KeyPageHelper;
@@ -86,7 +86,7 @@ public final class CombatHandler {
                         target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 100, 0), player);
                     }
                     case MARKSMAN -> {
-                        if (player.getMainHandItem().getItem() instanceof RevolverItem) {
+                        if (player.getMainHandItem().getItem() instanceof GunItem) {
                             amount *= 1.3F;
                         }
                     }
@@ -118,11 +118,24 @@ public final class CombatHandler {
                 && source.is(DamageTypeTags.IS_FIRE)) {
             amount *= 0.5F;
         }
-        if (target.hasEffect(ModEffects.EXPOSED)) {
-            amount *= ExposedEffect.DAMAGE_MULTIPLIER;
+        MobEffectInstance exposed = target.getEffect(ModEffects.EXPOSED);
+        if (exposed != null) {
+            amount *= ExposedEffect.multiplier(exposed.getAmplifier());
         }
 
         CombatData data = target.getData(ModAttachments.COMBAT);
+
+        // 츠바이 수호 태세: 물리 피해 감소 + 근접 공격자 반격 (넉백, 흐트러짐 피해)
+        if (kind != null && data.isGuarding(now)) {
+            amount *= data.guardEmpowered ? 0.25F : 0.4F;
+            staggerBonus *= 0.5F;
+            if (attacker != null && source.getDirectEntity() == attacker && attacker.distanceToSqr(target) < 25) {
+                addStagger(attacker, base * (data.guardEmpowered ? 2.0F : 1.0F));
+                attacker.knockback(0.8, target.getX() - attacker.getX(), target.getZ() - attacker.getZ());
+                level.playSound(null, target.getX(), target.getY(), target.getZ(),
+                        SoundEvents.SHIELD_BLOCK, SoundSource.PLAYERS, 1.0F, 0.9F);
+            }
+        }
         if (kind != null) {
             Resist hpResist = targetPage != null ? targetPage.hpResist(kind) : MobResistances.of(target, kind);
             Resist staggerResist = targetPage != null ? targetPage.staggerResist(kind) : MobResistances.of(target, kind);
@@ -181,6 +194,21 @@ public final class CombatHandler {
             return DamageKind.PIERCE;
         }
         return DamageKind.BLUNT;
+    }
+
+    /** 기술 등에서 체력 피해와 별개로 흐트러짐 피해를 직접 준다. */
+    public static void addStagger(LivingEntity target, float amount) {
+        if (!(target.level() instanceof ServerLevel level) || amount <= 0) {
+            return;
+        }
+        float max = staggerMax(target);
+        if (target.getData(ModAttachments.COMBAT).damage(level.getGameTime(), max, amount)) {
+            onStaggered(level, target);
+        }
+    }
+
+    public static boolean isStaggered(LivingEntity target) {
+        return target.getData(ModAttachments.COMBAT).isStaggered(target.level().getGameTime());
     }
 
     public static float staggerMax(LivingEntity entity) {
