@@ -45,6 +45,7 @@ public enum FixerKit {
     private static List<ItemStack> withSet(List<? extends DeferredItem<?>> armorSet, ItemStack... extra) {
         List<ItemStack> list = new ArrayList<>(List.of(extra));
         armorSet.forEach(item -> list.add(new ItemStack(item.get())));
+        list.add(new ItemStack(ModItems.keyPageItem(com.fixercity.keypage.KeyPages.OFFICE_FIXER)));
         list.add(new ItemStack(Items.BREAD, 8));
         return list;
     }

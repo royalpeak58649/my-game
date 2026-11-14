@@ -23,6 +23,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.FIXER_BULLET.get());
                         ModItems.FIXER_SUIT_SET.forEach(i -> output.accept(i.get()));
                         ModItems.HEAVY_COAT_SET.forEach(i -> output.accept(i.get()));
+                        output.accept(ModItems.BLANK_KEY_PAGE.get());
+                        ModItems.KEY_PAGES.values().forEach(i -> output.accept(i.get()));
                     })
                     .build());
 

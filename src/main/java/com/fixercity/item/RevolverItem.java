@@ -32,7 +32,12 @@ import net.minecraft.world.phys.Vec3;
  * 해결사 리볼버. 6연발, 즉발(히트스캔) 사격.
  * 우클릭 = 사격, 웅크리고 우클릭 또는 빈 실린더로 우클릭 = 재장전 (인벤토리의 탄환 소모).
  */
-public class RevolverItem extends Item {
+public class RevolverItem extends Item implements HasDamageKind {
+    @Override
+    public com.fixercity.keypage.DamageKind damageKind() {
+        return com.fixercity.keypage.DamageKind.PIERCE;
+    }
+
     public static final int CAPACITY = 6;
     private static final double RANGE = 40.0;
     private static final float DAMAGE = 9.0F;
@@ -100,7 +105,12 @@ public class RevolverItem extends Item {
     }
 
     private void shoot(ServerLevel level, Player player, ItemStack stack, InteractionHand hand) {
-        setAmmo(stack, getAmmo(stack) - 1);
+        // 엄지 책장: 30% 확률로 탄환을 쓰지 않는다
+        boolean saved = com.fixercity.keypage.KeyPageHelper.hasPassive(player, com.fixercity.keypage.KeyPagePassive.MARKSMAN)
+                && level.getRandom().nextFloat() < 0.3F;
+        if (!saved) {
+            setAmmo(stack, getAmmo(stack) - 1);
+        }
 
         Vec3 eye = player.getEyePosition();
         Vec3 look = player.getViewVector(1.0F);

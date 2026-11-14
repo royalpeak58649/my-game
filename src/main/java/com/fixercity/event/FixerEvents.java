@@ -1,66 +1,38 @@
 package com.fixercity.event;
 
-import com.fixercity.item.DaggerItem;
 import com.fixercity.item.FixerArmorItem;
+import com.fixercity.item.KeyPageItem;
+import com.fixercity.keypage.KeyPage;
+import com.fixercity.keypage.KeyPageHelper;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.ChatFormatting;
 import com.fixercity.kit.FixerKit;
 import com.fixercity.registry.ModArmorMaterials;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-/** 게임 이벤트: 단검 백스탭, 방어구 세트 효과, /fixerkit 명령어. */
+/** 게임 이벤트: 방어구 세트 효과, 책장 패시브(지속형), 책장 동기화, 명령어. (전투 규칙은 CombatHandler) */
 public final class FixerEvents {
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 
     private FixerEvents() {}
-
-    // ---- 단검 백스탭 ----
-    @SubscribeEvent
-    public static void onIncomingDamage(LivingIncomingDamageEvent event) {
-        if (!(event.getSource().getDirectEntity() instanceof Player player)) {
-            return;
-        }
-        if (!(player.getMainHandItem().getItem() instanceof DaggerItem)) {
-            return;
-        }
-        LivingEntity target = event.getEntity();
-        Vec3 toAttacker = new Vec3(player.getX() - target.getX(), 0, player.getZ() - target.getZ());
-        Vec3 facing = Vec3.directionFromRotation(0, target.getYHeadRot());
-        if (toAttacker.lengthSqr() < 1.0E-4) {
-            return;
-        }
-        // 공격자가 대상의 시선 반대편(뒤쪽 약 110도)에 있으면 백스탭
-        if (toAttacker.normalize().dot(facing) < -0.35) {
-            event.setAmount(event.getAmount() * DaggerItem.BACKSTAB_MULTIPLIER);
-            if (target.level() instanceof ServerLevel level) {
-                level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, target.getX(), target.getY() + target.getBbHeight() * 0.7,
-                        target.getZ(), 6, 0.2, 0.2, 0.2, 0.1);
-                level.playSound(null, target.getX(), target.getY(), target.getZ(),
-                        SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 0.7F);
-            }
-        }
-    }
 
     // ---- 방어구 세트 효과 (1초마다 검사) ----
     @SubscribeEvent
@@ -69,10 +41,62 @@ public final class FixerEvents {
         if (player.level().isClientSide() || player.tickCount % 20 != 0) {
             return;
         }
+        tickPagePassives(player);
         if (wearsFullSet(player, ModArmorMaterials.FIXER_SUIT)) {
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 0, true, false, true));
         } else if (wearsFullSet(player, ModArmorMaterials.HEAVY_COAT)) {
             player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 50, 0, true, false, true));
+        }
+    }
+
+    private static void tickPagePassives(Player player) {
+        KeyPage page = KeyPageHelper.getPage(player);
+        if (page == null) {
+            return;
+        }
+        switch (page.passive()) {
+            case SCRAMBLE -> {
+                if (player.getHealth() <= player.getMaxHealth() * 0.3F) {
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 1, true, false, true));
+                }
+            }
+            case GUARD -> {
+                for (Player ally : player.level().getEntitiesOfClass(Player.class, player.getBoundingBox().inflate(5.0),
+                        p -> p != player && p.isAlive() && !p.isSpectator())) {
+                    ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 50, 0, true, false, true));
+                }
+            }
+            default -> {
+            }
+        }
+    }
+
+    // ---- 책장 동기화: 접속, 리스폰(죽으면 책장을 잃음), 차원 이동, 다른 플레이어가 나를 보기 시작할 때 ----
+    @SubscribeEvent
+    public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            KeyPageHelper.refresh(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            KeyPageHelper.refresh(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            KeyPageHelper.refresh(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        if (event.getTarget() instanceof Player target && event.getEntity() instanceof ServerPlayer receiver) {
+            KeyPageHelper.syncTo(receiver, target);
         }
     }
 
@@ -98,6 +122,36 @@ public final class FixerEvents {
                                     net.minecraft.commands.arguments.EntityArgument.getPlayer(ctx, "target"), kit))));
         }
         event.getDispatcher().register(root);
+
+        // /keypage : 낀 책장 정보, /keypage remove : 책장 벗기
+        event.getDispatcher().register(Commands.literal("keypage")
+                .executes(ctx -> showPage(ctx.getSource(), ctx.getSource().getPlayerOrException()))
+                .then(Commands.literal("remove").executes(ctx -> {
+                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+                    ItemStack old = KeyPageHelper.unequip(player);
+                    if (old.isEmpty()) {
+                        ctx.getSource().sendFailure(Component.translatable("message.fixercity.no_page"));
+                        return 0;
+                    }
+                    if (!player.getInventory().add(old)) {
+                        player.drop(old, false);
+                    }
+                    ctx.getSource().sendSuccess(() -> Component.translatable("message.fixercity.page_removed"), false);
+                    return 1;
+                })));
+    }
+
+    private static int showPage(CommandSourceStack source, ServerPlayer player) {
+        KeyPage page = KeyPageHelper.getPage(player);
+        if (page == null) {
+            source.sendFailure(Component.translatable("message.fixercity.no_page"));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.translatable(page.translationKey()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+        List<Component> lines = new ArrayList<>();
+        KeyPageItem.appendPageInfo(page, lines);
+        lines.forEach(line -> source.sendSuccess(() -> line, false));
+        return 1;
     }
 
     public static int giveKit(CommandSourceStack source, ServerPlayer player, FixerKit kit) {

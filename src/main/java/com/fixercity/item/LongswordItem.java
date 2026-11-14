@@ -13,7 +13,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /** 해결사 장검. 기술: 돌진 베기 - 앞으로 약 5칸 돌진하며 경로상의 적을 벤다. */
-public class LongswordItem extends FixerWeaponItem {
+public class LongswordItem extends FixerWeaponItem implements HasDamageKind {
+    @Override
+    public com.fixercity.keypage.DamageKind damageKind() {
+        return com.fixercity.keypage.DamageKind.SLASH;
+    }
+
     private static final double DASH_DISTANCE = 5.0;
     private static final double HIT_RADIUS = 1.6;
     private static final float DAMAGE_MULTIPLIER = 1.2F;

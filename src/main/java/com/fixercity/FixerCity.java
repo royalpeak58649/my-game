@@ -1,7 +1,11 @@
 package com.fixercity;
 
 import com.fixercity.event.FixerEvents;
+import com.fixercity.combat.CombatHandler;
+import com.fixercity.network.ModNetwork;
 import com.fixercity.registry.ModArmorMaterials;
+import com.fixercity.registry.ModAttachments;
+import com.fixercity.registry.ModEffects;
 import com.fixercity.registry.ModCreativeTabs;
 import com.fixercity.registry.ModDataComponents;
 import com.fixercity.registry.ModItems;
@@ -24,8 +28,12 @@ public class FixerCity {
         ModArmorMaterials.REGISTER.register(modEventBus);
         ModItems.REGISTER.register(modEventBus);
         ModCreativeTabs.REGISTER.register(modEventBus);
+        ModAttachments.REGISTER.register(modEventBus);
+        ModEffects.REGISTER.register(modEventBus);
+        modEventBus.addListener(ModNetwork::register);
 
         NeoForge.EVENT_BUS.register(FixerEvents.class);
+        NeoForge.EVENT_BUS.register(CombatHandler.class);
     }
 
     public static ResourceLocation id(String path) {

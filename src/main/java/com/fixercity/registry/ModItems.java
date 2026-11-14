@@ -4,6 +4,11 @@ import com.fixercity.FixerCity;
 import com.fixercity.item.DaggerItem;
 import com.fixercity.item.FixerArmorItem;
 import com.fixercity.item.FixerMaceItem;
+import com.fixercity.item.KeyPageItem;
+import com.fixercity.keypage.KeyPage;
+import com.fixercity.keypage.KeyPages;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import com.fixercity.item.LongswordItem;
 import com.fixercity.item.RevolverItem;
 import java.util.List;
@@ -64,6 +69,26 @@ public final class ModItems {
 
     public static final List<DeferredItem<FixerArmorItem>> FIXER_SUIT_SET = List.of(FIXER_HAT, FIXER_JACKET, FIXER_PANTS, FIXER_SHOES);
     public static final List<DeferredItem<FixerArmorItem>> HEAVY_COAT_SET = List.of(HEAVY_HAT, HEAVY_COAT, HEAVY_PANTS, HEAVY_BOOTS);
+
+    // ---- 책장 ----
+    /** 빈 책장: 모든 책장의 재료. */
+    public static final DeferredItem<Item> BLANK_KEY_PAGE = REGISTER.registerSimpleItem("blank_key_page",
+            new Item.Properties().stacksTo(16));
+
+    /** 책장 id -> 아이템. 아이템 이름은 key_page_<id>. */
+    public static final Map<String, DeferredItem<KeyPageItem>> KEY_PAGES = new LinkedHashMap<>();
+
+    static {
+        for (KeyPage page : KeyPages.ALL) {
+            Rarity rarity = page.grade() >= 8 ? Rarity.COMMON : page.grade() >= 6 ? Rarity.UNCOMMON : Rarity.RARE;
+            KEY_PAGES.put(page.id(), REGISTER.register("key_page_" + page.id(),
+                    () -> new KeyPageItem(page.id(), new Item.Properties().stacksTo(1).rarity(rarity))));
+        }
+    }
+
+    public static Item keyPageItem(KeyPage page) {
+        return KEY_PAGES.get(page.id()).get();
+    }
 
     private static DeferredItem<FixerArmorItem> armor(String name,
             net.minecraft.core.Holder<net.minecraft.world.item.ArmorMaterial> material,

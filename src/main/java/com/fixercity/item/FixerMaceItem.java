@@ -16,7 +16,12 @@ import net.minecraft.world.item.Tier;
  * 해결사 철퇴. 기술: 내려찍기 - 주변 3.5칸의 적에게 피해, 넉백, 구속.
  * 떨어지는 중에 쓰면 낙하 거리만큼 피해가 늘어난다 (최대 2배).
  */
-public class FixerMaceItem extends FixerWeaponItem {
+public class FixerMaceItem extends FixerWeaponItem implements HasDamageKind {
+    @Override
+    public com.fixercity.keypage.DamageKind damageKind() {
+        return com.fixercity.keypage.DamageKind.BLUNT;
+    }
+
     private static final double RADIUS = 3.5;
 
     public FixerMaceItem(Tier tier, Properties properties) {
