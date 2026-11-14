@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches: [fixer-city]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          set -o pipefail
+          ./gradlew build --no-daemon 2>&1 | tee build.log
+
+      - name: Publish jar as release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: fixercity-build-${{ github.run_number }}
+          name: Fixer City build ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          body: |
+            자동 빌드 (${{ github.sha }})
+            `fixercity-*.jar` 파일을 마인크래프트 `mods` 폴더에 넣으세요. NeoForge 1.21.1 필요.
+          files: build/libs/fixercity-*.jar
+
+      - name: Report build failure as issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "Commit: ${{ github.sha }}"
+            echo '```'
+            grep -E "error:|warning:|FAILED|What went wrong|\.java:[0-9]+" build.log | head -150 || true
+            echo '--- tail ---'
+            tail -60 build.log || true
+            echo '```'
+          } > report.md
+          gh issue create --repo "${{ github.repository }}" --title "[fixer-city] build failed #${{ github.run_number }}" --body-file report.md

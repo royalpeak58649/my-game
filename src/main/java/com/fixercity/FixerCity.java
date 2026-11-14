@@ -1,0 +1,34 @@
+package com.fixercity;
+
+import com.fixercity.event.FixerEvents;
+import com.fixercity.registry.ModArmorMaterials;
+import com.fixercity.registry.ModCreativeTabs;
+import com.fixercity.registry.ModDataComponents;
+import com.fixercity.registry.ModItems;
+import com.mojang.logging.LogUtils;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import org.slf4j.Logger;
+
+/** 해결사의 도시 (Fixer City) 메인 클래스. */
+@Mod(FixerCity.MODID)
+public class FixerCity {
+    public static final String MODID = "fixercity";
+    public static final Logger LOGGER = LogUtils.getLogger();
+
+    public FixerCity(IEventBus modEventBus, ModContainer modContainer) {
+        ModDataComponents.REGISTER.register(modEventBus);
+        ModArmorMaterials.REGISTER.register(modEventBus);
+        ModItems.REGISTER.register(modEventBus);
+        ModCreativeTabs.REGISTER.register(modEventBus);
+
+        NeoForge.EVENT_BUS.register(FixerEvents.class);
+    }
+
+    public static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    }
+}
