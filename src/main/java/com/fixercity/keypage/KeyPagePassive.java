@@ -37,7 +37,17 @@ public enum KeyPagePassive {
     /** 공방 소속: 해결사 무기 기술 대기시간 -20%, 해결사 무기 피해 +10%. */
     WORKSHOP("workshop"),
     /** 정 사무소: 근접 공격을 받으면 20% 확률로 피해의 60%를 되돌려준다. */
-    COUNTER("counter");
+    COUNTER("counter"),
+    /** W사: 때릴 때마다 충전 +1 (최대 10), 충전당 피해 +3%. 맞으면 충전 -2. */
+    CHARGE("charge"),
+    /** WARP: 물리 공격을 받으면 20% 확률로 공간 도약해 피한다. */
+    BLINK("blink"),
+    /** 웃는 얼굴들: 준 피해의 10%만큼 체력 회복. */
+    DEVOUR("devour"),
+    /** 검지 수행자: 40초마다 지령(참격/관통/타격 중 하나)을 받는다. 지령대로 공격하면 피해 +30%. */
+    PRESCRIPT("prescript"),
+    /** 필립 (불완전): 공격 시 2초 점화, 체력 50% 아래면 피해 +25%. */
+    BURNING_EMOTION("burning_emotion");
 
     private final String id;
 

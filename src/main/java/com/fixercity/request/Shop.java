@@ -48,6 +48,16 @@ public final class Shop {
         add("page_workshop", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.WORKSHOP)), 2500, 5);
         add("page_jeong", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.JEONG)), 2500, 5);
 
+        add("page_w_corp", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.W_CORP)), 4000, 4);
+        add("page_warp", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.WARP)), 4000, 4);
+        add("page_smiling", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.SMILING)), 4000, 4);
+        add("page_index", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.INDEX)), 4000, 4);
+        add("page_philip", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.PHILIP)), 4000, 4);
+        add("w_corp_baton", "weapons", () -> new ItemStack(ModItems.W_CORP_BATON.get()), 3000, 4);
+        add("warp_blade", "weapons", () -> new ItemStack(ModItems.WARP_BLADE.get()), 3000, 4);
+        add("smiling_maw", "weapons", () -> new ItemStack(ModItems.SMILING_MAW.get()), 3000, 4);
+        add("index_blade", "weapons", () -> new ItemStack(ModItems.INDEX_BLADE.get()), 3000, 4);
+        add("philip_sword", "weapons", () -> new ItemStack(ModItems.PHILIP_SWORD.get()), 3000, 4);
         add("yun_machete", "weapons", () -> new ItemStack(ModItems.YUN_MACHETE.get()), 400, 8);
         add("hook_blade", "weapons", () -> new ItemStack(ModItems.HOOK_BLADE.get()), 400, 8);
         add("streetlight_staff", "weapons", () -> new ItemStack(ModItems.STREETLIGHT_STAFF.get()), 700, 7);

@@ -42,7 +42,17 @@ public class SkillWeaponItem extends FixerWeaponItem {
         /** 회전 베기: 주변 360도 피해 + 넉백. 공명: 반경·피해 증가. */
         WHIRLWIND,
         /** 받아치기: 1.5초 동안 근접 공격을 막고 공격력 x2로 반격. 공명: 2.5초, x2.5. */
-        RIPOSTE
+        RIPOSTE,
+        /** 충전 방출: 충전을 모두 써서 주변에 전격 (충전당 피해 +15%), 흐트러짐 8. 공명: 흐트러짐 15, 충전 절반 유지. */
+        CHARGE_BURST,
+        /** 공간 절단: 바라보는 대상 뒤로 순간이동해 1.5배로 벤다, 흐트러짐 8. 공명: 흐트러짐 14 + 신속 II. */
+        WARP_STRIKE,
+        /** 포식: 앞의 대상을 물어뜯어 1.6배 피해, 피해 절반만큼 회복. 공명: 주변 적에게 공포 (나약함·구속). */
+        DEVOUR_BITE,
+        /** 지령 집행: 6칸 돌진하며 베고 약점 노출 II. 공명: 약점 노출 III + 흐트러짐 10. */
+        PROSELYTE_CUT,
+        /** 울음의 불길: 앞쪽 8칸에 불길, 8초 점화, 흐트러짐 6. 공명: 자신에게 저항 II + 화염 저항. */
+        CRYING_FLAME
     }
 
     private final DamageKind kind;
@@ -185,6 +195,85 @@ public class SkillWeaponItem extends FixerWeaponItem {
                     level.sendParticles(ParticleTypes.SWEEP_ATTACK, x + Math.cos(a) * 2, y + 1.0, z + Math.sin(a) * 2, 1, 0, 0, 0, 0);
                 }
                 level.playSound(null, x, y, z, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 1.0F, 0.6F);
+            }
+            case CHARGE_BURST -> {
+                CombatData data = CombatHandler.dataFor(player);
+                int c = data.charge;
+                data.charge = resonant ? c / 2 : 0;
+                float dmg = atk * (1.0F + 0.15F * c);
+                for (LivingEntity t : level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(3.5, 1.0, 3.5),
+                        e -> isValidTarget(player, e) && e.distanceToSqr(player) <= 3.5 * 3.5)) {
+                    strike(player, t, dmg);
+                    CombatHandler.addStagger(t, resonant ? 15.0F : 8.0F);
+                    t.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 1), player);
+                }
+                level.sendParticles(ParticleTypes.ELECTRIC_SPARK, x, y + 1, z, 60 + c * 10, 2.0, 0.8, 2.0, 0.2);
+                level.playSound(null, x, y, z, SoundEvents.LIGHTNING_BOLT_IMPACT, SoundSource.PLAYERS, 0.8F, 1.4F);
+            }
+            case WARP_STRIKE -> {
+                LivingEntity t = lookTarget(level, player, 16.0);
+                if (t == null) {
+                    return AbilityResult.FAILED;
+                }
+                Vec3 behind = t.position().subtract(t.getLookAngle().multiply(1, 0, 1).normalize().scale(1.5));
+                level.sendParticles(ParticleTypes.PORTAL, x, y + 1, z, 30, 0.3, 0.6, 0.3, 0.3);
+                player.teleportTo(behind.x, t.getY(), behind.z);
+                strike(player, t, atk * 1.5F);
+                CombatHandler.addStagger(t, resonant ? 14.0F : 8.0F);
+                if (resonant) {
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 60, 1, false, false, true));
+                }
+                level.sendParticles(ParticleTypes.REVERSE_PORTAL, behind.x, t.getY() + 1, behind.z, 30, 0.3, 0.6, 0.3, 0.1);
+                level.playSound(null, behind.x, t.getY(), behind.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.5F);
+            }
+            case DEVOUR_BITE -> {
+                List<LivingEntity> targets = targetsInCone(level, player, 3.0, 0.7);
+                if (targets.isEmpty()) {
+                    return AbilityResult.FAILED;
+                }
+                LivingEntity t = targets.stream().min(java.util.Comparator.comparingDouble(e -> e.distanceToSqr(player))).get();
+                strike(player, t, atk * 1.6F);
+                player.heal(atk * 0.8F);
+                if (resonant) {
+                    for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(6.0),
+                            e -> isValidTarget(player, e))) {
+                        e.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0), player);
+                        e.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 1), player);
+                    }
+                }
+                level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, t.getX(), t.getY() + 1, t.getZ(), 10, 0.3, 0.3, 0.3, 0.1);
+                level.playSound(null, x, y, z, SoundEvents.GENERIC_EAT, SoundSource.PLAYERS, 1.2F, 0.5F);
+            }
+            case PROSELYTE_CUT -> {
+                Vec3 dir = flatLook(player);
+                if (dir == null) {
+                    return AbilityResult.FAILED;
+                }
+                for (LivingEntity t : dash(level, player, dir, 6.0, 1.6, 1.4)) {
+                    strike(player, t, atk * 1.2F);
+                    t.addEffect(new MobEffectInstance(com.fixercity.registry.ModEffects.EXPOSED, 120, resonant ? 2 : 1), player);
+                    if (resonant) {
+                        CombatHandler.addStagger(t, 10.0F);
+                    }
+                }
+                sweep(level, eye, look, 4);
+                level.playSound(null, x, y, z, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, 1.0F, 1.1F);
+            }
+            case CRYING_FLAME -> {
+                for (LivingEntity t : targetsInCone(level, player, 8.0, 0.5)) {
+                    strike(player, t, atk * 1.1F);
+                    t.igniteForSeconds(8.0F);
+                    CombatHandler.addStagger(t, 6.0F);
+                }
+                if (resonant) {
+                    player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 80, 1, false, false, true));
+                    player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 160, 0, false, false, true));
+                }
+                for (double d = 1; d <= 8; d += 0.5) {
+                    Vec3 p = eye.add(look.scale(d));
+                    level.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, p.x, p.y - 0.3, p.z, 5, 0.12 * d, 0.2, 0.12 * d, 0.02);
+                }
+                level.playSound(null, x, y, z, SoundEvents.GHAST_SCREAM, SoundSource.PLAYERS, 0.8F, 1.6F);
             }
             case RIPOSTE -> {
                 CombatData data = CombatHandler.dataFor(player);

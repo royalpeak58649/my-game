@@ -23,6 +23,10 @@ public class CombatData {
     public float lastSentStagger = -1;
     public float lastSentMax = -1;
     public boolean lastSentStaggered;
+    /** W사 충전 스택 (0~10). */
+    public int charge;
+    /** 검지 수행자 지령: DamageKind ordinal (-1 = 없음). */
+    public int prescript = -1;
     /** 정 사무소 받아치기 자세가 끝나는 시각과 반격 배율. */
     public long counterUntil;
     public float counterPower;

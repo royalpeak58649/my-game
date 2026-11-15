@@ -139,6 +139,17 @@ public final class ModItems {
             skillWeapon("workshop_halberd", 7, -3.0F, 160, "workshop", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.WHIRLWIND, Rarity.RARE);
     public static final DeferredItem<com.fixercity.item.SkillWeaponItem> JEONG_TWIN_BLADES =
             skillWeapon("jeong_twin_blades", 3, -1.6F, 160, "jeong", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.RIPOSTE, Rarity.RARE);
+    // ---- 도시 악몽 ----
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> W_CORP_BATON =
+            skillWeapon("w_corp_baton", 5, -2.0F, 160, "w_corp", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.CHARGE_BURST, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> WARP_BLADE =
+            skillWeapon("warp_blade", 5, -2.2F, 140, "warp", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.WARP_STRIKE, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> SMILING_MAW =
+            skillWeapon("smiling_maw", 5, -2.4F, 160, "smiling", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.DEVOUR_BITE, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> INDEX_BLADE =
+            skillWeapon("index_blade", 5, -2.4F, 140, "index", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.PROSELYTE_CUT, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> PHILIP_SWORD =
+            skillWeapon("philip_sword", 6, -2.6F, 240, "philip", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.CRYING_FLAME, Rarity.EPIC);
     public static final DeferredItem<com.fixercity.item.FullStopRifleItem> FULL_STOP_RIFLE = REGISTER.register("full_stop_rifle",
             () -> new com.fixercity.item.FullStopRifleItem(new Item.Properties().stacksTo(1).durability(300).rarity(Rarity.RARE)));
 

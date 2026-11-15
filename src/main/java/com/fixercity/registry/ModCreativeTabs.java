@@ -45,6 +45,11 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.WEDGE_SPEAR.get());
                         output.accept(ModItems.WORKSHOP_HALBERD.get());
                         output.accept(ModItems.JEONG_TWIN_BLADES.get());
+                        output.accept(ModItems.W_CORP_BATON.get());
+                        output.accept(ModItems.WARP_BLADE.get());
+                        output.accept(ModItems.SMILING_MAW.get());
+                        output.accept(ModItems.INDEX_BLADE.get());
+                        output.accept(ModItems.PHILIP_SWORD.get());
                         ModItems.FIXER_SUIT_SET.forEach(i -> output.accept(i.get()));
                         ModItems.HEAVY_COAT_SET.forEach(i -> output.accept(i.get()));
                         output.accept(ModItems.BLANK_KEY_PAGE.get());

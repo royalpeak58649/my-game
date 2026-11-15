@@ -75,6 +75,16 @@ public final class FixerEvents {
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 1, true, false, true));
                 }
             }
+            case PRESCRIPT -> {
+                com.fixercity.combat.CombatData cd = com.fixercity.combat.CombatHandler.dataFor(player);
+                if (cd.prescript < 0 || player.tickCount % 800 == 0) {
+                    com.fixercity.keypage.DamageKind[] kinds = com.fixercity.keypage.DamageKind.values();
+                    com.fixercity.keypage.DamageKind k = kinds[player.getRandom().nextInt(kinds.length)];
+                    cd.prescript = k.ordinal();
+                    player.displayClientMessage(Component.translatable("message.fixercity.prescript",
+                            Component.translatable(k.translationKey()).withStyle(k.color())).withStyle(ChatFormatting.WHITE), true);
+                }
+            }
             case BOND -> {
                 for (Player ally : player.level().getEntitiesOfClass(Player.class, player.getBoundingBox().inflate(6.0),
                         p -> p != player && p.isAlive() && !p.isSpectator())) {

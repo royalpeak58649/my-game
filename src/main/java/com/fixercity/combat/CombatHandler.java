@@ -112,6 +112,25 @@ public final class CombatHandler {
             attacker.hurt(target.damageSources().thorns(target), base * 0.6F);
         }
 
+        // WARP: 20% 확률로 공간 도약 회피
+        if (kind != null && KeyPageHelper.hasPassive(target, com.fixercity.keypage.KeyPagePassive.BLINK)
+                && level.getRandom().nextFloat() < 0.2F) {
+            double bx = target.getX() + (level.getRandom().nextDouble() - 0.5) * 8;
+            double bz = target.getZ() + (level.getRandom().nextDouble() - 0.5) * 8;
+            if (target.randomTeleport(bx, target.getY(), bz, true)) {
+                event.setCanceled(true);
+                level.sendParticles(ParticleTypes.PORTAL, target.getX(), target.getY() + 1, target.getZ(), 20, 0.3, 0.5, 0.3, 0.2);
+                if (target instanceof Player p) {
+                    p.displayClientMessage(Component.translatable("message.fixercity.blinked").withStyle(ChatFormatting.AQUA), true);
+                }
+                return;
+            }
+        }
+        if (kind != null && KeyPageHelper.hasPassive(target, com.fixercity.keypage.KeyPagePassive.CHARGE)) {
+            CombatData cd = dataFor(target);
+            cd.charge = Math.max(0, cd.charge - 2);
+        }
+
         // ---- 공격자 쪽 (책장 패시브, 백스탭) ----
         if (attacker instanceof Player player && kind != null) {
             KeyPage page = KeyPageHelper.getPage(player);
@@ -169,6 +188,23 @@ public final class CombatHandler {
                         }
                     }
                     case GAZE -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 0), player);
+                    case CHARGE -> {
+                        amount *= 1.0F + 0.03F * attackerData.charge;
+                        attackerData.charge = Math.min(10, attackerData.charge + 1);
+                        player.displayClientMessage(Component.translatable("message.fixercity.charge", attackerData.charge)
+                                .withStyle(ChatFormatting.YELLOW), true);
+                    }
+                    case PRESCRIPT -> {
+                        if (attackerData.prescript == kind.ordinal()) {
+                            amount *= 1.3F;
+                        }
+                    }
+                    case BURNING_EMOTION -> {
+                        target.igniteForSeconds(2.0F);
+                        if (player.getHealth() < player.getMaxHealth() * 0.5F) {
+                            amount *= 1.25F;
+                        }
+                    }
                     case WORKSHOP -> {
                         if (player.getMainHandItem().getItem() instanceof com.fixercity.item.FixerWeaponItem) {
                             amount *= 1.1F;
@@ -274,6 +310,10 @@ public final class CombatHandler {
         }
 
         event.setAmount(amount);
+        // 웃는 얼굴들: 준 피해의 10% 회복
+        if (kind != null && attacker != null && KeyPageHelper.hasPassive(attacker, com.fixercity.keypage.KeyPagePassive.DEVOUR)) {
+            attacker.heal(amount * 0.1F);
+        }
     }
 
     /** 피해 유형 판정. 물리 공격이 아니면 null (불, 낙하, 마법 등은 내성 무시). */

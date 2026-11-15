@@ -55,7 +55,21 @@ public enum FixerKit {
     WORKSHOP("workshop", 2, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.WORKSHOP, null,
             new ItemStack(ModItems.WORKSHOP_HALBERD.get()))),
     JEONG("jeong", 2, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.JEONG, null,
-            new ItemStack(ModItems.JEONG_TWIN_BLADES.get()), new ItemStack(ModItems.PAINKILLER.get())));
+            new ItemStack(ModItems.JEONG_TWIN_BLADES.get()), new ItemStack(ModItems.PAINKILLER.get()))),
+
+    // ---- 도시 악몽 키트 (가장 드물다) ----
+    SHI("shi", 1, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.SHI, Accessory.SHI_TASSEL,
+            new ItemStack(ModItems.SHI_BLADE.get()))),
+    W_CORP("w_corp", 1, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.W_CORP, null,
+            new ItemStack(ModItems.W_CORP_BATON.get()), new ItemStack(ModItems.FIRST_AID_KIT.get()))),
+    WARP("warp", 1, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.WARP, null,
+            new ItemStack(ModItems.WARP_BLADE.get()), new ItemStack(ModItems.SMOKE_BOMB.get()))),
+    SMILING("smiling", 1, () -> build(List.of(), KeyPages.SMILING, null,
+            new ItemStack(ModItems.SMILING_MAW.get()))),
+    INDEX("index", 1, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.INDEX, null,
+            new ItemStack(ModItems.INDEX_BLADE.get()), new ItemStack(ModItems.PAINKILLER.get()))),
+    PHILIP("philip", 1, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.PHILIP, null,
+            new ItemStack(ModItems.PHILIP_SWORD.get())));
 
     private final String id;
     private final int weight;

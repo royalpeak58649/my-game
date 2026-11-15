@@ -54,8 +54,21 @@ public final class KeyPages {
     public static final KeyPage JEONG = new KeyPage("jeong", 5, 6, 26, 0.10F, 3,
             ENDURE, NORMAL, WEAK, ENDURE, NORMAL, NORMAL, KeyPagePassive.COUNTER, false);
 
+    // ---- 도시 악몽 ----
+    public static final KeyPage W_CORP = new KeyPage("w_corp", 4, 8, 30, 0.05F, 5,
+            NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, WEAK, KeyPagePassive.CHARGE, true);
+    public static final KeyPage WARP = new KeyPage("warp", 4, 6, 28, 0.10F, 4,
+            ENDURE, NORMAL, WEAK, ENDURE, NORMAL, NORMAL, KeyPagePassive.BLINK, false);
+    public static final KeyPage SMILING = new KeyPage("smiling", 4, 14, 26, 0.0F, 3,
+            WEAK, ENDURE, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.DEVOUR, false);
+    public static final KeyPage INDEX = new KeyPage("index", 4, 8, 30, 0.05F, 5,
+            NORMAL, NORMAL, NORMAL, ENDURE, ENDURE, NORMAL, KeyPagePassive.PRESCRIPT, false);
+    public static final KeyPage PHILIP = new KeyPage("philip", 4, 10, 30, 0.05F, 4,
+            NORMAL, NORMAL, ENDURE, NORMAL, WEAK, ENDURE, KeyPagePassive.BURNING_EMOTION, false);
+
     public static final List<KeyPage> ALL = List.of(RAT, OFFICE_FIXER, ZWEI, SHI, LIU, SEVEN, THUMB, KUROKUMO,
-            YUN, HOOK, STREETLIGHT, MOLAR, FULL_STOP, DAWN, GAZE, WEDGE, WORKSHOP, JEONG);
+            YUN, HOOK, STREETLIGHT, MOLAR, FULL_STOP, DAWN, GAZE, WEDGE, WORKSHOP, JEONG,
+            W_CORP, WARP, SMILING, INDEX, PHILIP);
 
     private static final Map<String, KeyPage> BY_ID = new LinkedHashMap<>();
 

@@ -550,6 +550,11 @@ public final class RequestManager {
             case "wedge" -> ModItems.WEDGE_SPEAR.get();
             case "workshop" -> ModItems.WORKSHOP_HALBERD.get();
             case "jeong" -> ModItems.JEONG_TWIN_BLADES.get();
+            case "w_corp" -> ModItems.W_CORP_BATON.get();
+            case "warp" -> ModItems.WARP_BLADE.get();
+            case "smiling" -> ModItems.SMILING_MAW.get();
+            case "index" -> ModItems.INDEX_BLADE.get();
+            case "philip" -> ModItems.PHILIP_SWORD.get();
             default -> null;
         };
     }

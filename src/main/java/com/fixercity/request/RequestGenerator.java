@@ -43,7 +43,8 @@ public final class RequestGenerator {
             {"streetlight", "6", "7"}, {"zwei", "4", "6"}, {"molar", "4", "6"},
             {"kurokumo", "3", "5"}, {"full_stop", "3", "5"}, {"dawn", "3", "5"}, {"gaze", "3", "5"},
             {"wedge", "3", "5"}, {"workshop", "3", "5"}, {"jeong", "3", "5"},
-            {"shi", "2", "4"}, {"seven", "2", "4"}, {"liu", "1", "3"}, {"thumb", "1", "3"}};
+            {"shi", "2", "4"}, {"seven", "2", "4"}, {"w_corp", "2", "4"}, {"warp", "2", "4"}, {"smiling", "2", "4"},
+            {"index", "2", "4"}, {"philip", "2", "4"}, {"liu", "1", "3"}, {"thumb", "1", "3"}};
 
     /** 현상범 조직: 등급 범위에 맞는 것 중에서 고른다. */
     private static List<String> bountyFactions(int grade) {
