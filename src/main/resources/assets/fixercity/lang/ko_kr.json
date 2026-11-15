@@ -605,5 +605,7 @@
   "transport.fixercity.ambusher": "매복조",
   "message.fixercity.raid_start": "아지트 발견! 조직원 %s명이 덤벼든다.",
   "message.fixercity.raid_left": "남은 조직원 %s명",
-  "message.fixercity.transport_ambush": "매복이다! 서류 가방을 지켜라."
+  "message.fixercity.transport_ambush": "매복이다! 서류 가방을 지켜라.",
+  "kit.fixercity.rare_bonus_1": "[희귀: 무기 +3강, 보호 II 갑옷, 응급 키트 +2]",
+  "kit.fixercity.rare_bonus_2": "[최희귀: 무기 +5강, 보호 IV 갑옷, 응급 키트 +3, 진통제 +2, 연막탄, 장신구]"
 }

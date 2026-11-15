@@ -121,9 +121,50 @@ public enum FixerKit {
         return id;
     }
 
+    /** 희귀 키트 등급: 0 = 일반, 1 = 도시 질병, 2 = 도시 악몽. */
+    public int rareTier() {
+        return weight <= 1 ? 2 : weight <= RARE_WEIGHT ? 1 : 0;
+    }
+
+    /** 희귀 키트 무기 강화 단계 (도시 질병 +3, 도시 악몽 +5). */
+    public static final int[] RARE_REFINE = {0, 3, 5};
+    /** 희귀 키트 갑옷 보호 마법 단계. */
+    public static final int[] RARE_PROTECTION = {0, 2, 4};
+
     /** 매번 새 ItemStack 목록을 만든다. 책장/장신구 아이템도 포함 (지급 시 자동 장착). */
-    public List<ItemStack> createContents() {
-        return contents.get();
+    public List<ItemStack> createContents(net.minecraft.core.HolderLookup.Provider registries) {
+        List<ItemStack> list = contents.get();
+        int tier = rareTier();
+        if (tier == 0) {
+            return list;
+        }
+        var enchants = registries.lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+        var protection = enchants.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+        var unbreaking = enchants.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
+        // 첫 번째 아이템이 주무기
+        ItemStack weapon = list.get(0);
+        weapon.set(com.fixercity.registry.ModDataComponents.REFINE.get(), RARE_REFINE[tier]);
+        weapon.enchant(unbreaking, 3);
+        boolean hasAccessory = false;
+        for (ItemStack s : list) {
+            if (s.getItem() instanceof net.minecraft.world.item.ArmorItem) {
+                s.enchant(protection, RARE_PROTECTION[tier]);
+                s.enchant(unbreaking, tier + 1);
+            }
+            if (s.getItem() instanceof com.fixercity.item.AccessoryItem) {
+                hasAccessory = true;
+            }
+        }
+        list.add(new ItemStack(ModItems.FIRST_AID_KIT.get(), tier == 2 ? 3 : 2));
+        if (tier == 2) {
+            list.add(new ItemStack(ModItems.PAINKILLER.get(), 2));
+            list.add(new ItemStack(ModItems.SMOKE_BOMB.get()));
+            if (!hasAccessory) {
+                Accessory[] all = Accessory.values();
+                list.add(new ItemStack(ModItems.accessoryItem(all[java.util.concurrent.ThreadLocalRandom.current().nextInt(all.length)])));
+            }
+        }
+        return list;
     }
 
     private static List<ItemStack> build(List<? extends DeferredItem<?>> armorSet, KeyPage page, Accessory accessory,

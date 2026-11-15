@@ -185,6 +185,16 @@ public final class FixerEvents {
     public static final int STARTING_KITS = 10;
     public static final int STARTING_RARE_KITS = 3;
 
+    private static Component rareBonus(String id) {
+        for (FixerKit k : FixerKit.values()) {
+            if (k.id().equals(id) && k.rareTier() > 0) {
+                return Component.literal(" ").append(Component.translatable("kit.fixercity.rare_bonus_" + k.rareTier())
+                        .withStyle(ChatFormatting.LIGHT_PURPLE));
+            }
+        }
+        return Component.empty();
+    }
+
     private static boolean isRareKit(String id) {
         for (FixerKit k : FixerKit.values()) {
             if (k.id().equals(id)) return k.isRare();
@@ -209,7 +219,8 @@ public final class FixerEvents {
                     .append(" ")
                     .append(Component.translatable("kit.fixercity." + id).withStyle(isRareKit(id) ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE))
                     .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.translatable("kit.fixercity." + id + ".desc").withStyle(ChatFormatting.GRAY)));
+                    .append(Component.translatable("kit.fixercity." + id + ".desc").withStyle(ChatFormatting.GRAY))
+                    .append(rareBonus(id)));
         }
     }
 
@@ -345,7 +356,7 @@ public final class FixerEvents {
 
     /** 키트 지급: 갑옷은 빈 칸에 입히고, 책장·장신구는 비어 있으면 바로 장착, 나머지는 인벤토리로. */
     public static void equipKit(ServerPlayer player, FixerKit kit) {
-        for (ItemStack stack : kit.createContents()) {
+        for (ItemStack stack : kit.createContents(player.registryAccess())) {
             if (stack.getItem() instanceof KeyPageItem pageItem && KeyPageHelper.getPage(player) == null) {
                 KeyPageHelper.equip(player, pageItem.page());
                 continue;
