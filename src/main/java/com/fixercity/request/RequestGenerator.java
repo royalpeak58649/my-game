@@ -69,16 +69,22 @@ public final class RequestGenerator {
         r.grade = Math.max(1, Math.min(9, grade));
         r.dimension = dimension;
 
-        int roll = random.nextInt(100);
-        boolean allowInvestigation = r.grade >= 7;
-        if (roll < 40) {
-            r.type = RequestType.EXTERMINATION;
-        } else if (roll < 65) {
-            r.type = RequestType.BOUNTY;
-        } else if (roll < 85 || !allowInvestigation) {
-            r.type = RequestType.DELIVERY;
-        } else {
-            r.type = RequestType.INVESTIGATION;
+        // 의뢰 종류 가중치 (조사는 7~9급만)
+        int[] weights = {22, 18, 12, r.grade >= 7 ? 8 : 0, 10, 12, 10, 8};
+        RequestType[] types = {RequestType.EXTERMINATION, RequestType.BOUNTY, RequestType.DELIVERY, RequestType.INVESTIGATION,
+                RequestType.ESCORT, RequestType.DEFENSE, RequestType.RETRIEVAL, RequestType.PATROL};
+        int total = 0;
+        for (int w : weights) {
+            total += w;
+        }
+        int roll = random.nextInt(total);
+        r.type = RequestType.EXTERMINATION;
+        for (int i = 0; i < types.length; i++) {
+            roll -= weights[i];
+            if (roll < 0) {
+                r.type = types[i];
+                break;
+            }
         }
 
         switch (r.type) {
@@ -103,6 +109,28 @@ public final class RequestGenerator {
             case INVESTIGATION -> {
                 r.count = 1;
                 r.pos = offset(random, origin, 150, 350);
+            }
+            case ESCORT -> {
+                r.count = 1;
+                r.pos = offset(random, origin, 120, 260);
+            }
+            case DEFENSE -> {
+                r.count = 3;
+                r.pos = offset(random, origin, 60, 160);
+            }
+            case RETRIEVAL -> {
+                r.count = 1;
+                r.pos = offset(random, origin, 150, 350);
+            }
+            case PATROL -> {
+                r.count = 3;
+                double base = random.nextDouble() * Math.PI * 2;
+                for (int i = 0; i < 3; i++) {
+                    double a = base + i * (Math.PI * 2 / 3);
+                    int d = 60 + random.nextInt(80);
+                    r.waypoints.add(new BlockPos(origin.getX() + (int) (Math.cos(a) * d), 64, origin.getZ() + (int) (Math.sin(a) * d)));
+                }
+                r.pos = r.waypoints.get(0);
             }
         }
 

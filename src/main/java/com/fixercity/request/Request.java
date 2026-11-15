@@ -30,6 +30,14 @@ public class Request {
     public final List<UUID> members = new ArrayList<>();
     public boolean bountySpawned;
     public UUID bountyEntity;
+    /** 순찰 지점. */
+    public final List<BlockPos> waypoints = new ArrayList<>();
+    /** 호위 대상 (의뢰인). */
+    public UUID escortEntity;
+    /** 방어/회수: 현장에서 시작됐는지, 방어 차수와 남은 적 수. */
+    public boolean started;
+    public int wave;
+    public int remaining;
 
     public boolean hasMember(UUID uuid) {
         return members.contains(uuid);
@@ -55,6 +63,13 @@ public class Request {
         }
         tag.put("members", list);
         tag.putBoolean("spawned", bountySpawned);
+        tag.putLongArray("waypoints", waypoints.stream().mapToLong(BlockPos::asLong).toArray());
+        if (escortEntity != null) {
+            tag.putUUID("escort", escortEntity);
+        }
+        tag.putBoolean("started", started);
+        tag.putInt("wave", wave);
+        tag.putInt("remaining", remaining);
         if (bountyEntity != null) {
             tag.putUUID("bounty", bountyEntity);
         }
@@ -83,6 +98,15 @@ public class Request {
             r.members.add(NbtUtils.loadUUID(t));
         }
         r.bountySpawned = tag.getBoolean("spawned");
+        for (long l : tag.getLongArray("waypoints")) {
+            r.waypoints.add(BlockPos.of(l));
+        }
+        if (tag.hasUUID("escort")) {
+            r.escortEntity = tag.getUUID("escort");
+        }
+        r.started = tag.getBoolean("started");
+        r.wave = tag.getInt("wave");
+        r.remaining = tag.getInt("remaining");
         if (tag.hasUUID("bounty")) {
             r.bountyEntity = tag.getUUID("bounty");
         }

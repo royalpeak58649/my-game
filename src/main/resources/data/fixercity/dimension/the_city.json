@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:overworld",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "fixercity:the_city",
+      "features": true,
+      "lakes": false,
+      "layers": [
+        {
+          "block": "minecraft:bedrock",
+          "height": 1
+        },
+        {
+          "block": "minecraft:stone",
+          "height": 125
+        },
+        {
+          "block": "minecraft:smooth_stone",
+          "height": 1
+        }
+      ],
+      "structure_overrides": []
+    }
+  }
+}

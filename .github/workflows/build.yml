@@ -33,15 +33,17 @@ jobs:
           mkdir -p run && echo "eula=true" > run/eula.txt
           ./gradlew runServer --no-daemon > server.log 2>&1 &
           for i in $(seq 1 120); do
-            grep -q 'Done (' server.log && break
+            grep -qE 'fixercity smoke: (all|some)' server.log && break
             grep -qE 'Crash report|Failed to start' server.log && break
             sleep 5
           done
           pkill -f 'net.neoforged' || true; pkill -f GradleWrapperMain || true; sleep 3
-          grep -E "\[(ERROR|WARN)\]|Exception|Couldn't|Parsing error" server.log | grep -i -E "fixercity|recipe|registry|Exception" | head -80 > smoke.txt || true
+          grep -E "(ERROR|WARN)\]|Exception|Couldn't|Parsing error" server.log | grep -i -E "fixercity|recipe|registry|Exception" | head -80 > smoke.txt || true
           echo "--- smoke findings ---"; cat smoke.txt
           grep -q 'Done (' server.log || { echo "server did not start"; tail -80 server.log >> smoke.txt; exit 1; }
+          grep "fixercity smoke" server.log || true
           if grep -qi fixercity smoke.txt; then echo "mod errors found"; exit 1; fi
+          grep -q "fixercity smoke: city generation OK" server.log || { echo "city smoke check did not pass"; exit 1; }
 
       - name: Publish jar as release
         uses: softprops/action-gh-release@v2

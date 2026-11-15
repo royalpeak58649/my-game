@@ -25,6 +25,7 @@ public final class Shop {
         add("painkiller", "supplies", () -> new ItemStack(ModItems.PAINKILLER.get()), 50, 9);
         add("flashbang", "supplies", () -> new ItemStack(ModItems.FLASHBANG.get()), 80, 8);
         add("smoke_bomb", "supplies", () -> new ItemStack(ModItems.SMOKE_BOMB.get()), 80, 8);
+        add("city_pass", "supplies", () -> new ItemStack(ModItems.CITY_PASS.get()), 100, 9);
         add("blank_key_page", "supplies", () -> new ItemStack(ModItems.BLANK_KEY_PAGE.get()), 50, 9);
 
         add("page_rat", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.RAT)), 60, 9);

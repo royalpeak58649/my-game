@@ -192,6 +192,7 @@ public final class RequestManager {
         r.state = Request.State.ACTIVE;
         r.progress = 0;
         r.deadline = player.level().getGameTime() + r.type.duration();
+        RequestMissions.onAccept(player, r, lastBoard(player));
         data.setDirty();
 
         List<Component> names = new ArrayList<>();
@@ -247,6 +248,13 @@ public final class RequestManager {
             r.progress = r.count;
             r.state = Request.State.DONE;
         }
+        if (r.state == Request.State.ACTIVE && r.type == RequestType.RETRIEVAL) {
+            if (!RequestMissions.takeBriefcase(player)) {
+                player.sendSystemMessage(Component.translatable("message.fixercity.no_briefcase").withStyle(ChatFormatting.RED));
+                return;
+            }
+            r.state = Request.State.DONE;
+        }
         if (r.state == Request.State.DONE) {
             payout(server, r);
         }
@@ -286,12 +294,17 @@ public final class RequestManager {
             addRep(server, m, -penalty);
         }
         removeBounty(server, r);
+        RequestMissions.cleanup(server, r);
         data.requests.remove(r);
         data.setDirty();
         notifyMembers(server, r, Component.translatable(messageKey, RequestUi.title(r), penalty).withStyle(ChatFormatting.RED));
     }
 
-    private static void complete(MinecraftServer server, Request r) {
+    public static void fail(MinecraftServer server, Request r) {
+        fail(server, r, "message.fixercity.mission_failed");
+    }
+
+    static void complete(MinecraftServer server, Request r) {
         r.state = Request.State.DONE;
         r.progress = r.count;
         data(server).setDirty();
@@ -327,6 +340,11 @@ public final class RequestManager {
             if (r != null && r.state == Request.State.ACTIVE) {
                 complete(server, r);
             }
+            return;
+        }
+
+        // 방어 습격대 / 호위 의뢰인
+        if (RequestMissions.onDeath(server, data, dead)) {
             return;
         }
 
@@ -378,6 +396,10 @@ public final class RequestManager {
             }
             if (tick > r.deadline) {
                 fail(server, r, "message.fixercity.expired");
+                continue;
+            }
+            RequestMissions.tick(server, r);
+            if (r.state != Request.State.ACTIVE) {
                 continue;
             }
             if (r.type == RequestType.INVESTIGATION || (r.type == RequestType.BOUNTY && !r.bountySpawned)) {

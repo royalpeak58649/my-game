@@ -105,6 +105,7 @@ public enum FixerKit {
             list.add(new ItemStack(ModItems.accessoryItem(accessory)));
         }
         list.add(new ItemStack(Items.BREAD, 8));
+        list.add(new ItemStack(ModItems.CITY_PASS.get()));
         return list;
     }
 }

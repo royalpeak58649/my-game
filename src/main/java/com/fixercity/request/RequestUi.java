@@ -1,6 +1,7 @@
 package com.fixercity.request;
 
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
@@ -34,6 +35,10 @@ public final class RequestUi {
                     new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(r.target))).getHoverName(), r.count);
             case BOUNTY -> Component.translatable("request.fixercity.bounty", Component.translatable("bounty.fixercity." + r.target));
             case INVESTIGATION -> Component.translatable("request.fixercity.investigation");
+            case ESCORT -> Component.translatable("request.fixercity.escort");
+            case DEFENSE -> Component.translatable("request.fixercity.defense");
+            case RETRIEVAL -> Component.translatable("request.fixercity.retrieval");
+            case PATROL -> Component.translatable("request.fixercity.patrol");
         };
         return grade.append(body.withStyle(ChatFormatting.WHITE));
     }
@@ -47,6 +52,17 @@ public final class RequestUi {
                     ? Component.translatable("objective.fixercity.bounty_spawned", r.pos.getX(), r.pos.getY(), r.pos.getZ())
                     : Component.translatable("objective.fixercity.bounty", r.pos.getX(), r.pos.getZ());
             case INVESTIGATION -> Component.translatable("objective.fixercity.investigation", r.pos.getX(), r.pos.getZ());
+            case ESCORT -> Component.translatable("objective.fixercity.escort", r.pos.getX(), r.pos.getZ());
+            case DEFENSE -> r.started
+                    ? Component.translatable("objective.fixercity.defense_wave", r.wave, r.count, r.remaining)
+                    : Component.translatable("objective.fixercity.defense", r.pos.getX(), r.pos.getZ());
+            case RETRIEVAL -> r.started
+                    ? Component.translatable("objective.fixercity.retrieval_found", r.pos.getX(), r.pos.getY(), r.pos.getZ())
+                    : Component.translatable("objective.fixercity.retrieval", r.pos.getX(), r.pos.getZ());
+            case PATROL -> {
+                BlockPos next = r.waypoints.isEmpty() ? r.pos : r.waypoints.get(Math.min(r.progress, r.waypoints.size() - 1));
+                yield Component.translatable("objective.fixercity.patrol", r.progress, r.count, next.getX(), next.getZ());
+            }
         };
         if (r.state == Request.State.DONE) {
             c = Component.translatable("objective.fixercity.report");
@@ -89,7 +105,7 @@ public final class RequestUi {
                     .append(title(active)));
             player.sendSystemMessage(objective(active));
             MutableComponent buttons = Component.literal("  ");
-            if (active.state == Request.State.DONE || active.type == RequestType.DELIVERY) {
+            if (active.state == Request.State.DONE || active.type == RequestType.DELIVERY || active.type == RequestType.RETRIEVAL) {
                 buttons.append(button("ui.fixercity.report", "/request report", ChatFormatting.GREEN,
                         Component.translatable("ui.fixercity.report_hover"))).append(" ");
             }
@@ -133,7 +149,8 @@ public final class RequestUi {
             activeTitle = title(active);
             activeDetail = objective(active).append(Component.translatable("ui.fixercity.time_left",
                     String.format("%.1f", left / 24000.0)).withStyle(ChatFormatting.GRAY));
-            state = active.state == Request.State.DONE || active.type == RequestType.DELIVERY ? 2 : 1;
+            state = active.state == Request.State.DONE || active.type == RequestType.DELIVERY
+                    || active.type == RequestType.RETRIEVAL ? 2 : 1;
         }
         int g = Grades.gradeFor(data.profile(player.getUUID()).rep);
         List<Request> open = data.open();

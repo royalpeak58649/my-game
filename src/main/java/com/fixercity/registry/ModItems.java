@@ -41,6 +41,13 @@ public final class ModItems {
     public static final Tier FIXER_STEEL = new SimpleTier(
             BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 2.0F, 14, () -> Ingredient.of(Items.IRON_INGOT));
 
+    /** 회수 의뢰의 의뢰품. */
+    public static final DeferredItem<Item> BRIEFCASE = REGISTER.registerSimpleItem("briefcase",
+            new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
+    /** 도시 출입증: 우클릭하면 도시와 원래 세계를 오간다. */
+    public static final DeferredItem<com.fixercity.item.CityPassItem> CITY_PASS = REGISTER.register("city_pass",
+            () -> new com.fixercity.item.CityPassItem(new Item.Properties().stacksTo(1)));
+
     // ---- 블록 아이템 ----
     public static final DeferredItem<net.minecraft.world.item.BlockItem> REQUEST_BOARD =
             REGISTER.registerSimpleBlockItem("request_board", ModBlocks.REQUEST_BOARD);
