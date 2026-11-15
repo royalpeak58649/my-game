@@ -205,6 +205,14 @@ public final class Shop {
         data.setDirty();
         ItemStack stack = e.stack().get();
         Component name = stack.getHoverName();
+        // 책장은 키트 보관함으로 (죽어도 안 잃고, 여러 장 모아 둘 수 있다)
+        if (stack.getItem() instanceof com.fixercity.item.KeyPageItem pageItem) {
+            p.storedKits.add(com.fixercity.event.FixerEvents.PAGE_PREFIX + pageItem.page().id());
+            data.setDirty();
+            player.sendSystemMessage(Component.translatable("message.fixercity.bought_page", name, String.format("%,d", price),
+                    String.format("%,d", p.ahn)).withStyle(ChatFormatting.GREEN));
+            return true;
+        }
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }

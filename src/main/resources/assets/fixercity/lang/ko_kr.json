@@ -607,5 +607,8 @@
   "message.fixercity.raid_left": "남은 조직원 %s명",
   "message.fixercity.transport_ambush": "매복이다! 서류 가방을 지켜라.",
   "kit.fixercity.rare_bonus_1": "[희귀: 무기 +3강, 보호 II 갑옷, 응급 키트 +2]",
-  "kit.fixercity.rare_bonus_2": "[최희귀: 무기 +5강, 보호 IV 갑옷, 응급 키트 +3, 진통제 +2, 연막탄, 장신구]"
+  "kit.fixercity.rare_bonus_2": "[최희귀: 무기 +5강, 보호 IV 갑옷, 응급 키트 +3, 진통제 +2, 연막탄, 장신구]",
+  "ui.fixercity.stored_page": "[책장] %s",
+  "ui.fixercity.stored_page_desc": "꺼내면 바로 장착 (끼고 있던 책장은 아이템으로 돌려받음)",
+  "message.fixercity.bought_page": "%s 구매 (-%s안, 잔고 %s안). 키트 보관함에 넣었다 → /kit"
 }

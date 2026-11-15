@@ -185,6 +185,24 @@ public final class FixerEvents {
     public static final int STARTING_KITS = 10;
     public static final int STARTING_RARE_KITS = 3;
 
+    /** 키트 보관함에 든 책장 한 장: "page:<책장 id>". */
+    public static final String PAGE_PREFIX = "page:";
+
+    private static net.minecraft.network.chat.MutableComponent storedName(String id) {
+        if (id.startsWith(PAGE_PREFIX)) {
+            return Component.translatable("ui.fixercity.stored_page",
+                    Component.translatable("key_page.fixercity." + id.substring(PAGE_PREFIX.length())));
+        }
+        return Component.translatable("kit.fixercity." + id);
+    }
+
+    private static net.minecraft.network.chat.MutableComponent storedDesc(String id) {
+        if (id.startsWith(PAGE_PREFIX)) {
+            return Component.translatable("ui.fixercity.stored_page_desc");
+        }
+        return Component.translatable("kit.fixercity." + id + ".desc");
+    }
+
     private static Component rareBonus(String id) {
         for (FixerKit k : FixerKit.values()) {
             if (k.id().equals(id) && k.rareTier() > 0) {
@@ -215,11 +233,12 @@ public final class FixerEvents {
             String id = profile.storedKits.get(i);
             player.sendSystemMessage(Component.literal(" ")
                     .append(com.fixercity.request.RequestUi.button("ui.fixercity.kit_use", "/kit use " + (i + 1),
-                            ChatFormatting.GREEN, Component.translatable("kit.fixercity." + id + ".desc")))
+                            ChatFormatting.GREEN, storedDesc(id)))
                     .append(" ")
-                    .append(Component.translatable("kit.fixercity." + id).withStyle(isRareKit(id) ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE))
+                    .append(storedName(id).withStyle(isRareKit(id) ? ChatFormatting.LIGHT_PURPLE
+                            : id.startsWith(PAGE_PREFIX) ? ChatFormatting.AQUA : ChatFormatting.WHITE))
                     .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
-                    .append(Component.translatable("kit.fixercity." + id + ".desc").withStyle(ChatFormatting.GRAY))
+                    .append(storedDesc(id).withStyle(ChatFormatting.GRAY))
                     .append(rareBonus(id)));
         }
     }
@@ -234,6 +253,26 @@ public final class FixerEvents {
         }
         String id = profile.storedKits.remove(index - 1);
         data.setDirty();
+        if (id.startsWith(PAGE_PREFIX)) {
+            com.fixercity.keypage.KeyPage page = com.fixercity.keypage.KeyPages.byId(id.substring(PAGE_PREFIX.length()));
+            if (page != null) {
+                // 지금 낀 책장이 있으면 그 책장은 아이템으로 돌려주고 새 책장을 낀다
+                com.fixercity.keypage.KeyPage old = KeyPageHelper.getPage(player);
+                if (old != null && old != page) {
+                    ItemStack back = new ItemStack(com.fixercity.registry.ModItems.keyPageItem(old));
+                    if (!player.getInventory().add(back)) {
+                        player.drop(back, false);
+                    }
+                }
+                KeyPageHelper.equip(player, page);
+                player.sendSystemMessage(Component.translatable("message.fixercity.kit_opened",
+                        storedName(id).withStyle(ChatFormatting.AQUA), profile.storedKits.size()).withStyle(ChatFormatting.GREEN));
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                        net.minecraft.sounds.SoundEvents.BOOK_PAGE_TURN, net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+                return 1;
+            }
+            return 0;
+        }
         for (FixerKit kit : FixerKit.values()) {
             if (kit.id().equals(id)) {
                 equipKit(player, kit);

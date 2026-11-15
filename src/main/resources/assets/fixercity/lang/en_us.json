@@ -607,5 +607,8 @@
   "message.fixercity.raid_left": "%s thugs left",
   "message.fixercity.transport_ambush": "Ambush! Protect the briefcase.",
   "kit.fixercity.rare_bonus_1": "[Rare: weapon +3, Protection II armor, +2 first aid]",
-  "kit.fixercity.rare_bonus_2": "[Very rare: weapon +5, Protection IV armor, +3 first aid, +2 painkillers, smoke bomb, accessory]"
+  "kit.fixercity.rare_bonus_2": "[Very rare: weapon +5, Protection IV armor, +3 first aid, +2 painkillers, smoke bomb, accessory]",
+  "ui.fixercity.stored_page": "[Key Page] %s",
+  "ui.fixercity.stored_page_desc": "Equips right away (your current page comes back as an item)",
+  "message.fixercity.bought_page": "Bought %s (-%s Ahn, %s Ahn left). Stored in your kit storage → /kit"
 }
