@@ -26,6 +26,9 @@ public final class KeyPageHelper {
 
     /** 생물이 낀 책장. 플레이어가 아니거나 없으면 null. */
     public static KeyPage getPage(LivingEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         if (!(entity instanceof Player)) {
             // 현상범은 자기 조직 책장의 내성을 쓴다
             return entity.level().isClientSide() ? null : KeyPages.byId(com.fixercity.request.RequestManager.bountyPage(entity));

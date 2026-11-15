@@ -30,27 +30,48 @@ public final class Shop {
         add("page_rat", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.RAT)), 60, 9);
         add("page_office_fixer", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.OFFICE_FIXER)), 200, 8);
         add("page_zwei", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.ZWEI)), 1500, 6);
-        add("page_shi", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.SHI)), 1500, 6);
-        add("page_liu", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.LIU)), 1500, 6);
-        add("page_seven", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.SEVEN)), 1500, 6);
-        add("page_thumb", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.THUMB)), 2500, 5);
+        add("page_shi", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.SHI)), 4000, 4);
+        add("page_liu", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.LIU)), 6000, 3);
+        add("page_seven", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.SEVEN)), 4000, 4);
+        add("page_thumb", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.THUMB)), 6000, 3);
         add("page_kurokumo", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.KUROKUMO)), 2500, 5);
 
+        add("page_yun", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.YUN)), 300, 8);
+        add("page_hook", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.HOOK)), 300, 8);
+        add("page_streetlight", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.STREETLIGHT)), 700, 7);
+        add("page_molar", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.MOLAR)), 1500, 6);
+        add("page_full_stop", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.FULL_STOP)), 2500, 5);
+        add("page_dawn", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.DAWN)), 2500, 5);
+        add("page_gaze", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.GAZE)), 2500, 5);
+        add("page_wedge", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.WEDGE)), 2500, 5);
+        add("page_workshop", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.WORKSHOP)), 2500, 5);
+        add("page_jeong", "pages", () -> new ItemStack(ModItems.keyPageItem(KeyPages.JEONG)), 2500, 5);
+
+        add("yun_machete", "weapons", () -> new ItemStack(ModItems.YUN_MACHETE.get()), 400, 8);
+        add("hook_blade", "weapons", () -> new ItemStack(ModItems.HOOK_BLADE.get()), 400, 8);
+        add("streetlight_staff", "weapons", () -> new ItemStack(ModItems.STREETLIGHT_STAFF.get()), 700, 7);
+        add("molar_hammer", "weapons", () -> new ItemStack(ModItems.MOLAR_HAMMER.get()), 1200, 6);
+        add("full_stop_rifle", "weapons", () -> new ItemStack(ModItems.FULL_STOP_RIFLE.get()), 1800, 5);
+        add("dawn_sword", "weapons", () -> new ItemStack(ModItems.DAWN_SWORD.get()), 1800, 5);
+        add("gaze_rapier", "weapons", () -> new ItemStack(ModItems.GAZE_RAPIER.get()), 1800, 5);
+        add("wedge_spear", "weapons", () -> new ItemStack(ModItems.WEDGE_SPEAR.get()), 1800, 5);
+        add("workshop_halberd", "weapons", () -> new ItemStack(ModItems.WORKSHOP_HALBERD.get()), 1800, 5);
+        add("jeong_twin_blades", "weapons", () -> new ItemStack(ModItems.JEONG_TWIN_BLADES.get()), 1800, 5);
         add("revolver", "weapons", () -> new ItemStack(ModItems.FIXER_REVOLVER.get()), 300, 9);
         add("zwei_greatsword", "weapons", () -> new ItemStack(ModItems.ZWEI_GREATSWORD.get()), 1200, 6);
-        add("shi_blade", "weapons", () -> new ItemStack(ModItems.SHI_BLADE.get()), 1200, 6);
-        add("liu_gauntlet", "weapons", () -> new ItemStack(ModItems.LIU_GAUNTLET.get()), 1200, 6);
-        add("seven_cane", "weapons", () -> new ItemStack(ModItems.SEVEN_CANE.get()), 1200, 6);
-        add("thumb_rifle", "weapons", () -> new ItemStack(ModItems.THUMB_RIFLE.get()), 1800, 5);
+        add("shi_blade", "weapons", () -> new ItemStack(ModItems.SHI_BLADE.get()), 3000, 4);
+        add("liu_gauntlet", "weapons", () -> new ItemStack(ModItems.LIU_GAUNTLET.get()), 4500, 3);
+        add("seven_cane", "weapons", () -> new ItemStack(ModItems.SEVEN_CANE.get()), 3000, 4);
+        add("thumb_rifle", "weapons", () -> new ItemStack(ModItems.THUMB_RIFLE.get()), 4500, 3);
         add("kurokumo_blade", "weapons", () -> new ItemStack(ModItems.KUROKUMO_BLADE.get()), 1500, 5);
 
         add("lucky_coin", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.LUCKY_COIN)), 150, 9);
         add("office_badge", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.OFFICE_BADGE)), 300, 8);
         add("zwei_armband", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.ZWEI_ARMBAND)), 900, 6);
-        add("shi_tassel", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.SHI_TASSEL)), 900, 6);
-        add("liu_talisman", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.LIU_TALISMAN)), 900, 6);
-        add("seven_monocle", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.SEVEN_MONOCLE)), 900, 6);
-        add("thumb_bandolier", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.THUMB_BANDOLIER)), 1400, 5);
+        add("shi_tassel", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.SHI_TASSEL)), 2500, 4);
+        add("liu_talisman", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.LIU_TALISMAN)), 3500, 3);
+        add("seven_monocle", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.SEVEN_MONOCLE)), 2500, 4);
+        add("thumb_bandolier", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.THUMB_BANDOLIER)), 3500, 3);
         add("kurokumo_knot", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.KUROKUMO_KNOT)), 1400, 5);
     }
 

@@ -101,6 +101,34 @@ public final class ModItems {
     public static final DeferredItem<ThumbRifleItem> THUMB_RIFLE = REGISTER.register("thumb_rifle",
             () -> new ThumbRifleItem(new Item.Properties().stacksTo(1).durability(400).rarity(Rarity.RARE)));
 
+    // ---- 원작 해결사들의 무기 (카나드 ~ 도시 질병) ----
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> YUN_MACHETE =
+            skillWeapon("yun_machete", 4, -2.4F, 120, "yun", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.MENACE, Rarity.COMMON);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> HOOK_BLADE =
+            skillWeapon("hook_blade", 3, -2.2F, 140, "hook", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.HOOK_PULL, Rarity.COMMON);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> STREETLIGHT_STAFF =
+            skillWeapon("streetlight_staff", 3, -2.0F, 300, "streetlight", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.RALLY, Rarity.UNCOMMON);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> MOLAR_HAMMER =
+            skillWeapon("molar_hammer", 7, -3.0F, 160, "molar", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.CRUSH, Rarity.UNCOMMON);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> DAWN_SWORD =
+            skillWeapon("dawn_sword", 5, -2.4F, 400, "dawn", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.DAWNLIGHT, Rarity.RARE);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> GAZE_RAPIER =
+            skillWeapon("gaze_rapier", 4, -2.0F, 200, "gaze", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.STARE, Rarity.RARE);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> WEDGE_SPEAR =
+            skillWeapon("wedge_spear", 5, -2.6F, 120, "wedge", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.THRUST, Rarity.RARE);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> WORKSHOP_HALBERD =
+            skillWeapon("workshop_halberd", 7, -3.0F, 160, "workshop", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.WHIRLWIND, Rarity.RARE);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> JEONG_TWIN_BLADES =
+            skillWeapon("jeong_twin_blades", 3, -1.6F, 160, "jeong", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.RIPOSTE, Rarity.RARE);
+    public static final DeferredItem<com.fixercity.item.FullStopRifleItem> FULL_STOP_RIFLE = REGISTER.register("full_stop_rifle",
+            () -> new com.fixercity.item.FullStopRifleItem(new Item.Properties().stacksTo(1).durability(300).rarity(Rarity.RARE)));
+
+    private static DeferredItem<com.fixercity.item.SkillWeaponItem> skillWeapon(String name, int damage, float speed, int cooldown,
+            String page, com.fixercity.keypage.DamageKind kind, com.fixercity.item.SkillWeaponItem.Skill skill, Rarity rarity) {
+        return REGISTER.register(name, () -> new com.fixercity.item.SkillWeaponItem(FIXER_STEEL, new Item.Properties().rarity(rarity)
+                .attributes(SwordItem.createAttributes(FIXER_STEEL, damage, speed)), cooldown, page, kind, skill));
+    }
+
     // ---- 해결사 정장 ----
     public static final DeferredItem<FixerArmorItem> FIXER_HAT = armor("fixer_hat", ModArmorMaterials.FIXER_SUIT, ArmorItem.Type.HELMET, 18);
     public static final DeferredItem<FixerArmorItem> FIXER_JACKET = armor("fixer_jacket", ModArmorMaterials.FIXER_SUIT, ArmorItem.Type.CHESTPLATE, 18);

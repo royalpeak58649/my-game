@@ -447,7 +447,7 @@ public final class RequestManager {
         String faction = r.target;
         EntityType<? extends Mob> type = switch (faction) {
             case "rat" -> EntityType.ZOMBIE;
-            case "thumb" -> EntityType.PILLAGER;
+            case "thumb", "full_stop" -> EntityType.PILLAGER;
             default -> EntityType.VINDICATOR;
         };
         Mob mob = type.create(level);
@@ -462,7 +462,7 @@ public final class RequestManager {
         mob.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), MobSpawnType.EVENT, null);
 
         Item weapon = factionWeapon(faction);
-        if (weapon != null && !"thumb".equals(faction)) {
+        if (weapon != null && !"thumb".equals(faction) && !"full_stop".equals(faction)) {
             mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(weapon));
             mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         }
@@ -516,6 +516,16 @@ public final class RequestManager {
             case "seven" -> ModItems.SEVEN_CANE.get();
             case "thumb" -> ModItems.THUMB_RIFLE.get();
             case "kurokumo" -> ModItems.KUROKUMO_BLADE.get();
+            case "yun" -> ModItems.YUN_MACHETE.get();
+            case "hook" -> ModItems.HOOK_BLADE.get();
+            case "streetlight" -> ModItems.STREETLIGHT_STAFF.get();
+            case "molar" -> ModItems.MOLAR_HAMMER.get();
+            case "full_stop" -> ModItems.FULL_STOP_RIFLE.get();
+            case "dawn" -> ModItems.DAWN_SWORD.get();
+            case "gaze" -> ModItems.GAZE_RAPIER.get();
+            case "wedge" -> ModItems.WEDGE_SPEAR.get();
+            case "workshop" -> ModItems.WORKSHOP_HALBERD.get();
+            case "jeong" -> ModItems.JEONG_TWIN_BLADES.get();
             default -> null;
         };
     }

@@ -23,6 +23,12 @@ public class CombatData {
     public float lastSentStagger = -1;
     public float lastSentMax = -1;
     public boolean lastSentStaggered;
+    /** 정 사무소 받아치기 자세가 끝나는 시각과 반격 배율. */
+    public long counterUntil;
+    public float counterPower;
+    /** 어금니 사무소 연계: 마지막으로 이 대상을 때린 플레이어와 시각. */
+    public java.util.UUID lastHitBy;
+    public long lastHitByTime = Long.MIN_VALUE / 2;
     /** 쿠로쿠모 매듭 흡혈 마지막 시각. */
     public long lastLifesteal = Long.MIN_VALUE / 2;
     /** 츠바이 수호 태세가 끝나는 시각. */

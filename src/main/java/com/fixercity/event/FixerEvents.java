@@ -75,6 +75,19 @@ public final class FixerEvents {
                     player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 1, true, false, true));
                 }
             }
+            case BOND -> {
+                for (Player ally : player.level().getEntitiesOfClass(Player.class, player.getBoundingBox().inflate(6.0),
+                        p -> p != player && p.isAlive() && !p.isSpectator())) {
+                    if (!ally.hasEffect(MobEffects.REGENERATION)) {
+                        ally.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 0, true, false, true));
+                    }
+                }
+            }
+            case DAWN -> {
+                if (player.tickCount % 80 == 0 && player.getHealth() < player.getMaxHealth()) {
+                    player.heal(1.0F);
+                }
+            }
             case GUARD -> {
                 for (Player ally : player.level().getEntitiesOfClass(Player.class, player.getBoundingBox().inflate(5.0),
                         p -> p != player && p.isAlive() && !p.isSpectator())) {
@@ -96,9 +109,8 @@ public final class FixerEvents {
             FixerSavedData.Profile profile = data.profile(player.getUUID());
             if (!profile.kitGiven) {
                 profile.kitGiven = true;
-                FixerKit[] kits = FixerKit.values();
                 for (int i = 0; i < STARTING_KITS; i++) {
-                    profile.storedKits.add(kits[player.getRandom().nextInt(kits.length)].id());
+                    profile.storedKits.add(FixerKit.random(player.getRandom()).id());
                 }
                 data.setDirty();
                 player.sendSystemMessage(Component.translatable("message.fixercity.welcome").withStyle(ChatFormatting.YELLOW));

@@ -58,7 +58,9 @@ public abstract class FixerWeaponItem extends SwordItem implements HasDamageKind
             AbilityResult result = performAbility(serverLevel, player, stack, resonant);
             if (result != AbilityResult.FAILED) {
                 if (result == AbilityResult.USED) {
-                    int cd = resonant ? Math.round(cooldownTicks * RESONANCE_COOLDOWN) : cooldownTicks;
+                    float mul = (resonant ? RESONANCE_COOLDOWN : 1.0F)
+                            * (KeyPageHelper.hasPassive(player, com.fixercity.keypage.KeyPagePassive.WORKSHOP) ? 0.8F : 1.0F);
+                    int cd = Math.round(cooldownTicks * mul);
                     player.getCooldowns().addCooldown(this, cd);
                 }
                 stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);

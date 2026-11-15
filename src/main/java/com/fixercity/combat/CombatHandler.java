@@ -88,6 +88,30 @@ public final class CombatHandler {
             amount *= 0.5F;
         }
 
+        // 정 사무소 받아치기 자세: 근접 공격을 막고 크게 반격
+        CombatData defenderData = dataFor(target);
+        boolean melee = attacker != null && source.getDirectEntity() == attacker && kind != null;
+        if (melee && defenderData.counterUntil > now) {
+            event.setCanceled(true);
+            float power = defenderData.counterPower;
+            defenderData.counterUntil = 0;
+            float counterDamage = (float) (target.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) * power);
+            attacker.invulnerableTime = 0;
+            attacker.hurt(target instanceof Player p ? p.damageSources().playerAttack(p) : target.damageSources().mobAttack(target), counterDamage);
+            addStagger(attacker, 10.0F * power / 2.0F);
+            level.sendParticles(ParticleTypes.CRIT, attacker.getX(), attacker.getY() + 1.0, attacker.getZ(), 15, 0.3, 0.4, 0.3, 0.3);
+            level.playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.ANVIL_PLACE, SoundSource.PLAYERS, 0.7F, 1.8F);
+            if (target instanceof Player p) {
+                p.displayClientMessage(Component.translatable("message.fixercity.countered").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), true);
+            }
+            return;
+        }
+        // 정 사무소 책장: 20% 확률로 피해의 60% 반사
+        if (melee && KeyPageHelper.hasPassive(target, com.fixercity.keypage.KeyPagePassive.COUNTER)
+                && level.getRandom().nextFloat() < 0.2F) {
+            attacker.hurt(target.damageSources().thorns(target), base * 0.6F);
+        }
+
         // ---- 공격자 쪽 (책장 패시브, 백스탭) ----
         if (attacker instanceof Player player && kind != null) {
             KeyPage page = KeyPageHelper.getPage(player);
@@ -120,11 +144,44 @@ public final class CombatHandler {
                             target.addEffect(new MobEffectInstance(ModEffects.BLEED, 100, stacks), player);
                         }
                     }
+                    case PACK -> {
+                        if (!level.getEntitiesOfClass(Player.class, player.getBoundingBox().inflate(6.0),
+                                p -> p != player && p.isAlive() && !p.isSpectator()).isEmpty()) {
+                            amount *= 1.2F;
+                        }
+                    }
+                    case HUNTER -> {
+                        if (target.getHealth() < target.getMaxHealth() * 0.5F) {
+                            amount *= 1.25F;
+                        }
+                    }
+                    case COORDINATION -> {
+                        CombatData td = target.getData(ModAttachments.COMBAT);
+                        if (td.lastHitBy != null && !td.lastHitBy.equals(player.getUUID()) && now - td.lastHitByTime <= 60) {
+                            amount *= 1.2F;
+                            staggerBonus *= 1.2F;
+                        }
+                    }
+                    case STEADY_AIM -> {
+                        if (player.getMainHandItem().getItem() instanceof GunItem) {
+                            amount *= 1.25F;
+                            staggerBonus *= 1.5F;
+                        }
+                    }
+                    case GAZE -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 0), player);
+                    case WORKSHOP -> {
+                        if (player.getMainHandItem().getItem() instanceof com.fixercity.item.FixerWeaponItem) {
+                            amount *= 1.1F;
+                        }
+                    }
                     default -> {
                     }
                 }
             }
             attackerData.lastDealt = now;
+            CombatData hitData = target.getData(ModAttachments.COMBAT);
+            hitData.lastHitBy = player.getUUID();
+            hitData.lastHitByTime = now;
 
             if (isBackstab(player, target, source)) {
                 amount *= DaggerItem.BACKSTAB_MULTIPLIER;
@@ -181,6 +238,11 @@ public final class CombatHandler {
         }
         if (kind != null) {
             Resist hpResist = targetPage != null ? targetPage.hpResist(kind) : MobResistances.of(target, kind);
+            // 쐐기 사무소: 관통 공격은 견딤/내성을 무시
+            if (kind == DamageKind.PIERCE && hpResist.multiplier() < 1.0F
+                    && KeyPageHelper.hasPassive(attacker, com.fixercity.keypage.KeyPagePassive.WEDGE)) {
+                hpResist = Resist.NORMAL;
+            }
             Resist staggerResist = targetPage != null ? targetPage.staggerResist(kind) : MobResistances.of(target, kind);
             amount *= hpResist.multiplier();
             if (data.isStaggered(now)) {

@@ -37,20 +37,24 @@ public final class RequestGenerator {
         };
     }
 
+    /** 현상범 조직과 나오는 의뢰 등급 범위 (최고 등급, 최저 등급). 원작 접대 등급 기준. */
+    private static final String[][] BOUNTY_RANGES = {
+            {"rat", "7", "9"}, {"yun", "7", "9"}, {"hook", "6", "8"}, {"office_fixer", "6", "8"},
+            {"streetlight", "6", "7"}, {"zwei", "4", "6"}, {"molar", "4", "6"},
+            {"kurokumo", "3", "5"}, {"full_stop", "3", "5"}, {"dawn", "3", "5"}, {"gaze", "3", "5"},
+            {"wedge", "3", "5"}, {"workshop", "3", "5"}, {"jeong", "3", "5"},
+            {"shi", "2", "4"}, {"seven", "2", "4"}, {"liu", "1", "3"}, {"thumb", "1", "3"}};
+
     /** 현상범 조직: 등급 범위에 맞는 것 중에서 고른다. */
     private static List<String> bountyFactions(int grade) {
         List<String> list = new ArrayList<>();
-        if (grade >= 7) list.add("rat");
-        if (grade >= 6 && grade <= 8) list.add("office_fixer");
-        if (grade >= 4 && grade <= 6) {
-            list.add("zwei");
-            list.add("liu");
-            list.add("seven");
+        for (String[] r : BOUNTY_RANGES) {
+            if (grade >= Integer.parseInt(r[1]) && grade <= Integer.parseInt(r[2])) {
+                list.add(r[0]);
+            }
         }
-        if (grade >= 3 && grade <= 6) list.add("shi");
-        if (grade <= 5) {
+        if (list.isEmpty()) {
             list.add("thumb");
-            list.add("kurokumo");
         }
         return list;
     }
