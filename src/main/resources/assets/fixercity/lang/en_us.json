@@ -947,5 +947,15 @@
   "stance.fixercity.0": "Slash",
   "stance.fixercity.1": "Pierce",
   "stance.fixercity.2": "Blunt",
-  "stance.fixercity.3": "Guard"
+  "stance.fixercity.3": "Guard",
+  "shop.fixercity.category.sell": "Sell",
+  "ui.fixercity.sell": "Sell",
+  "ui.fixercity.sell_all": "Sell all",
+  "ui.fixercity.everything": "all sellable loot",
+  "ui.fixercity.sell_hover": "Sell %s: +%s Ahn",
+  "ui.fixercity.sell_price": "%s Ahn each · You have %s",
+  "message.fixercity.sold": "Sold %s items (+%s Ahn, %s Ahn left)",
+  "message.fixercity.nothing_to_sell": "Nothing to sell",
+  "message.fixercity.not_sellable": "That can't be sold",
+  "message.fixercity.illager_rep": "Illager hunting record: +%s reputation"
 }

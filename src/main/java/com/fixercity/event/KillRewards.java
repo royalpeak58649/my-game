@@ -33,6 +33,16 @@ public final class KillRewards {
         return null;
     }
 
+    /** 평판 점수: 약탈자·변명자·마녀 1, 환술사 2, 소환사·파괴수 3. 10점마다 평판 +10. */
+    public static final int REP_POINTS_STEP = 10;
+    public static final int REP_REWARD = 10;
+
+    private static int repPoints(EntityType<?> type) {
+        if (type == EntityType.EVOKER || type == EntityType.RAVAGER) return 3;
+        if (type == EntityType.ILLUSIONER) return 2;
+        return 1;
+    }
+
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
         LivingEntity dead = event.getEntity();
@@ -53,6 +63,21 @@ public final class KillRewards {
         RequestManager.addAhn(level.getServer(), killer.getUUID(), ahn);
         killer.displayClientMessage(Component.translatable("message.fixercity.kill_reward", dead.getType().getDescription(), ahn)
                 .withStyle(ChatFormatting.GOLD), true);
+
+        // 우민을 일정 수 잡을 때마다 평판
+        com.fixercity.request.FixerSavedData data = RequestManager.data(level.getServer());
+        com.fixercity.request.FixerSavedData.Profile profile = data.profile(killer.getUUID());
+        profile.illagerPoints += repPoints(dead.getType());
+        if (profile.illagerPoints >= REP_POINTS_STEP) {
+            int times = profile.illagerPoints / REP_POINTS_STEP;
+            profile.illagerPoints %= REP_POINTS_STEP;
+            data.setDirty();
+            RequestManager.addRep(level.getServer(), killer.getUUID(), REP_REWARD * times);
+            killer.sendSystemMessage(Component.translatable("message.fixercity.illager_rep", REP_REWARD * times)
+                    .withStyle(ChatFormatting.AQUA));
+        } else {
+            data.setDirty();
+        }
 
         // 가끔 전리품
         ItemStack drop = ItemStack.EMPTY;

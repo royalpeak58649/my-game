@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 
 /** 협회 상점 화면. */
 public class ShopScreen extends Screen {
-    private static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations");
+    private static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations", "sell");
     private static final int PANEL_W = 320;
     private static final int ROW_H = 22;
     private ShopPayload data;
@@ -39,6 +39,10 @@ public class ShopScreen extends Screen {
     private int footerY;
     private String scrollCategory = "";
     private boolean draggingBar;
+
+    private boolean isSell() {
+        return "sell".equals(data.category());
+    }
 
     private int maxScroll() {
         return Math.max(0, data.entries().size() - visibleRows);
@@ -71,8 +75,9 @@ public class ShopScreen extends Screen {
         int end = Math.min(data.entries().size(), scroll + visibleRows);
         for (int i = scroll; i < end; i++) {
             ShopPayload.Entry e = data.entries().get(i);
-            Button buy = Button.builder(Component.translatable("ui.fixercity.buy"), b -> {
-                command("shop buy " + e.id());
+            boolean selling = isSell();
+            Button buy = Button.builder(Component.translatable(selling ? "ui.fixercity.sell" : "ui.fixercity.buy"), b -> {
+                command((selling ? "shop sell " : "shop buy ") + e.id());
                 command("shop gui " + data.category());
             }).bounds(left + PANEL_W - 62, y + 1, 50, 18).build();
             buy.active = e.allowed();
@@ -82,6 +87,14 @@ public class ShopScreen extends Screen {
         footerY = listTop + visibleRows * ROW_H + 6;
         addRenderableWidget(Button.builder(Component.translatable("ui.fixercity.back_to_board"), b -> command("request gui"))
                 .bounds(left + 4, footerY, 120, 20).build());
+        if (isSell()) {
+            Button all = Button.builder(Component.translatable("ui.fixercity.sell_all"), b -> {
+                command("shop sell all");
+                command("shop gui sell");
+            }).bounds(left + 128, footerY, 104, 20).build();
+            all.active = data.entries().stream().anyMatch(ShopPayload.Entry::allowed);
+            addRenderableWidget(all);
+        }
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose())
                 .bounds(left + PANEL_W - 84, footerY, 80, 20).build());
     }
@@ -179,7 +192,9 @@ public class ShopScreen extends Screen {
             g.renderItem(e.stack(), left + 4, y + 2);
             g.renderItemDecorations(font, e.stack(), left + 4, y + 2);
             g.drawString(font, e.stack().getHoverName(), left + 26, y + 2, 0xFFFFFFFF);
-            Component price = Component.translatable("ui.fixercity.price", String.format("%,d", e.price()), e.minGrade());
+            Component price = isSell()
+                    ? Component.translatable("ui.fixercity.sell_price", String.format("%,d", e.price()), e.minGrade())
+                    : Component.translatable("ui.fixercity.price", String.format("%,d", e.price()), e.minGrade());
             g.drawString(font, price, left + 26, y + 12, e.allowed() ? 0xFFE8C35A : 0xFFAA5555);
             if (mouseX >= left + 4 && mouseX < left + 20 && mouseY >= y + 2 && mouseY < y + 18) {
                 hovered = e;
@@ -193,7 +208,9 @@ public class ShopScreen extends Screen {
             int thumbY = listTop + (trackH - thumbH) * scroll / maxScroll();
             g.fill(bx, thumbY, bx + 6, thumbY + thumbH, draggingBar || overBar(mouseX, mouseY) ? 0xFFE0E0E0 : 0xFFA0A0A0);
             Component pos = Component.literal((scroll + 1) + "-" + end + " / " + data.entries().size());
-            g.drawCenteredString(font, pos, width / 2, footerY + 6, 0xFFAAAAAA);
+            if (!isSell()) {
+                g.drawCenteredString(font, pos, width / 2, footerY + 6, 0xFFAAAAAA);
+            }
         }
         if (hovered != null) {
             g.renderTooltip(font, hovered.stack(), mouseX, mouseY);

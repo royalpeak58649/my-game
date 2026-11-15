@@ -81,6 +81,14 @@ public final class RequestCommands {
                             Shop.sendShop(player, c);
                             return 1;
                         })))
+                .then(Commands.literal("sell").then(Commands.argument("item", StringArgumentType.word())
+                        .suggests((ctx, b) -> {
+                            b.suggest("all");
+                            LootSale.PRICES.keySet().forEach(i -> b.suggest(LootSale.id(i)));
+                            return b.buildFuture();
+                        })
+                        .executes(ctx -> LootSale.sell(ctx.getSource().getPlayerOrException(),
+                                StringArgumentType.getString(ctx, "item")) ? 1 : 0)))
                 .then(Commands.literal("buy").then(Commands.argument("item", StringArgumentType.word())
                         .executes(ctx -> Shop.buy(ctx.getSource().getPlayerOrException(),
                                 StringArgumentType.getString(ctx, "item")) ? 1 : 0)))

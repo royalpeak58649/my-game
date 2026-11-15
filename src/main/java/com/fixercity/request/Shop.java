@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 public final class Shop {
     public record Entry(String id, String category, Supplier<ItemStack> stack, int price, int minGrade) {}
 
-    public static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations");
+    public static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations", "sell");
     private static final List<Entry> ENTRIES = new ArrayList<>();
 
     static {
@@ -193,6 +193,10 @@ public final class Shop {
     }
 
     public static void showCategory(ServerPlayer player, String category) {
+        if (category.equals("sell")) {
+            LootSale.show(player);
+            return;
+        }
         int g = RequestManager.grade(player.server, player.getUUID());
         player.sendSystemMessage(Component.translatable("ui.fixercity.shop_header").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD)
                 .append(Component.literal(" - ")).append(Component.translatable("shop.fixercity.category." + category)));
@@ -244,6 +248,9 @@ public final class Shop {
     public static void sendShop(ServerPlayer player, String category) {
         int g = RequestManager.grade(player.server, player.getUUID());
         List<com.fixercity.network.ShopPayload.Entry> list = new ArrayList<>();
+        if (category.equals("sell")) {
+            list.addAll(LootSale.entries(player));
+        }
         for (Entry e : ENTRIES) {
             if (e.category().equals(category)) {
                 list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), displayStack(e), price(player, e), e.minGrade(), g <= e.minGrade()));

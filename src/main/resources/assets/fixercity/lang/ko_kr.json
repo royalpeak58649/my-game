@@ -947,5 +947,15 @@
   "stance.fixercity.0": "참격",
   "stance.fixercity.1": "관통",
   "stance.fixercity.2": "타격",
-  "stance.fixercity.3": "수비"
+  "stance.fixercity.3": "수비",
+  "shop.fixercity.category.sell": "판매",
+  "ui.fixercity.sell": "판매",
+  "ui.fixercity.sell_all": "모두 팔기",
+  "ui.fixercity.everything": "팔 수 있는 전리품 전부",
+  "ui.fixercity.sell_hover": "%s 판매: +%s안",
+  "ui.fixercity.sell_price": "개당 %s안 · 가진 개수 %s",
+  "message.fixercity.sold": "전리품 %s개 판매 (+%s안, 잔고 %s안)",
+  "message.fixercity.nothing_to_sell": "팔 전리품이 없다",
+  "message.fixercity.not_sellable": "그건 팔 수 없다",
+  "message.fixercity.illager_rep": "우민 소탕 실적이 쌓였다. 평판 +%s"
 }

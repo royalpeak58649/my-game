@@ -25,6 +25,8 @@ public class FixerSavedData extends SavedData {
         public int ahn = STARTING_AHN;
         /** 첫 접속 키트를 이미 받았는지. */
         public boolean kitGiven;
+        /** 우민 처치 점수 (10점마다 평판). */
+        public int illagerPoints;
         /** 키트 보관함: 아직 꺼내지 않은 키트 id 목록. 월드에 저장되므로 죽어도 남는다. */
         public final List<String> storedKits = new ArrayList<>();
         /** 신체 개조 단계 (개조 id -> 1~5). 몸에 새긴 것이라 죽어도 남는다. */
@@ -110,6 +112,7 @@ public class FixerSavedData extends SavedData {
             t.putInt("rep", profile.rep);
             t.putInt("ahn", profile.ahn);
             t.putBoolean("kit", profile.kitGiven);
+            t.putInt("illager", profile.illagerPoints);
             ListTag kits = new ListTag();
             profile.storedKits.forEach(k -> kits.add(net.minecraft.nbt.StringTag.valueOf(k)));
             t.put("kits", kits);
@@ -147,6 +150,7 @@ public class FixerSavedData extends SavedData {
                 profile.rep = p.getCompound(key).getInt("rep");
                 profile.ahn = p.getCompound(key).getInt("ahn");
                 profile.kitGiven = p.getCompound(key).getBoolean("kit");
+                profile.illagerPoints = p.getCompound(key).getInt("illager");
                 for (Tag k : p.getCompound(key).getList("kits", Tag.TAG_STRING)) {
                     profile.storedKits.add(k.getAsString());
                 }
