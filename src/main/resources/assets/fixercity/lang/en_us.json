@@ -241,5 +241,9 @@
   "bounty.fixercity.liu": "Liu Deserter",
   "bounty.fixercity.seven": "Seven Deserter",
   "bounty.fixercity.thumb": "Thumb Soldato",
-  "bounty.fixercity.kurokumo": "Kurokumo Enforcer"
+  "bounty.fixercity.kurokumo": "Kurokumo Enforcer",
+  "kit.fixercity.backstreet": "Backstreet Born",
+  "message.fixercity.welcome": "Welcome to the City, Grade 9 Fixer. You start as [%s].",
+  "message.fixercity.welcome_hint": "Take jobs at a request board. Death costs all your gear, but your money and reputation remain. (/fixer)",
+  "message.fixercity.lost_everything": "You lost all of your gear."
 }

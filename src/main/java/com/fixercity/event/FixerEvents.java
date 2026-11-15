@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import com.fixercity.kit.FixerKit;
+import com.fixercity.request.FixerSavedData;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import com.fixercity.registry.ModArmorMaterials;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
@@ -80,7 +83,38 @@ public final class FixerEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             KeyPageHelper.refresh(player);
+            // 처음 접속: 5종 중 무작위 키트 하나
+            FixerSavedData data = FixerSavedData.get(player.server);
+            FixerSavedData.Profile profile = data.profile(player.getUUID());
+            if (!profile.kitGiven) {
+                profile.kitGiven = true;
+                data.setDirty();
+                FixerKit[] kits = FixerKit.values();
+                FixerKit kit = kits[player.getRandom().nextInt(kits.length)];
+                equipKit(player, kit);
+                player.sendSystemMessage(Component.translatable("message.fixercity.welcome",
+                        Component.translatable("kit.fixercity." + kit.id()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
+                        .withStyle(ChatFormatting.YELLOW));
+                player.sendSystemMessage(Component.translatable("message.fixercity.welcome_hint").withStyle(ChatFormatting.GRAY));
+            }
         }
+    }
+
+    /**
+     * 죽으면 장비를 전부 잃는다: 인벤토리, 갑옷, 손에 든 것 모두 떨어지지 않고 사라진다.
+     * (책장과 장신구는 몸에 붙어 있어 리스폰 때 자동으로 사라진다. 돈·평판·엔더 상자는 남는다.)
+     * keepInventory 규칙과 상관없이 적용된다.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onPlayerDeath(LivingDeathEvent event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (player.isSpectator() || player.getAbilities().instabuild) {
+            return;
+        }
+        player.getInventory().clearContent();
+        player.sendSystemMessage(Component.translatable("message.fixercity.lost_everything").withStyle(ChatFormatting.DARK_RED));
     }
 
     @SubscribeEvent
@@ -193,7 +227,24 @@ public final class FixerEvents {
     }
 
     public static int giveKit(CommandSourceStack source, ServerPlayer player, FixerKit kit) {
+        equipKit(player, kit);
+        Component kitName = Component.translatable("kit.fixercity." + kit.id());
+        source.sendSuccess(() -> Component.translatable("message.fixercity.kit_given", kitName, player.getDisplayName()), true);
+        return 1;
+    }
+
+    /** 키트 지급: 갑옷은 빈 칸에 입히고, 책장·장신구는 비어 있으면 바로 장착, 나머지는 인벤토리로. */
+    public static void equipKit(ServerPlayer player, FixerKit kit) {
         for (ItemStack stack : kit.createContents()) {
+            if (stack.getItem() instanceof KeyPageItem pageItem && KeyPageHelper.getPage(player) == null) {
+                KeyPageHelper.equip(player, pageItem.page());
+                continue;
+            }
+            if (stack.getItem() instanceof com.fixercity.item.AccessoryItem accessoryItem
+                    && com.fixercity.accessory.AccessoryHelper.get(player) == null) {
+                com.fixercity.accessory.AccessoryHelper.equip(player, accessoryItem.accessory());
+                continue;
+            }
             if (stack.getItem() instanceof ArmorItem armor) {
                 EquipmentSlot slot = armor.getEquipmentSlot();
                 if (player.getItemBySlot(slot).isEmpty()) {
@@ -205,8 +256,5 @@ public final class FixerEvents {
                 player.drop(stack, false);
             }
         }
-        Component kitName = Component.translatable("kit.fixercity." + kit.id());
-        source.sendSuccess(() -> Component.translatable("message.fixercity.kit_given", kitName, player.getDisplayName()), true);
-        return 1;
     }
 }

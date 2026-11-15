@@ -241,5 +241,9 @@
   "bounty.fixercity.liu": "리우 협회 이탈자",
   "bounty.fixercity.seven": "세븐 협회 이탈자",
   "bounty.fixercity.thumb": "엄지 솔다토",
-  "bounty.fixercity.kurokumo": "쿠로쿠모 회 행동대장"
+  "bounty.fixercity.kurokumo": "쿠로쿠모 회 행동대장",
+  "kit.fixercity.backstreet": "뒷골목 출신",
+  "message.fixercity.welcome": "도시에 온 걸 환영한다, 9급 해결사. 당신은 [%s](으)로 시작한다.",
+  "message.fixercity.welcome_hint": "의뢰 게시판에서 일을 받아라. 죽으면 장비는 전부 잃지만, 돈과 평판은 남는다. (/fixer)",
+  "message.fixercity.lost_everything": "모든 장비를 잃었다."
 }

@@ -23,6 +23,8 @@ public class FixerSavedData extends SavedData {
     public static class Profile {
         public int rep;
         public int ahn = STARTING_AHN;
+        /** 첫 접속 키트를 이미 받았는지. */
+        public boolean kitGiven;
     }
 
     private final Map<UUID, Profile> profiles = new HashMap<>();
@@ -78,6 +80,7 @@ public class FixerSavedData extends SavedData {
             CompoundTag t = new CompoundTag();
             t.putInt("rep", profile.rep);
             t.putInt("ahn", profile.ahn);
+            t.putBoolean("kit", profile.kitGiven);
             p.put(uuid.toString(), t);
         });
         tag.put("profiles", p);
@@ -99,6 +102,7 @@ public class FixerSavedData extends SavedData {
                 Profile profile = new Profile();
                 profile.rep = p.getCompound(key).getInt("rep");
                 profile.ahn = p.getCompound(key).getInt("ahn");
+                profile.kitGiven = p.getCompound(key).getBoolean("kit");
                 data.profiles.put(UUID.fromString(key), profile);
             } catch (IllegalArgumentException ignored) {
                 // 잘못된 UUID는 무시
