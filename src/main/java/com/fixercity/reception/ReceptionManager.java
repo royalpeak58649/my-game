@@ -225,7 +225,7 @@ public final class ReceptionManager {
         mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModItems.FIXER_LONGSWORD.get()));
         mob.setDropChance(EquipmentSlot.MAINHAND, 0F);
         setBase(mob, Attributes.MAX_HEALTH, 30 + (9 - rec.floor.grade()) * 8);
-        setBase(mob, Attributes.ATTACK_DAMAGE, 3 + (9 - rec.floor.grade()));
+        setBase(mob, Attributes.ATTACK_DAMAGE, 2 + (9 - rec.floor.grade()) / 2.0);
         mob.setHealth(mob.getMaxHealth());
         mob.setCustomName(Component.translatable("librarian.fixercity.assistant", Component.translatable(rec.floor.floorKey()))
                 .withStyle(ChatFormatting.YELLOW));
