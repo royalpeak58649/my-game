@@ -19,6 +19,10 @@ public class CombatData {
     private long staggeredUntil;
     /** 마지막으로 물리 공격을 가한 시각 (시 협회 일격필살용). */
     public long lastDealt = Long.MIN_VALUE / 2;
+    /** HUD 동기화: 마지막으로 보낸 값. */
+    public float lastSentStagger = -1;
+    public float lastSentMax = -1;
+    public boolean lastSentStaggered;
     /** 쿠로쿠모 매듭 흡혈 마지막 시각. */
     public long lastLifesteal = Long.MIN_VALUE / 2;
     /** 츠바이 수호 태세가 끝나는 시각. */

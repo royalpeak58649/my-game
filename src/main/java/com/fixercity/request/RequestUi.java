@@ -120,6 +120,33 @@ public final class RequestUi {
                 .append(Component.translatable("ui.fixercity.board_hint").withStyle(ChatFormatting.DARK_GRAY)));
     }
 
+    /** GUI 화면용 데이터를 보낸다 (게시판 우클릭 / 화면 버튼 후 새로고침). */
+    public static void sendBoard(ServerPlayer player) {
+        MinecraftServer server = player.server;
+        FixerSavedData data = RequestManager.data(server);
+        Request active = data.activeFor(player.getUUID());
+        Component activeTitle = Component.empty();
+        Component activeDetail = Component.empty();
+        int state = 0;
+        if (active != null) {
+            long left = Math.max(0, active.deadline - player.level().getGameTime());
+            activeTitle = title(active);
+            activeDetail = objective(active).append(Component.translatable("ui.fixercity.time_left",
+                    String.format("%.1f", left / 24000.0)).withStyle(ChatFormatting.GRAY));
+            state = active.state == Request.State.DONE || active.type == RequestType.DELIVERY ? 2 : 1;
+        }
+        int g = Grades.gradeFor(data.profile(player.getUUID()).rep);
+        List<Request> open = data.open();
+        open.sort((a, b) -> Integer.compare(b.grade, a.grade));
+        List<com.fixercity.network.BoardPayload.Entry> entries = new java.util.ArrayList<>();
+        for (Request r : open) {
+            entries.add(new com.fixercity.network.BoardPayload.Entry(r.id, title(r), objective(r), rewards(r),
+                    r.grade >= g - 1 && active == null));
+        }
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                new com.fixercity.network.BoardPayload(profileLine(server, player), activeTitle, activeDetail, state, entries));
+    }
+
     /** /request: 현재 의뢰 상태. */
     public static void showStatus(ServerPlayer player) {
         Request r = RequestManager.data(player.server).activeFor(player.getUUID());

@@ -107,6 +107,19 @@ public final class Shop {
         }
     }
 
+    /** GUI 화면용 상점 데이터. */
+    public static void sendShop(ServerPlayer player, String category) {
+        int g = RequestManager.grade(player.server, player.getUUID());
+        List<com.fixercity.network.ShopPayload.Entry> list = new ArrayList<>();
+        for (Entry e : ENTRIES) {
+            if (e.category().equals(category)) {
+                list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), e.stack().get(), e.price(), e.minGrade(), g <= e.minGrade()));
+            }
+        }
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                new com.fixercity.network.ShopPayload(RequestUi.profileLine(player.server, player), category, list));
+    }
+
     public static boolean buy(ServerPlayer player, String id) {
         Entry e = find(id);
         if (e == null) {

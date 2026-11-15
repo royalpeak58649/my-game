@@ -38,6 +38,14 @@ public final class FixerEvents {
     private FixerEvents() {}
 
     // ---- 방어구 세트 효과 (1초마다 검사) ----
+    /** 10틱마다 내 흐트러짐 게이지를 HUD에 동기화 (회복 표시). */
+    @SubscribeEvent
+    public static void onPlayerTickHud(PlayerTickEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player && player.tickCount % 10 == 0) {
+            com.fixercity.combat.CombatHandler.syncOwnIfChanged(player);
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();

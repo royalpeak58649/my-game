@@ -196,7 +196,13 @@ public final class CombatHandler {
                 if (broke) {
                     onStaggered(level, target);
                 }
-                sendFeedback(attacker, target, kind, hpResist, data.current(now, max), max, broke);
+                sendFeedback(attacker, target, kind, hpResist, broke);
+                if (target instanceof net.minecraft.server.level.ServerPlayer victim) {
+                    syncStagger(victim, victim);
+                }
+                if (attacker instanceof net.minecraft.server.level.ServerPlayer viewer && attacker != target) {
+                    syncStagger(viewer, target);
+                }
             }
         }
 
@@ -256,6 +262,9 @@ public final class CombatHandler {
         if (dataFor(target).damage(level.getGameTime(), max, amount)) {
             onStaggered(level, target);
         }
+        if (target instanceof net.minecraft.server.level.ServerPlayer victim) {
+            syncStagger(victim, victim);
+        }
     }
 
     public static boolean isStaggered(LivingEntity target) {
@@ -300,9 +309,36 @@ public final class CombatHandler {
         }
     }
 
-    /** 액션바에 내성/흐트러짐 게이지 표시. 공격한 플레이어와 맞은 플레이어 양쪽에. */
-    private static void sendFeedback(LivingEntity attacker, LivingEntity target, DamageKind kind, Resist resist,
-            float stagger, float max, boolean broke) {
+    /** 흐트러짐 게이지를 viewer의 HUD로 보낸다 (자기 자신 또는 공격 대상). */
+    public static void syncStagger(net.minecraft.server.level.ServerPlayer viewer, LivingEntity entity) {
+        long now = entity.level().getGameTime();
+        float max = staggerMax(entity);
+        CombatData data = dataFor(entity);
+        float current = data.current(now, max);
+        boolean staggered = data.isStaggered(now);
+        if (viewer == entity) {
+            data.lastSentStagger = current;
+            data.lastSentMax = max;
+            data.lastSentStaggered = staggered;
+        }
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(viewer,
+                new com.fixercity.network.StaggerSyncPayload(entity.getId(), current, max, staggered));
+    }
+
+    /** 플레이어 자신의 게이지가 바뀌었으면 (회복 등) HUD로 보낸다. FixerEvents에서 10틱마다 호출. */
+    public static void syncOwnIfChanged(net.minecraft.server.level.ServerPlayer player) {
+        long now = player.level().getGameTime();
+        float max = staggerMax(player);
+        CombatData data = dataFor(player);
+        float current = data.current(now, max);
+        boolean staggered = data.isStaggered(now);
+        if (Math.abs(current - data.lastSentStagger) >= 0.5F || max != data.lastSentMax || staggered != data.lastSentStaggered) {
+            syncStagger(player, player);
+        }
+    }
+
+    /** 액션바: 공격한 플레이어에게 피해 유형과 상대 내성 (게이지는 HUD). */
+    private static void sendFeedback(LivingEntity attacker, LivingEntity target, DamageKind kind, Resist resist, boolean broke) {
         if (attacker instanceof Player player && player != target) {
             MutableComponent msg = Component.empty()
                     .append(Component.translatable(kind.translationKey()).withStyle(kind.color()))
@@ -311,23 +347,8 @@ public final class CombatHandler {
                     .append(Component.literal("  "));
             if (broke) {
                 msg.append(Component.translatable("message.fixercity.staggered").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-            } else {
-                msg.append(Component.translatable("message.fixercity.stagger_label").withStyle(ChatFormatting.GRAY))
-                        .append(Component.literal(" ")).append(gauge(stagger, max));
             }
             player.displayClientMessage(msg, true);
         }
-        if (target instanceof Player victim && !broke) {
-            victim.displayClientMessage(Component.translatable("message.fixercity.stagger_label").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(" ")).append(gauge(stagger, max))
-                    .append(Component.literal(String.format(" %d/%d", Math.round(stagger), Math.round(max)))
-                            .withStyle(ChatFormatting.GRAY)), true);
-        }
-    }
-
-    private static Component gauge(float value, float max) {
-        int filled = Math.round(10 * Math.max(0, value) / Math.max(1, max));
-        return Component.literal("▮".repeat(filled)).withStyle(ChatFormatting.YELLOW)
-                .append(Component.literal("▯".repeat(10 - filled)).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

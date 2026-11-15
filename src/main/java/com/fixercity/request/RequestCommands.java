@@ -35,6 +35,19 @@ public final class RequestCommands {
                 .then(Commands.literal("accept").then(Commands.argument("id", IntegerArgumentType.integer(1))
                         .executes(ctx -> RequestManager.accept(ctx.getSource().getPlayerOrException(),
                                 IntegerArgumentType.getInteger(ctx, "id")) ? 1 : 0)))
+                .then(Commands.literal("gui").executes(ctx -> {
+                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+                    if (!RequestManager.nearBoard(player)) {
+                        player.sendSystemMessage(Component.translatable("message.fixercity.need_board").withStyle(ChatFormatting.RED));
+                        return 0;
+                    }
+                    RequestUi.sendBoard(player);
+                    return 1;
+                }))
+                .then(Commands.literal("board").executes(ctx -> {
+                    RequestUi.showBoard(ctx.getSource().getPlayerOrException());
+                    return 1;
+                }))
                 .then(Commands.literal("abandon").executes(ctx -> {
                     RequestManager.abandon(ctx.getSource().getPlayerOrException());
                     return 1;
@@ -54,6 +67,20 @@ public final class RequestCommands {
                     Shop.showCategories(ctx.getSource().getPlayerOrException());
                     return 1;
                 })
+                .then(Commands.literal("gui").then(Commands.argument("category", StringArgumentType.word())
+                        .executes(ctx -> {
+                            ServerPlayer player = ctx.getSource().getPlayerOrException();
+                            String c = StringArgumentType.getString(ctx, "category");
+                            if (!Shop.CATEGORIES.contains(c)) {
+                                return 0;
+                            }
+                            if (!RequestManager.nearBoard(player)) {
+                                player.sendSystemMessage(Component.translatable("message.fixercity.need_board").withStyle(ChatFormatting.RED));
+                                return 0;
+                            }
+                            Shop.sendShop(player, c);
+                            return 1;
+                        })))
                 .then(Commands.literal("buy").then(Commands.argument("item", StringArgumentType.word())
                         .executes(ctx -> Shop.buy(ctx.getSource().getPlayerOrException(),
                                 StringArgumentType.getString(ctx, "item")) ? 1 : 0)))

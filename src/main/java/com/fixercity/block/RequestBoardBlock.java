@@ -25,7 +25,7 @@ public class RequestBoardBlock extends Block {
             RequestManager.recordBoardVisit(serverPlayer, pos);
             RequestManager.refillPool(serverPlayer, pos);
             RequestManager.reportIfDone(serverPlayer);
-            RequestUi.showBoard(serverPlayer);
+            RequestUi.sendBoard(serverPlayer);
             level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.BLOCKS, 1.0F, 1.0F);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());

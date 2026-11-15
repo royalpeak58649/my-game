@@ -31,6 +31,11 @@ public final class ClientSetup {
     }
 
     @SubscribeEvent
+    public static void registerGuiLayers(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) {
+        event.registerAboveAll(FixerCity.id("stagger_hud"), new StaggerHud());
+    }
+
+    @SubscribeEvent
     public static void addLayers(EntityRenderersEvent.AddLayers event) {
         for (PlayerSkin.Model skin : event.getSkins()) {
             if (event.getSkin(skin) instanceof PlayerRenderer renderer) {
