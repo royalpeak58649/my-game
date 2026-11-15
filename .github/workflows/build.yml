@@ -26,12 +26,12 @@ jobs:
         run: |
           chmod +x ./gradlew
           set -o pipefail
-          ./gradlew build --no-daemon 2>&1 | tee build.log
+          ./gradlew build --no-daemon -Pmod_version=0.1.${{ github.run_number }} 2>&1 | tee build.log
 
       - name: Server smoke test (load mod, registries, recipes)
         run: |
           mkdir -p run && echo "eula=true" > run/eula.txt
-          ./gradlew runServer --no-daemon > server.log 2>&1 &
+          ./gradlew runServer --no-daemon -Pmod_version=0.1.${{ github.run_number }} > server.log 2>&1 &
           for i in $(seq 1 120); do
             grep -qE 'fixercity smoke: (all|some)' server.log && break
             grep -qE 'Crash report|Failed to start' server.log && break
@@ -53,10 +53,11 @@ jobs:
           tag_name: fixercity-build-${{ github.run_number }}
           name: Fixer City build ${{ github.run_number }}
           target_commitish: ${{ github.sha }}
-          prerelease: true
+          prerelease: false
+          make_latest: true
           body: |
-            자동 빌드 (${{ github.sha }})
-            `fixercity-*.jar` 파일을 마인크래프트 `mods` 폴더에 넣으세요. NeoForge 1.21.1 필요.
+            자동 빌드 #${{ github.run_number }} (${{ github.sha }})
+            `fixercity-0.1.${{ github.run_number }}.jar` 를 마인크래프트 `mods` 폴더에 넣으세요 (예전 fixercity jar는 지우기). NeoForge 1.21.1 필요.
           files: build/libs/fixercity-*.jar
 
       - name: Report build failure as issue
