@@ -72,7 +72,7 @@ public final class RequestUi {
         int g = Grades.gradeFor(p.rep);
         int next = Grades.nextThreshold(g);
         return Component.translatable("ui.fixercity.profile",
-                Component.literal(g + "급").withStyle(gradeColor(g), ChatFormatting.BOLD),
+                Grades.label(g).withStyle(gradeColor(g), ChatFormatting.BOLD),
                 p.rep, next < 0 ? "-" : String.valueOf(next), String.format("%,d", p.ahn)).withStyle(ChatFormatting.GRAY);
     }
 

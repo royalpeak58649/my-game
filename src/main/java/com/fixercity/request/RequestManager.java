@@ -87,12 +87,13 @@ public final class RequestManager {
         ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (after != before && player != null) {
             if (after < before) {
-                server.getPlayerList().broadcastSystemMessage(Component.translatable("message.fixercity.promoted",
-                        player.getDisplayName(), after).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+                String key = after == Grades.COLOR ? "message.fixercity.promoted_color" : "message.fixercity.promoted";
+                server.getPlayerList().broadcastSystemMessage(Component.translatable(key,
+                        player.getDisplayName(), Grades.label(after)).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
                 player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 1.0F, 1.0F);
             } else {
-                player.sendSystemMessage(Component.translatable("message.fixercity.demoted", after).withStyle(ChatFormatting.RED));
+                player.sendSystemMessage(Component.translatable("message.fixercity.demoted", Grades.label(after)).withStyle(ChatFormatting.RED));
             }
             player.refreshDisplayName();
             player.refreshTabListName();
@@ -177,6 +178,15 @@ public final class RequestManager {
                 player.getBoundingBox().inflate(TEAM_RADIUS), p -> p != player && !p.isSpectator())) {
             if (data.activeFor(other.getUUID()) == null) {
                 r.members.add(other.getUUID());
+            }
+        }
+        // 같은 사무소원은 어디에 있든 (접속 중이면) 함께 참여
+        Office office = data.officeOf(player.getUUID());
+        if (office != null) {
+            for (UUID m : office.members) {
+                if (!r.members.contains(m) && server.getPlayerList().getPlayer(m) != null && data.activeFor(m) == null) {
+                    r.members.add(m);
+                }
             }
         }
         r.state = Request.State.ACTIVE;
@@ -399,18 +409,27 @@ public final class RequestManager {
     @SubscribeEvent
     public static void onNameFormat(PlayerEvent.NameFormat event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            int g = grade(player.server, player.getUUID());
-            event.setDisplayname(Component.literal("[" + g + "급] ").withStyle(ChatFormatting.GRAY).append(event.getDisplayname()));
+            event.setDisplayname(gradeTag(player).append(event.getDisplayname()));
         }
     }
 
     @SubscribeEvent
     public static void onTabListNameFormat(PlayerEvent.TabListNameFormat event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            int g = grade(player.server, player.getUUID());
-            event.setDisplayName(Component.literal("[" + g + "급] ").withStyle(ChatFormatting.GRAY)
-                    .append(player.getName().copy().withStyle(ChatFormatting.WHITE)));
+            net.minecraft.network.chat.MutableComponent name = gradeTag(player);
+            Office office = data(player.server).officeOf(player.getUUID());
+            if (office != null) {
+                name.append(Component.literal("[" + office.name + "] ").withStyle(ChatFormatting.DARK_AQUA));
+            }
+            event.setDisplayName(name.append(player.getName().copy().withStyle(ChatFormatting.WHITE)));
         }
+    }
+
+    /** "[7급] " 또는 금색 "[특색] " 접두사. */
+    public static net.minecraft.network.chat.MutableComponent gradeTag(ServerPlayer player) {
+        int g = grade(player.server, player.getUUID());
+        return Component.literal("[").append(Grades.label(g)).append("] ")
+                .withStyle(g == Grades.COLOR ? ChatFormatting.GOLD : ChatFormatting.GRAY);
     }
 
     @SubscribeEvent

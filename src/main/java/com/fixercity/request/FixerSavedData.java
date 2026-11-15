@@ -31,6 +31,7 @@ public class FixerSavedData extends SavedData {
 
     private final Map<UUID, Profile> profiles = new HashMap<>();
     public final List<Request> requests = new ArrayList<>();
+    public final List<Office> offices = new ArrayList<>();
     public int nextId = 1;
     public long lastFill;
 
@@ -44,6 +45,24 @@ public class FixerSavedData extends SavedData {
             setDirty();
             return new Profile();
         });
+    }
+
+    public Office officeOf(UUID uuid) {
+        for (Office o : offices) {
+            if (o.members.contains(uuid)) {
+                return o;
+            }
+        }
+        return null;
+    }
+
+    public Office officeNamed(String name) {
+        for (Office o : offices) {
+            if (o.name.equalsIgnoreCase(name)) {
+                return o;
+            }
+        }
+        return null;
     }
 
     public Request find(int id) {
@@ -94,6 +113,11 @@ public class FixerSavedData extends SavedData {
             list.add(r.save());
         }
         tag.put("requests", list);
+        ListTag officeList = new ListTag();
+        for (Office o : offices) {
+            officeList.add(o.save());
+        }
+        tag.put("offices", officeList);
         tag.putInt("nextId", nextId);
         tag.putLong("lastFill", lastFill);
         return tag;
@@ -118,6 +142,9 @@ public class FixerSavedData extends SavedData {
         }
         for (Tag t : tag.getList("requests", Tag.TAG_COMPOUND)) {
             data.requests.add(Request.load((CompoundTag) t));
+        }
+        for (Tag t : tag.getList("offices", Tag.TAG_COMPOUND)) {
+            data.offices.add(Office.load((CompoundTag) t));
         }
         data.nextId = Math.max(1, tag.getInt("nextId"));
         data.lastFill = tag.getLong("lastFill");

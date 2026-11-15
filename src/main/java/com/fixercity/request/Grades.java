@@ -1,14 +1,25 @@
 package com.fixercity.request;
 
-/** 해결사 등급 (9급 -> 1급)과 승급에 필요한 평판. */
+/**
+ * 해결사 등급 (9급 -> 1급)과 승급에 필요한 평판.
+ * 1급 위에는 <b>특색</b>(등급 값 0)이 있다: 도시 최고의 해결사에게 붙는 칭호.
+ */
 public final class Grades {
-    /** index = 등급. REQUIRED[8] = 8급에 필요한 평판. */
-    private static final int[] REQUIRED = {0, 16000, 10000, 6000, 3000, 1500, 700, 300, 100, 0};
+    public static final int COLOR = 0;
+    /** index = 등급. REQUIRED[8] = 8급에 필요한 평판, REQUIRED[0] = 특색. */
+    private static final int[] REQUIRED = {25000, 16000, 10000, 6000, 3000, 1500, 700, 300, 100, 0};
 
     private Grades() {}
 
+    /** "7급" 또는 "특색". */
+    public static net.minecraft.network.chat.MutableComponent label(int grade) {
+        return grade <= COLOR
+                ? net.minecraft.network.chat.Component.translatable("grade.fixercity.color")
+                : net.minecraft.network.chat.Component.translatable("grade.fixercity.grade", grade);
+    }
+
     public static int gradeFor(int rep) {
-        for (int g = 1; g <= 9; g++) {
+        for (int g = COLOR; g <= 9; g++) {
             if (rep >= REQUIRED[g]) {
                 return g;
             }
@@ -18,7 +29,7 @@ public final class Grades {
 
     /** 다음 등급에 필요한 평판. 1급이면 -1. */
     public static int nextThreshold(int grade) {
-        return grade <= 1 ? -1 : REQUIRED[grade - 1];
+        return grade <= COLOR ? -1 : REQUIRED[grade - 1];
     }
 
     /** 의뢰 보수 (안). */
