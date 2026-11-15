@@ -187,8 +187,13 @@ public final class FixerEvents {
 
     /** 키트 보관함에 든 책장 한 장: "page:<책장 id>". */
     public static final String PAGE_PREFIX = "page:";
+    /** 상점에서 산 키트: "buy:<키트 id>". 희귀 보너스 없음. */
+    public static final String BOUGHT_PREFIX = "buy:";
 
     private static net.minecraft.network.chat.MutableComponent storedName(String id) {
+        if (id.startsWith(BOUGHT_PREFIX)) {
+            return Component.translatable("kit.fixercity." + id.substring(BOUGHT_PREFIX.length()));
+        }
         if (id.startsWith(PAGE_PREFIX)) {
             return Component.translatable("ui.fixercity.stored_page",
                     Component.translatable("key_page.fixercity." + id.substring(PAGE_PREFIX.length())));
@@ -197,6 +202,9 @@ public final class FixerEvents {
     }
 
     private static net.minecraft.network.chat.MutableComponent storedDesc(String id) {
+        if (id.startsWith(BOUGHT_PREFIX)) {
+            return Component.translatable("kit.fixercity." + id.substring(BOUGHT_PREFIX.length()) + ".desc");
+        }
         if (id.startsWith(PAGE_PREFIX)) {
             return Component.translatable("ui.fixercity.stored_page_desc");
         }
@@ -236,7 +244,7 @@ public final class FixerEvents {
                             ChatFormatting.GREEN, storedDesc(id)))
                     .append(" ")
                     .append(storedName(id).withStyle(isRareKit(id) ? ChatFormatting.LIGHT_PURPLE
-                            : id.startsWith(PAGE_PREFIX) ? ChatFormatting.AQUA : ChatFormatting.WHITE))
+                            : id.startsWith(PAGE_PREFIX) || id.startsWith(BOUGHT_PREFIX) ? ChatFormatting.AQUA : ChatFormatting.WHITE))
                     .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
                     .append(storedDesc(id).withStyle(ChatFormatting.GRAY))
                     .append(rareBonus(id)));
@@ -253,6 +261,18 @@ public final class FixerEvents {
         }
         String id = profile.storedKits.remove(index - 1);
         data.setDirty();
+        if (id.startsWith(BOUGHT_PREFIX)) {
+            FixerKit kit = FixerKit.byId(id.substring(BOUGHT_PREFIX.length()));
+            if (kit == null) {
+                return 0;
+            }
+            equipKit(player, kit, true);
+            player.sendSystemMessage(Component.translatable("message.fixercity.kit_opened",
+                    storedName(id).withStyle(ChatFormatting.GOLD), profile.storedKits.size()).withStyle(ChatFormatting.GREEN));
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC.value(), net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+            return 1;
+        }
         if (id.startsWith(PAGE_PREFIX)) {
             com.fixercity.keypage.KeyPage page = com.fixercity.keypage.KeyPages.byId(id.substring(PAGE_PREFIX.length()));
             if (page != null) {
@@ -395,7 +415,11 @@ public final class FixerEvents {
 
     /** 키트 지급: 갑옷은 빈 칸에 입히고, 책장·장신구는 비어 있으면 바로 장착, 나머지는 인벤토리로. */
     public static void equipKit(ServerPlayer player, FixerKit kit) {
-        for (ItemStack stack : kit.createContents(player.registryAccess())) {
+        equipKit(player, kit, false);
+    }
+
+    public static void equipKit(ServerPlayer player, FixerKit kit, boolean purchased) {
+        for (ItemStack stack : kit.createContents(player.registryAccess(), purchased)) {
             if (stack.getItem() instanceof KeyPageItem pageItem && KeyPageHelper.getPage(player) == null) {
                 KeyPageHelper.equip(player, pageItem.page());
                 continue;

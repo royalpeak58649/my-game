@@ -1,5 +1,7 @@
 package com.fixercity.request;
 
+import com.fixercity.kit.FixerKit;
+
 import com.fixercity.accessory.Accessory;
 import com.fixercity.keypage.KeyPages;
 import com.fixercity.registry.ModItems;
@@ -68,6 +70,11 @@ public final class Shop {
         add("wedge_spear", "weapons", () -> new ItemStack(ModItems.WEDGE_SPEAR.get()), 1800, 5);
         add("workshop_halberd", "weapons", () -> new ItemStack(ModItems.WORKSHOP_HALBERD.get()), 1800, 5);
         add("jeong_twin_blades", "weapons", () -> new ItemStack(ModItems.JEONG_TWIN_BLADES.get()), 1800, 5);
+        // 초급 무기 (9급부터)
+        add("rusty_pipe", "weapons", () -> new ItemStack(ModItems.RUSTY_PIPE.get()), 40, 9);
+        add("fixer_dagger", "weapons", () -> new ItemStack(ModItems.FIXER_DAGGER.get()), 100, 9);
+        add("fixer_longsword", "weapons", () -> new ItemStack(ModItems.FIXER_LONGSWORD.get()), 150, 9);
+        add("fixer_mace", "weapons", () -> new ItemStack(ModItems.FIXER_MACE.get()), 150, 9);
         add("revolver", "weapons", () -> new ItemStack(ModItems.FIXER_REVOLVER.get()), 300, 9);
         add("zwei_greatsword", "weapons", () -> new ItemStack(ModItems.ZWEI_GREATSWORD.get()), 1200, 6);
         add("shi_blade", "weapons", () -> new ItemStack(ModItems.SHI_BLADE.get()), 3000, 4);
@@ -148,7 +155,7 @@ public final class Shop {
             if (!e.category().equals(category)) {
                 continue;
             }
-            ItemStack stack = e.stack().get();
+            ItemStack stack = displayStack(e);
             boolean allowed = g <= e.minGrade();
             MutableComponent line = Component.literal(" ");
             if (allowed) {
@@ -167,13 +174,34 @@ public final class Shop {
         }
     }
 
+    /** 책장 탭은 그 조직의 키트를 판다. 아이콘은 책장, 이름은 키트. */
+    private static FixerKit kitFor(ItemStack stack) {
+        return stack.getItem() instanceof com.fixercity.item.KeyPageItem pageItem ? FixerKit.forPage(pageItem.page().id()) : null;
+    }
+
+    private static ItemStack displayStack(Entry e) {
+        ItemStack stack = e.stack().get();
+        if (e.category().equals("pages")) {
+            FixerKit kit = kitFor(stack);
+            if (kit != null) {
+                stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME,
+                        Component.translatable("ui.fixercity.shop_kit", Component.translatable("kit.fixercity." + kit.id()))
+                                .withStyle(s -> s.withItalic(false).withColor(ChatFormatting.GOLD)));
+                stack.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(
+                        List.of(Component.translatable("kit.fixercity." + kit.id() + ".desc")
+                                .withStyle(s -> s.withItalic(false).withColor(ChatFormatting.GRAY)))));
+            }
+        }
+        return stack;
+    }
+
     /** GUI 화면용 상점 데이터. */
     public static void sendShop(ServerPlayer player, String category) {
         int g = RequestManager.grade(player.server, player.getUUID());
         List<com.fixercity.network.ShopPayload.Entry> list = new ArrayList<>();
         for (Entry e : ENTRIES) {
             if (e.category().equals(category)) {
-                list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), e.stack().get(), price(player, e), e.minGrade(), g <= e.minGrade()));
+                list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), displayStack(e), price(player, e), e.minGrade(), g <= e.minGrade()));
             }
         }
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
@@ -205,11 +233,13 @@ public final class Shop {
         data.setDirty();
         ItemStack stack = e.stack().get();
         Component name = stack.getHoverName();
-        // 책장은 키트 보관함으로 (죽어도 안 잃고, 여러 장 모아 둘 수 있다)
-        if (stack.getItem() instanceof com.fixercity.item.KeyPageItem pageItem) {
-            p.storedKits.add(com.fixercity.event.FixerEvents.PAGE_PREFIX + pageItem.page().id());
+        // 책장 탭: 그 조직의 키트를 키트 보관함에 넣는다 (죽어도 안 잃고, 여러 개 모아 둘 수 있다)
+        FixerKit kit = e.category().equals("pages") ? kitFor(stack) : null;
+        if (kit != null) {
+            p.storedKits.add(com.fixercity.event.FixerEvents.BOUGHT_PREFIX + kit.id());
             data.setDirty();
-            player.sendSystemMessage(Component.translatable("message.fixercity.bought_page", name, String.format("%,d", price),
+            player.sendSystemMessage(Component.translatable("message.fixercity.bought_page",
+                    Component.translatable("kit.fixercity." + kit.id()), String.format("%,d", price),
                     String.format("%,d", p.ahn)).withStyle(ChatFormatting.GREEN));
             return true;
         }

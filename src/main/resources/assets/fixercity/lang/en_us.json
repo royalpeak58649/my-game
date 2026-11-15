@@ -231,7 +231,7 @@
   "message.fixercity.received_from": "Received %2$s Ahn from %1$s",
   "message.fixercity.board_refreshed": "Request board refreshed",
   "shop.fixercity.category.supplies": "Supplies",
-  "shop.fixercity.category.pages": "Key Pages",
+  "shop.fixercity.category.pages": "Kits",
   "shop.fixercity.category.weapons": "Weapons",
   "shop.fixercity.category.accessories": "Accessories",
   "bounty.fixercity.rat": "Rat Gang Boss",
@@ -610,5 +610,16 @@
   "kit.fixercity.rare_bonus_2": "[Very rare: weapon +5, Protection IV armor, +3 first aid, +2 painkillers, smoke bomb, accessory]",
   "ui.fixercity.stored_page": "[Key Page] %s",
   "ui.fixercity.stored_page_desc": "Equips right away (your current page comes back as an item)",
-  "message.fixercity.bought_page": "Bought %s (-%s Ahn, %s Ahn left). Stored in your kit storage → /kit"
+  "message.fixercity.bought_page": "Bought the %s kit (-%s Ahn, %s Ahn left). Stored in your kit storage → /kit",
+  "ui.fixercity.shop_kit": "[Kit] %s",
+  "kit.fixercity.zwei": "Zwei Association",
+  "kit.fixercity.zwei.desc": "Zwei greatsword, Zwei armband, Armored coat, Zwei key page",
+  "kit.fixercity.kurokumo": "Kurokumo Clan",
+  "kit.fixercity.kurokumo.desc": "Kurokumo blade, Red knot, Fixer suit, Kurokumo key page",
+  "kit.fixercity.seven": "Seven Association",
+  "kit.fixercity.seven.desc": "Seven cane sword, Seven monocle, Fixer suit, Seven key page",
+  "kit.fixercity.liu": "Liu Association",
+  "kit.fixercity.liu.desc": "Liu gauntlet, Flame talisman, Fixer suit, Liu key page",
+  "kit.fixercity.thumb": "The Thumb",
+  "kit.fixercity.thumb.desc": "Thumb rifle, 16 bullets, Thumb bandolier, Fixer suit, Thumb key page"
 }

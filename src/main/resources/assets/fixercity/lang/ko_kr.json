@@ -231,7 +231,7 @@
   "message.fixercity.received_from": "%s 에게서 %s안을 받았다",
   "message.fixercity.board_refreshed": "게시판의 의뢰를 새로 고쳤다",
   "shop.fixercity.category.supplies": "소모품",
-  "shop.fixercity.category.pages": "책장",
+  "shop.fixercity.category.pages": "키트",
   "shop.fixercity.category.weapons": "무기",
   "shop.fixercity.category.accessories": "장신구",
   "bounty.fixercity.rat": "쥐 패거리 두목",
@@ -610,5 +610,16 @@
   "kit.fixercity.rare_bonus_2": "[최희귀: 무기 +5강, 보호 IV 갑옷, 응급 키트 +3, 진통제 +2, 연막탄, 장신구]",
   "ui.fixercity.stored_page": "[책장] %s",
   "ui.fixercity.stored_page_desc": "꺼내면 바로 장착 (끼고 있던 책장은 아이템으로 돌려받음)",
-  "message.fixercity.bought_page": "%s 구매 (-%s안, 잔고 %s안). 키트 보관함에 넣었다 → /kit"
+  "message.fixercity.bought_page": "%s 키트 구매 (-%s안, 잔고 %s안). 키트 보관함에 넣었다 → /kit",
+  "ui.fixercity.shop_kit": "[키트] %s",
+  "kit.fixercity.zwei": "츠바이 협회",
+  "kit.fixercity.zwei.desc": "츠바이 대검, 츠바이 완장, 방탄 코트, 츠바이 책장",
+  "kit.fixercity.kurokumo": "쿠로쿠모 회",
+  "kit.fixercity.kurokumo.desc": "쿠로쿠모 장도, 붉은 매듭, 해결사 정장, 쿠로쿠모 책장",
+  "kit.fixercity.seven": "세븐 협회",
+  "kit.fixercity.seven.desc": "세븐 지팡이검, 세븐 단안경, 해결사 정장, 세븐 책장",
+  "kit.fixercity.liu": "리우 협회",
+  "kit.fixercity.liu.desc": "리우 권갑, 화염 부적, 해결사 정장, 리우 책장",
+  "kit.fixercity.thumb": "엄지",
+  "kit.fixercity.thumb.desc": "엄지 제식 소총, 탄환 16, 엄지 탄띠, 해결사 정장, 엄지 책장"
 }

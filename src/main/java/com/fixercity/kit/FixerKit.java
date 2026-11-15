@@ -69,7 +69,19 @@ public enum FixerKit {
     INDEX("index", 1, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.INDEX, null,
             new ItemStack(ModItems.INDEX_BLADE.get()), new ItemStack(ModItems.PAINKILLER.get()))),
     PHILIP("philip", 1, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.PHILIP, null,
-            new ItemStack(ModItems.PHILIP_SWORD.get())));
+            new ItemStack(ModItems.PHILIP_SWORD.get()))),
+
+    // ---- 상점 전용 키트 (가중치 0: 처음 지급에는 안 나온다) ----
+    ZWEI("zwei", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.ZWEI, Accessory.ZWEI_ARMBAND,
+            new ItemStack(ModItems.ZWEI_GREATSWORD.get()))),
+    KUROKUMO("kurokumo", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.KUROKUMO, Accessory.KUROKUMO_KNOT,
+            new ItemStack(ModItems.KUROKUMO_BLADE.get()))),
+    SEVEN("seven", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.SEVEN, Accessory.SEVEN_MONOCLE,
+            new ItemStack(ModItems.SEVEN_CANE.get()))),
+    LIU("liu", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.LIU, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_GAUNTLET.get()))),
+    THUMB("thumb", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.THUMB, Accessory.THUMB_BANDOLIER,
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16)));
 
     private final String id;
     private final int weight;
@@ -98,7 +110,7 @@ public enum FixerKit {
     public static final int RARE_WEIGHT = 2;
 
     public boolean isRare() {
-        return weight <= RARE_WEIGHT;
+        return weight > 0 && weight <= RARE_WEIGHT;
     }
 
     private static FixerKit pick(net.minecraft.util.RandomSource random, int maxWeight) {
@@ -123,7 +135,25 @@ public enum FixerKit {
 
     /** 희귀 키트 등급: 0 = 일반, 1 = 도시 질병, 2 = 도시 악몽. */
     public int rareTier() {
-        return weight <= 1 ? 2 : weight <= RARE_WEIGHT ? 1 : 0;
+        return weight == 0 ? 0 : weight <= 1 ? 2 : weight <= RARE_WEIGHT ? 1 : 0;
+    }
+
+    public static FixerKit byId(String id) {
+        for (FixerKit k : values()) {
+            if (k.id.equals(id)) {
+                return k;
+            }
+        }
+        return null;
+    }
+
+    /** 이 책장에 맞는 키트 (상점에서 책장 대신 판다). */
+    public static FixerKit forPage(String pageId) {
+        return switch (pageId) {
+            case "rat" -> BACKSTREET;
+            case "office_fixer" -> SWORDSMAN;
+            default -> byId(pageId);
+        };
     }
 
     /** 희귀 키트 무기 강화 단계 (도시 질병 +3, 도시 악몽 +5). */
@@ -133,7 +163,16 @@ public enum FixerKit {
 
     /** 매번 새 ItemStack 목록을 만든다. 책장/장신구 아이템도 포함 (지급 시 자동 장착). */
     public List<ItemStack> createContents(net.minecraft.core.HolderLookup.Provider registries) {
+        return createContents(registries, false);
+    }
+
+    /** purchased: 상점에서 산 키트. 희귀 보너스와 도시 통행증이 없다. */
+    public List<ItemStack> createContents(net.minecraft.core.HolderLookup.Provider registries, boolean purchased) {
         List<ItemStack> list = contents.get();
+        if (purchased) {
+            list.removeIf(s -> s.is(ModItems.CITY_PASS.get()));
+            return list;
+        }
         int tier = rareTier();
         if (tier == 0) {
             return list;
