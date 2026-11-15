@@ -169,7 +169,7 @@ public final class FixerEvents {
     }
 
     // ---- 키트 보관함 ----
-    public static final int STARTING_KITS = 5;
+    public static final int STARTING_KITS = 10;
 
     /** /kit : 보관함의 키트 목록과 [꺼내기] 버튼. */
     public static void showKitStorage(ServerPlayer player) {

@@ -243,7 +243,7 @@
   "bounty.fixercity.thumb": "Thumb Soldato",
   "bounty.fixercity.kurokumo": "Kurokumo Enforcer",
   "kit.fixercity.backstreet": "Backstreet Born",
-  "message.fixercity.welcome": "Welcome to the City, Grade 9 Fixer. Five kits have been placed in your storage.",
+  "message.fixercity.welcome": "Welcome to the City, Grade 9 Fixer. Ten kits have been placed in your storage.",
   "message.fixercity.welcome_hint": "Use one now and save the rest for after you die. Death costs all your gear, but money, reputation and stored kits remain. (/kit, /fixer)",
   "message.fixercity.lost_everything": "You lost all of your gear.",
   "message.fixercity.kit_opened": "Opened the [%s] kit. %s kits left",

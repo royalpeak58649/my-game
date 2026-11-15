@@ -243,7 +243,7 @@
   "bounty.fixercity.thumb": "엄지 솔다토",
   "bounty.fixercity.kurokumo": "쿠로쿠모 회 행동대장",
   "kit.fixercity.backstreet": "뒷골목 출신",
-  "message.fixercity.welcome": "도시에 온 걸 환영한다, 9급 해결사. 키트 5개가 보관함에 들어왔다.",
+  "message.fixercity.welcome": "도시에 온 걸 환영한다, 9급 해결사. 키트 10개가 보관함에 들어왔다.",
   "message.fixercity.welcome_hint": "하나를 꺼내 쓰고, 나머지는 죽은 뒤를 위해 아껴 둬라. 죽으면 장비는 전부 잃지만 돈·평판·보관함은 남는다. (/kit, /fixer)",
   "message.fixercity.lost_everything": "모든 장비를 잃었다.",
   "message.fixercity.kit_opened": "[%s] 키트를 꺼냈다. 남은 키트 %s개",
