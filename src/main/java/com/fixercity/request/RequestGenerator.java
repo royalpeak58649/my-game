@@ -13,13 +13,14 @@ public final class RequestGenerator {
 
     private static List<Entry> exterminationTargets(int grade) {
         return switch (grade) {
+            // 도시에서 실제로 나오는 몹만 (좀비, 스켈레톤, 거미, 크리퍼, 허스크, 마녀, 엔더맨, 약탈자, 변명자)
             case 9 -> List.of(e("zombie", 8), e("spider", 6), e("skeleton", 5));
-            case 8 -> List.of(e("zombie", 14), e("skeleton", 10), e("spider", 10), e("drowned", 6));
-            case 7 -> List.of(e("creeper", 6), e("witch", 2), e("husk", 8), e("stray", 8));
-            case 6 -> List.of(e("pillager", 6), e("enderman", 3), e("phantom", 4), e("slime", 8));
-            case 5 -> List.of(e("blaze", 6), e("vindicator", 4), e("magma_cube", 8), e("ghast", 2));
-            case 4 -> List.of(e("wither_skeleton", 5), e("piglin_brute", 2), e("guardian", 6), e("evoker", 1));
-            case 3 -> List.of(e("ravager", 2), e("evoker", 2), e("piglin_brute", 4), e("wither_skeleton", 10));
+            case 8 -> List.of(e("zombie", 14), e("skeleton", 10), e("spider", 10), e("husk", 6));
+            case 7 -> List.of(e("creeper", 6), e("witch", 2), e("husk", 10), e("skeleton", 16));
+            case 6 -> List.of(e("pillager", 5), e("enderman", 3), e("creeper", 10), e("witch", 3));
+            case 5 -> List.of(e("pillager", 8), e("vindicator", 3), e("enderman", 5), e("witch", 5));
+            case 4 -> List.of(e("vindicator", 5), e("enderman", 8), e("pillager", 12), e("witch", 8));
+            case 3 -> List.of(e("vindicator", 8), e("enderman", 12), e("pillager", 18));
             default -> List.of(e("elder_guardian", 1), e("ravager", 4), e("evoker", 4));
         };
     }
@@ -71,9 +72,10 @@ public final class RequestGenerator {
         r.dimension = dimension;
 
         // 의뢰 종류 가중치 (조사는 7~9급만)
-        int[] weights = {22, 18, 12, r.grade >= 7 ? 8 : 0, 10, 12, 10, 8};
-        RequestType[] types = {RequestType.EXTERMINATION, RequestType.BOUNTY, RequestType.DELIVERY, RequestType.INVESTIGATION,
-                RequestType.ESCORT, RequestType.DEFENSE, RequestType.RETRIEVAL, RequestType.PATROL};
+        // 납품(야생 재료 모으기)은 도시에서 하기 어려워 빠졌다. 대신 소탕·운송.
+        int[] weights = {20, 18, r.grade >= 7 ? 8 : 0, 10, 12, 10, 8, 10, 10};
+        RequestType[] types = {RequestType.EXTERMINATION, RequestType.BOUNTY, RequestType.INVESTIGATION,
+                RequestType.ESCORT, RequestType.DEFENSE, RequestType.RETRIEVAL, RequestType.PATROL, RequestType.RAID, RequestType.TRANSPORT};
         int total = 0;
         for (int w : weights) {
             total += w;
@@ -122,6 +124,14 @@ public final class RequestGenerator {
             case RETRIEVAL -> {
                 r.count = 1;
                 r.pos = offset(random, origin, 150, 350);
+            }
+            case RAID -> {
+                r.count = 4 + (9 - r.grade);
+                r.pos = offset(random, origin, 100, 250);
+            }
+            case TRANSPORT -> {
+                r.count = 1;
+                r.pos = offset(random, origin, 150, 320);
             }
             case PATROL -> {
                 r.count = 3;

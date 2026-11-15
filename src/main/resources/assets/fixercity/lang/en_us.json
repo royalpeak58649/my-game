@@ -595,5 +595,15 @@
   "bounty.fixercity.philip": "Child of the Flames",
   "message.fixercity.blinked": "Blink!",
   "message.fixercity.charge": "Charge %s / 10",
-  "message.fixercity.prescript": "Prescript: attack with %s"
+  "message.fixercity.prescript": "Prescript: attack with %s",
+  "request.fixercity.raid": "Raid: %s backstreet thugs",
+  "request.fixercity.transport": "Transport: deliver a briefcase",
+  "objective.fixercity.raid": "Go to the hideout (X %s, Z %s) and take out every thug",
+  "objective.fixercity.raid_started": "Thugs left: %s / %s",
+  "objective.fixercity.transport": "Carry the briefcase you got to (X %s, Z %s). Watch for an ambush",
+  "raid.fixercity.thug": "Backstreet Thug",
+  "transport.fixercity.ambusher": "Ambusher",
+  "message.fixercity.raid_start": "Hideout found! %s thugs attack.",
+  "message.fixercity.raid_left": "%s thugs left",
+  "message.fixercity.transport_ambush": "Ambush! Protect the briefcase."
 }

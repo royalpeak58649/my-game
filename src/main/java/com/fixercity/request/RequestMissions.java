@@ -51,6 +51,13 @@ public final class RequestMissions {
 
     /** 수락 직후: 호위 의뢰는 게시판 옆에 의뢰인을 세운다. */
     public static void onAccept(ServerPlayer player, Request r, BlockPos board) {
+        if (r.type == RequestType.TRANSPORT) {
+            ItemStack bag = new ItemStack(ModItems.BRIEFCASE.get());
+            if (!player.getInventory().add(bag)) {
+                player.drop(bag, false);
+            }
+            return;
+        }
         if (r.type != RequestType.ESCORT) {
             return;
         }
@@ -76,6 +83,8 @@ public final class RequestMissions {
             case DEFENSE -> tickDefense(server, r);
             case RETRIEVAL -> tickRetrieval(server, r);
             case PATROL -> tickPatrol(server, r);
+            case RAID -> tickRaid(server, r);
+            case TRANSPORT -> tickTransport(server, r);
             default -> {
             }
         }
@@ -268,6 +277,80 @@ public final class RequestMissions {
         }
     }
 
+    // ---- 소탕 ----
+    private static void tickRaid(MinecraftServer server, Request r) {
+        ServerLevel level = levelOf(server, r);
+        if (level == null || r.started) {
+            return;
+        }
+        ServerPlayer p = nearestMember(server, r, level, r.pos.getX() + 0.5, r.pos.getZ() + 0.5, 24);
+        if (p == null) {
+            return;
+        }
+        r.started = true;
+        RandomSource random = level.random;
+        int spawned = 0;
+        for (int i = 0; i < r.count; i++) {
+            double a = random.nextDouble() * Math.PI * 2;
+            int d = 3 + random.nextInt(7);
+            Mob mob = spawnTagged(level, waveMob(random, r.grade), r.pos.getX() + (int) (Math.cos(a) * d),
+                    r.pos.getZ() + (int) (Math.sin(a) * d), DEFENSE_TAG, r.id, r.grade);
+            if (mob != null) {
+                mob.setCustomName(Component.translatable("raid.fixercity.thug").withStyle(ChatFormatting.RED));
+                mob.setTarget(p);
+                spawned++;
+            }
+        }
+        r.remaining = spawned;
+        RequestManager.data(server).setDirty();
+        RequestManager.notifyMembers(server, r, Component.translatable("message.fixercity.raid_start", spawned)
+                .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        if (spawned == 0) {
+            RequestManager.complete(server, r);
+        }
+    }
+
+    // ---- 운송 ----
+    private static void tickTransport(MinecraftServer server, Request r) {
+        ServerLevel level = levelOf(server, r);
+        if (level == null) {
+            return;
+        }
+        // 목적지 근처(40칸)에 처음 오면 매복
+        if (!r.started) {
+            ServerPlayer near = nearestMember(server, r, level, r.pos.getX() + 0.5, r.pos.getZ() + 0.5, 40);
+            if (near != null) {
+                r.started = true;
+                RandomSource random = level.random;
+                int n = 2 + (9 - r.grade) / 2;
+                for (int i = 0; i < n; i++) {
+                    double a = random.nextDouble() * Math.PI * 2;
+                    Mob mob = spawnTagged(level, waveMob(random, r.grade), (int) near.getX() + (int) (Math.cos(a) * 10),
+                            (int) near.getZ() + (int) (Math.sin(a) * 10), DEFENSE_TAG, -1, r.grade);
+                    if (mob != null) {
+                        mob.setCustomName(Component.translatable("transport.fixercity.ambusher").withStyle(ChatFormatting.RED));
+                        mob.setTarget(near);
+                    }
+                }
+                RequestManager.data(server).setDirty();
+                RequestManager.notifyMembers(server, r, Component.translatable("message.fixercity.transport_ambush")
+                        .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+            }
+        }
+        ServerPlayer arrived = nearestMember(server, r, level, r.pos.getX() + 0.5, r.pos.getZ() + 0.5, 5);
+        if (arrived != null) {
+            for (UUID m : r.members) {
+                ServerPlayer p = server.getPlayerList().getPlayer(m);
+                if (p != null && p.level() == level && p.distanceToSqr(r.pos.getX() + 0.5, p.getY(), r.pos.getZ() + 0.5) <= 25
+                        && takeBriefcase(p)) {
+                    RequestManager.complete(server, r);
+                    return;
+                }
+            }
+            arrived.displayClientMessage(Component.translatable("message.fixercity.no_briefcase").withStyle(ChatFormatting.RED), true);
+        }
+    }
+
     // ---- 죽음 ----
     /** 방어 습격대나 호위 의뢰인의 죽음이면 처리하고 true. */
     public static boolean onDeath(MinecraftServer server, FixerSavedData data, LivingEntity dead) {
@@ -282,6 +365,17 @@ public final class RequestMissions {
         }
         if (dead.getPersistentData().contains(DEFENSE_TAG)) {
             Request r = data.find(dead.getPersistentData().getInt(DEFENSE_TAG));
+            if (r != null && r.state == Request.State.ACTIVE && r.type == RequestType.RAID) {
+                r.remaining = Math.max(0, r.remaining - 1);
+                data.setDirty();
+                if (r.remaining == 0) {
+                    RequestManager.complete(server, r);
+                } else {
+                    RequestManager.notifyMembers(server, r, Component.translatable("message.fixercity.raid_left", r.remaining)
+                            .withStyle(ChatFormatting.YELLOW));
+                }
+                return true;
+            }
             if (r != null && r.state == Request.State.ACTIVE && r.type == RequestType.DEFENSE) {
                 r.remaining = Math.max(0, r.remaining - 1);
                 data.setDirty();

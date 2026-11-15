@@ -39,6 +39,8 @@ public final class RequestUi {
             case DEFENSE -> Component.translatable("request.fixercity.defense");
             case RETRIEVAL -> Component.translatable("request.fixercity.retrieval");
             case PATROL -> Component.translatable("request.fixercity.patrol");
+            case RAID -> Component.translatable("request.fixercity.raid", r.count);
+            case TRANSPORT -> Component.translatable("request.fixercity.transport");
         };
         return grade.append(body.withStyle(ChatFormatting.WHITE));
     }
@@ -59,6 +61,10 @@ public final class RequestUi {
             case RETRIEVAL -> r.started
                     ? Component.translatable("objective.fixercity.retrieval_found", r.pos.getX(), r.pos.getY(), r.pos.getZ())
                     : Component.translatable("objective.fixercity.retrieval", r.pos.getX(), r.pos.getZ());
+            case RAID -> r.started
+                    ? Component.translatable("objective.fixercity.raid_started", r.remaining, r.count)
+                    : Component.translatable("objective.fixercity.raid", r.pos.getX(), r.pos.getZ());
+            case TRANSPORT -> Component.translatable("objective.fixercity.transport", r.pos.getX(), r.pos.getZ());
             case PATROL -> {
                 BlockPos next = r.waypoints.isEmpty() ? r.pos : r.waypoints.get(Math.min(r.progress, r.waypoints.size() - 1));
                 yield Component.translatable("objective.fixercity.patrol", r.progress, r.count, next.getX(), next.getZ());

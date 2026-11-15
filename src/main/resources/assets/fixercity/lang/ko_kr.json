@@ -595,5 +595,15 @@
   "bounty.fixercity.philip": "불길에 삼켜진 아이",
   "message.fixercity.blinked": "공간 도약!",
   "message.fixercity.charge": "충전 %s / 10",
-  "message.fixercity.prescript": "지령: %s 으로 공격하라"
+  "message.fixercity.prescript": "지령: %s 으로 공격하라",
+  "request.fixercity.raid": "소탕: 뒷골목 조직원 %s명",
+  "request.fixercity.transport": "운송: 서류 가방 배달",
+  "objective.fixercity.raid": "아지트 (X %s, Z %s)로 가서 조직원을 전부 처치",
+  "objective.fixercity.raid_started": "남은 조직원 %s / %s명",
+  "objective.fixercity.transport": "받은 서류 가방을 (X %s, Z %s)까지 가져가기. 도중에 매복 주의",
+  "raid.fixercity.thug": "뒷골목 조직원",
+  "transport.fixercity.ambusher": "매복조",
+  "message.fixercity.raid_start": "아지트 발견! 조직원 %s명이 덤벼든다.",
+  "message.fixercity.raid_left": "남은 조직원 %s명",
+  "message.fixercity.transport_ambush": "매복이다! 서류 가방을 지켜라."
 }

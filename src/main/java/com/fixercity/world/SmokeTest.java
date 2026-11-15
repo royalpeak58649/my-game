@@ -54,7 +54,9 @@ public final class SmokeTest {
                 Request.load(r.save());
             }
         }
-        if (seen.size() != RequestType.values().length) {
+        if (seen.contains(RequestType.DELIVERY)) {
+            LOGGER.error("fixercity smoke: retired delivery requests still generated");
+        } else if (seen.size() != RequestType.values().length - 1) {
             LOGGER.error("fixercity smoke: some request types never generated: {}", seen);
         } else {
             LOGGER.info("fixercity smoke: all {} request types generated", seen.size());
