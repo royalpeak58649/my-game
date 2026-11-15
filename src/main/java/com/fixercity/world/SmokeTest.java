@@ -43,6 +43,7 @@ public final class SmokeTest {
         }
 
         com.fixercity.reception.ReceptionManager.smoke(event.getServer(), LOGGER);
+        com.fixercity.event.CityEvents.smoke(event.getServer(), LOGGER);
 
         EnumSet<RequestType> seen = EnumSet.noneOf(RequestType.class);
         RandomSource random = RandomSource.create(1);

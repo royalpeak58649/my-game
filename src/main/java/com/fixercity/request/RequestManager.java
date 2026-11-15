@@ -270,14 +270,16 @@ public final class RequestManager {
 
     private static void payout(MinecraftServer server, Request r) {
         FixerSavedData data = data(server);
-        int share = Math.max(1, r.rewardAhn / Math.max(1, r.members.size()));
+        int totalAhn = Math.round(r.rewardAhn * com.fixercity.event.CityEvents.ahnMultiplier(server, r.type));
+        int rep = Math.round(r.rewardRep * com.fixercity.event.CityEvents.repMultiplier(server));
+        int share = Math.max(1, totalAhn / Math.max(1, r.members.size()));
         for (UUID m : r.members) {
             addAhn(server, m, share);
-            addRep(server, m, r.rewardRep);
+            addRep(server, m, rep);
         }
         data.requests.remove(r);
         data.setDirty();
-        notifyMembers(server, r, Component.translatable("message.fixercity.paid", RequestUi.title(r), share, r.rewardRep)
+        notifyMembers(server, r, Component.translatable("message.fixercity.paid", RequestUi.title(r), share, rep)
                 .withStyle(ChatFormatting.GOLD));
         for (UUID m : r.members) {
             ServerPlayer p = server.getPlayerList().getPlayer(m);

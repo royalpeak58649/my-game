@@ -179,6 +179,11 @@ public final class CombatHandler {
                 }
             }
             attackerData.lastDealt = now;
+            // 무기 강화: 단계당 피해 +8%
+            int refine = com.fixercity.progress.Progression.refineLevel(player.getMainHandItem());
+            if (refine > 0) {
+                amount *= 1.0F + refine * com.fixercity.progress.Progression.REFINE_DAMAGE_PER_LEVEL;
+            }
             CombatData hitData = target.getData(ModAttachments.COMBAT);
             hitData.lastHitBy = player.getUUID();
             hitData.lastHitByTime = now;
@@ -336,7 +341,8 @@ public final class CombatHandler {
     public static float staggerMax(LivingEntity entity) {
         if (entity instanceof Player) {
             KeyPage page = KeyPageHelper.getPage(entity);
-            float bonus = AccessoryHelper.value(entity, Accessory.ZWEI_ARMBAND, 4.0F, 8.0F, 0.0F);
+            float bonus = AccessoryHelper.value(entity, Accessory.ZWEI_ARMBAND, 4.0F, 8.0F, 0.0F)
+                    + com.fixercity.progress.Progression.staggerBonus(entity);
             return (page != null ? page.stagger() : KeyPages.BARE_STAGGER) + bonus;
         }
         return Math.max(10.0F, entity.getMaxHealth() * 0.8F);

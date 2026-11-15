@@ -379,6 +379,8 @@ public class CityBlockFeature extends Feature<NoneFeatureConfiguration> {
             set(10, G + 1, ROAD + 1, ModBlocks.REQUEST_BOARD.get().defaultBlockState());
             set(9, G + 1, ROAD + 1, Blocks.LANTERN.defaultBlockState());
             set(11, G + 1, ROAD + 1, Blocks.LANTERN.defaultBlockState());
+            // 공방 작업대
+            set(13, G + 1, ROAD + 1, ModBlocks.WORKSHOP.get().defaultBlockState());
             // 벤치
             set(6, G + 1, 10, Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.WEST));
             set(14, G + 1, 10, Blocks.OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.EAST));

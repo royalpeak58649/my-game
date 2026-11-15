@@ -27,7 +27,15 @@ public class FixerSavedData extends SavedData {
         public boolean kitGiven;
         /** 키트 보관함: 아직 꺼내지 않은 키트 id 목록. 월드에 저장되므로 죽어도 남는다. */
         public final List<String> storedKits = new ArrayList<>();
+        /** 신체 개조 단계 (개조 id -> 1~5). 몸에 새긴 것이라 죽어도 남는다. */
+        public final Map<String, Integer> augments = new HashMap<>();
     }
+
+    /** 진행 중인 도시 이벤트 ("" = 없음)와 끝나는 시각, 다음 이벤트 시각, 이벤트 위치. */
+    public String eventId = "";
+    public long eventEnd;
+    public long nextEventAt;
+    public long eventPos;
 
     private final Map<UUID, Profile> profiles = new HashMap<>();
     public final List<Request> requests = new ArrayList<>();
@@ -105,6 +113,9 @@ public class FixerSavedData extends SavedData {
             ListTag kits = new ListTag();
             profile.storedKits.forEach(k -> kits.add(net.minecraft.nbt.StringTag.valueOf(k)));
             t.put("kits", kits);
+            CompoundTag aug = new CompoundTag();
+            profile.augments.forEach(aug::putInt);
+            t.put("augments", aug);
             p.put(uuid.toString(), t);
         });
         tag.put("profiles", p);
@@ -120,6 +131,10 @@ public class FixerSavedData extends SavedData {
         tag.put("offices", officeList);
         tag.putInt("nextId", nextId);
         tag.putLong("lastFill", lastFill);
+        tag.putString("eventId", eventId);
+        tag.putLong("eventEnd", eventEnd);
+        tag.putLong("nextEventAt", nextEventAt);
+        tag.putLong("eventPos", eventPos);
         return tag;
     }
 
@@ -135,6 +150,10 @@ public class FixerSavedData extends SavedData {
                 for (Tag k : p.getCompound(key).getList("kits", Tag.TAG_STRING)) {
                     profile.storedKits.add(k.getAsString());
                 }
+                CompoundTag aug = p.getCompound(key).getCompound("augments");
+                for (String a : aug.getAllKeys()) {
+                    profile.augments.put(a, aug.getInt(a));
+                }
                 data.profiles.put(UUID.fromString(key), profile);
             } catch (IllegalArgumentException ignored) {
                 // 잘못된 UUID는 무시
@@ -148,6 +167,10 @@ public class FixerSavedData extends SavedData {
         }
         data.nextId = Math.max(1, tag.getInt("nextId"));
         data.lastFill = tag.getLong("lastFill");
+        data.eventId = tag.getString("eventId");
+        data.eventEnd = tag.getLong("eventEnd");
+        data.nextEventAt = tag.getLong("nextEventAt");
+        data.eventPos = tag.getLong("eventPos");
         return data;
     }
 }

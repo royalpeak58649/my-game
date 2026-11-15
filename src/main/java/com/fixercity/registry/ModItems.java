@@ -61,6 +61,8 @@ public final class ModItems {
     // ---- 블록 아이템 ----
     public static final DeferredItem<net.minecraft.world.item.BlockItem> REQUEST_BOARD =
             REGISTER.registerSimpleBlockItem("request_board", ModBlocks.REQUEST_BOARD);
+    public static final DeferredItem<net.minecraft.world.item.BlockItem> WORKSHOP =
+            REGISTER.registerSimpleBlockItem("workshop", ModBlocks.WORKSHOP);
 
     // ---- 무기 ----
     /** 장검: 공격력 8, 공속 1.4. 우클릭 = 돌진 베기. */

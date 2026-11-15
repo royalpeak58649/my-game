@@ -184,7 +184,7 @@ public final class RequestMissions {
     }
 
     /** 의뢰 등급만큼 강화된 몹을 지면에 소환하고 태그를 붙인다. */
-    static Mob spawnTagged(ServerLevel level, EntityType<? extends Mob> type, int x, int z, String tag, int id, int grade) {
+    public static Mob spawnTagged(ServerLevel level, EntityType<? extends Mob> type, int x, int z, String tag, int id, int grade) {
         Mob mob = type.create(level);
         if (mob == null) {
             return null;

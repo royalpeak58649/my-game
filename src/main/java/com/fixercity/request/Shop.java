@@ -105,6 +105,11 @@ public final class Shop {
         return list;
     }
 
+    /** 공방 특가 이벤트 중이면 30% 할인. */
+    public static int price(ServerPlayer player, Entry e) {
+        return Math.round(e.price() * com.fixercity.event.CityEvents.priceMultiplier(player.server));
+    }
+
     public static Entry find(String id) {
         for (Entry e : ENTRIES) {
             if (e.id().equals(id)) {
@@ -138,7 +143,7 @@ public final class Shop {
             MutableComponent line = Component.literal(" ");
             if (allowed) {
                 line.append(RequestUi.button("ui.fixercity.buy", "/shop buy " + e.id(), ChatFormatting.GREEN,
-                        Component.translatable("ui.fixercity.buy_hover", stack.getHoverName(), String.format("%,d", e.price()))));
+                        Component.translatable("ui.fixercity.buy_hover", stack.getHoverName(), String.format("%,d", price(player, e)))));
             } else {
                 line.append(Component.literal("[ - ]").withStyle(ChatFormatting.DARK_GRAY));
             }
@@ -146,7 +151,7 @@ public final class Shop {
             if (stack.getCount() > 1) {
                 line.append(Component.literal(" x" + stack.getCount()).withStyle(ChatFormatting.GRAY));
             }
-            line.append(Component.literal(" · " + String.format("%,d", e.price()) + "안").withStyle(ChatFormatting.YELLOW));
+            line.append(Component.literal(" · " + String.format("%,d", price(player, e)) + "안").withStyle(ChatFormatting.YELLOW));
             line.append(Component.literal(" (" + e.minGrade() + "급~)").withStyle(allowed ? ChatFormatting.DARK_GRAY : ChatFormatting.RED));
             player.sendSystemMessage(line);
         }
@@ -158,7 +163,7 @@ public final class Shop {
         List<com.fixercity.network.ShopPayload.Entry> list = new ArrayList<>();
         for (Entry e : ENTRIES) {
             if (e.category().equals(category)) {
-                list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), e.stack().get(), e.price(), e.minGrade(), g <= e.minGrade()));
+                list.add(new com.fixercity.network.ShopPayload.Entry(e.id(), e.stack().get(), price(player, e), e.minGrade(), g <= e.minGrade()));
             }
         }
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
@@ -180,19 +185,20 @@ public final class Shop {
             player.sendSystemMessage(Component.translatable("message.fixercity.grade_too_low", e.minGrade()).withStyle(ChatFormatting.RED));
             return false;
         }
-        if (p.ahn < e.price()) {
-            player.sendSystemMessage(Component.translatable("message.fixercity.not_enough_ahn", String.format("%,d", e.price()))
+        int price = price(player, e);
+        if (p.ahn < price) {
+            player.sendSystemMessage(Component.translatable("message.fixercity.not_enough_ahn", String.format("%,d", price))
                     .withStyle(ChatFormatting.RED));
             return false;
         }
-        p.ahn -= e.price();
+        p.ahn -= price;
         data.setDirty();
         ItemStack stack = e.stack().get();
         Component name = stack.getHoverName();
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }
-        player.sendSystemMessage(Component.translatable("message.fixercity.bought", name, String.format("%,d", e.price()),
+        player.sendSystemMessage(Component.translatable("message.fixercity.bought", name, String.format("%,d", price),
                 String.format("%,d", p.ahn)).withStyle(ChatFormatting.GREEN));
         return true;
     }

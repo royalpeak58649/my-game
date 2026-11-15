@@ -45,6 +45,7 @@ jobs:
           if grep -qi fixercity smoke.txt; then echo "mod errors found"; exit 1; fi
           grep -q "fixercity smoke: city generation OK" server.log || { echo "city smoke check did not pass"; exit 1; }
           grep -q "fixercity smoke: library receptions OK" server.log || { echo "library smoke check did not pass"; exit 1; }
+          grep -q "fixercity smoke: city events OK" server.log || { echo "events smoke check did not pass"; exit 1; }
 
       - name: Publish jar as release
         uses: softprops/action-gh-release@v2

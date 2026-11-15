@@ -17,6 +17,7 @@ public final class ModCreativeTabs {
                     .icon(() -> ModItems.FIXER_LONGSWORD.get().getDefaultInstance())
                     .displayItems((params, output) -> {
                         output.accept(ModItems.REQUEST_BOARD.get());
+                        output.accept(ModItems.WORKSHOP.get());
                         output.accept(ModItems.CITY_PASS.get());
                         for (com.fixercity.reception.LibraryFloor floor : com.fixercity.reception.LibraryFloor.values()) {
                             output.accept(ModItems.invitation(floor));

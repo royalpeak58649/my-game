@@ -14,6 +14,8 @@ public final class ModNetwork {
                 (payload, context) -> com.fixercity.client.ClientPayloads.stagger(payload));
         registrar.playToClient(BoardPayload.TYPE, BoardPayload.STREAM_CODEC,
                 (payload, context) -> com.fixercity.client.ClientPayloads.board(payload));
+        registrar.playToClient(WorkshopPayload.TYPE, WorkshopPayload.STREAM_CODEC,
+                (payload, context) -> com.fixercity.client.ClientPayloads.workshop(payload));
         registrar.playToClient(ShopPayload.TYPE, ShopPayload.STREAM_CODEC,
                 (payload, context) -> com.fixercity.client.ClientPayloads.shop(payload));
     }

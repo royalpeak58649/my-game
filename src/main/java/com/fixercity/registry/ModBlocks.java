@@ -14,5 +14,8 @@ public final class ModBlocks {
     public static final DeferredBlock<RequestBoardBlock> REQUEST_BOARD = REGISTER.register("request_board",
             () -> new RequestBoardBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F).sound(SoundType.WOOD)));
 
+    public static final DeferredBlock<com.fixercity.block.WorkshopBlock> WORKSHOP = REGISTER.register("workshop",
+            () -> new com.fixercity.block.WorkshopBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.5F).sound(SoundType.ANVIL)));
+
     private ModBlocks() {}
 }

@@ -46,6 +46,15 @@ public final class ClientPayloads {
         }
     }
 
+    public static void workshop(com.fixercity.network.WorkshopPayload p) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.screen instanceof WorkshopScreen screen) {
+            screen.update(p);
+        } else {
+            mc.setScreen(new WorkshopScreen(p));
+        }
+    }
+
     public static void shop(ShopPayload p) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.screen instanceof ShopScreen screen) {
