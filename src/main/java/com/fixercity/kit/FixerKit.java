@@ -81,7 +81,73 @@ public enum FixerKit {
     LIU("liu", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.LIU, Accessory.LIU_TALISMAN,
             new ItemStack(ModItems.LIU_GAUNTLET.get()))),
     THUMB("thumb", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.THUMB, Accessory.THUMB_BANDOLIER,
-            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16)));
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16))),
+
+    // ---- 도시의 별 · 하나 협회 (상점 전용, 인물별) ----
+    DONG_HWAN("dong_hwan", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.DONG_HWAN, null,
+            new ItemStack(ModItems.KUROKUMO_BLADE.get()))),
+    LOWELL("lowell", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.LOWELL, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_GAUNTLET.get()))),
+    CECIL("cecil", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.CECIL, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_GAUNTLET.get()))),
+    MEI("mei", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.MEI, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_GAUNTLET.get()))),
+    KALO("kalo", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.KALO, Accessory.THUMB_BANDOLIER,
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16))),
+    BORIS("boris", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.BORIS, Accessory.THUMB_BANDOLIER,
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16))),
+    KATRIEL("katriel", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.KATRIEL, Accessory.THUMB_BANDOLIER,
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16))),
+    DENIS("denis", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.DENIS, Accessory.THUMB_BANDOLIER,
+            new ItemStack(ModItems.THUMB_RIFLE.get()), new ItemStack(ModItems.FIXER_BULLET.get(), 16))),
+    NEMO("nemo", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.NEMO, null,
+            new ItemStack(ModItems.CANE_OFFICE_CANE.get()))),
+    MARTINA("martina", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.MARTINA, null,
+            new ItemStack(ModItems.CANE_OFFICE_CANE.get()))),
+    BADA("bada", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.BADA, null,
+            new ItemStack(ModItems.CANE_OFFICE_CANE.get()))),
+    ESTHER("esther", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.ESTHER, null,
+            new ItemStack(ModItems.PROXY_BLADE.get()))),
+    HUBERT("hubert", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.HUBERT, null,
+            new ItemStack(ModItems.PROXY_BLADE.get()))),
+    GLORIA("gloria", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.GLORIA, null,
+            new ItemStack(ModItems.PROXY_BLADE.get()))),
+    CHUN("chun", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.CHUN, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_FIRE_SWORD.get()))),
+    XIAO("xiao", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.XIAO, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_FIRE_SWORD.get()))),
+    MIRIS("miris", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.MIRIS, Accessory.LIU_TALISMAN,
+            new ItemStack(ModItems.LIU_FIRE_SWORD.get()))),
+    RED_MIST("red_mist", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.RED_MIST, null,
+            new ItemStack(ModItems.RED_MIST_BLADE.get()))),
+    NIKOLAI("nikolai", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.NIKOLAI, null,
+            new ItemStack(ModItems.R_CORP_RIFLE.get()))),
+    MYO("myo", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.MYO, null,
+            new ItemStack(ModItems.R_CORP_RIFLE.get()))),
+    MAXIM("maxim", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.MAXIM, null,
+            new ItemStack(ModItems.RHINO_GAUNTLET.get()))),
+    RUDOLPH("rudolph", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.RUDOLPH, null,
+            new ItemStack(ModItems.REINDEER_STAFF.get()))),
+    PURPLE_TEAR("purple_tear", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.PURPLE_TEAR, null,
+            new ItemStack(ModItems.PURPLE_TEAR_SWORD.get()))),
+    YAN("yan", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.YAN, null,
+            new ItemStack(ModItems.YAN_BLADE.get()))),
+    ALLEN("allen", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.ALLEN, null,
+            new ItemStack(ModItems.ALLEN_STILETTO.get()))),
+    IRINA("irina", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.IRINA, null,
+            new ItemStack(ModItems.FIXER_LONGSWORD.get()))),
+    YAE("yae", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.YAE, null,
+            new ItemStack(ModItems.SMOKE_GEAR_BLADE.get()))),
+    BAYARD("bayard", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.BAYARD, null,
+            new ItemStack(ModItems.WORKSHOP_HALBERD.get()))),
+    HANA_FIXER("hana_fixer", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.HANA_FIXER, null,
+            new ItemStack(ModItems.HANA_SWORD.get()))),
+    MIRINAE("mirinae", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.MIRINAE, null,
+            new ItemStack(ModItems.HANA_SWORD.get()))),
+    HAROLD("harold", 0, () -> build(ModItems.FIXER_SUIT_SET, KeyPages.HAROLD, null,
+            new ItemStack(ModItems.HANA_SWORD.get()))),
+    OLIVIER("olivier", 0, () -> build(ModItems.HEAVY_COAT_SET, KeyPages.OLIVIER, null,
+            new ItemStack(ModItems.HANA_SWORD.get())));
 
     private final String id;
     private final int weight;
@@ -136,6 +202,12 @@ public enum FixerKit {
     /** 희귀 키트 등급: 0 = 일반, 1 = 도시 질병, 2 = 도시 악몽. */
     public int rareTier() {
         return weight == 0 ? 0 : weight <= 1 ? 2 : weight <= RARE_WEIGHT ? 1 : 0;
+    }
+
+    /** 키트의 주무기 (첫 아이템). */
+    public net.minecraft.world.item.Item weaponItem() {
+        List<ItemStack> list = contents.get();
+        return list.isEmpty() ? null : list.get(0).getItem();
     }
 
     public static FixerKit byId(String id) {

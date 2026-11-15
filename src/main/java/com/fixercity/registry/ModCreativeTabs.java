@@ -50,6 +50,18 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SMILING_MAW.get());
                         output.accept(ModItems.INDEX_BLADE.get());
                         output.accept(ModItems.PHILIP_SWORD.get());
+                        output.accept(ModItems.CANE_OFFICE_CANE.get());
+                        output.accept(ModItems.PROXY_BLADE.get());
+                        output.accept(ModItems.LIU_FIRE_SWORD.get());
+                        output.accept(ModItems.R_CORP_RIFLE.get());
+                        output.accept(ModItems.RHINO_GAUNTLET.get());
+                        output.accept(ModItems.REINDEER_STAFF.get());
+                        output.accept(ModItems.RED_MIST_BLADE.get());
+                        output.accept(ModItems.PURPLE_TEAR_SWORD.get());
+                        output.accept(ModItems.YAN_BLADE.get());
+                        output.accept(ModItems.ALLEN_STILETTO.get());
+                        output.accept(ModItems.SMOKE_GEAR_BLADE.get());
+                        output.accept(ModItems.HANA_SWORD.get());
                         ModItems.FIXER_SUIT_SET.forEach(i -> output.accept(i.get()));
                         ModItems.HEAVY_COAT_SET.forEach(i -> output.accept(i.get()));
                         output.accept(ModItems.BLANK_KEY_PAGE.get());

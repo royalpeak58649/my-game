@@ -150,6 +150,31 @@ public final class ModItems {
             skillWeapon("index_blade", 5, -2.4F, 140, "index", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.PROSELYTE_CUT, Rarity.EPIC);
     public static final DeferredItem<com.fixercity.item.SkillWeaponItem> PHILIP_SWORD =
             skillWeapon("philip_sword", 6, -2.6F, 240, "philip", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.CRYING_FLAME, Rarity.EPIC);
+    // ---- 도시의 별 · 하나 협회 ----
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> CANE_OFFICE_CANE =
+            skillWeapon("cane_office_cane", 6, -2.2F, 160, "nemo,martina,bada", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.CANE_DISCHARGE, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> PROXY_BLADE =
+            skillWeapon("proxy_blade", 6, -2.4F, 140, "esther,hubert,gloria", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.PROXY_UNLOCK, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> LIU_FIRE_SWORD =
+            skillWeapon("liu_fire_sword", 6, -2.2F, 160, "chun,xiao,miris", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.WILDFIRE_SLASH, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> R_CORP_RIFLE =
+            skillWeapon("r_corp_rifle", 5, -2.0F, 120, "myo,nikolai", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.RABBIT_VOLLEY, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> RHINO_GAUNTLET =
+            skillWeapon("rhino_gauntlet", 7, -2.6F, 180, "maxim", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.RHINO_RUSH, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> REINDEER_STAFF =
+            skillWeapon("reindeer_staff", 6, -2.4F, 160, "rudolph", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.ANTLER_PULSE, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> RED_MIST_BLADE =
+            skillWeapon("red_mist_blade", 8, -2.6F, 180, "red_mist", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.GREATER_SPLIT, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> PURPLE_TEAR_SWORD =
+            skillWeapon("purple_tear_sword", 7, -2.2F, 60, "purple_tear", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.STANCE_SHIFT, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> YAN_BLADE =
+            skillWeapon("yan_blade", 7, -2.4F, 200, "yan", com.fixercity.keypage.DamageKind.BLUNT, com.fixercity.item.SkillWeaponItem.Skill.MESSENGER_DECREE, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> ALLEN_STILETTO =
+            skillWeapon("allen_stiletto", 5, -1.6F, 100, "allen", com.fixercity.keypage.DamageKind.PIERCE, com.fixercity.item.SkillWeaponItem.Skill.CHINK_THRUST, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> SMOKE_GEAR_BLADE =
+            skillWeapon("smoke_gear_blade", 6, -2.4F, 160, "yae", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.SMOKE_BURST, Rarity.EPIC);
+    public static final DeferredItem<com.fixercity.item.SkillWeaponItem> HANA_SWORD =
+            skillWeapon("hana_sword", 7, -2.2F, 160, "hana_fixer,mirinae,harold,olivier", com.fixercity.keypage.DamageKind.SLASH, com.fixercity.item.SkillWeaponItem.Skill.TRIGRAM_CUT, Rarity.EPIC);
     public static final DeferredItem<com.fixercity.item.FullStopRifleItem> FULL_STOP_RIFLE = REGISTER.register("full_stop_rifle",
             () -> new com.fixercity.item.FullStopRifleItem(new Item.Properties().stacksTo(1).durability(300).rarity(Rarity.RARE)));
 

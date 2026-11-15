@@ -65,6 +65,7 @@ public final class CombatHandler {
         float base = event.getAmount();
         float amount = base;
         float staggerBonus = 1.0F;
+        float extraStagger = 0.0F;
         DamageKind kind = classify(source, attacker);
 
         // 행운의 동전: 물리 피해 회피
@@ -211,6 +212,11 @@ public final class CombatHandler {
                         }
                     }
                     default -> {
+                        // 도시의 별 · 하나 협회 인물 책장
+                        float[] r = StarPassives.onAttack(level, player, target, kind, page.passive());
+                        amount = amount * r[0] + r[2];
+                        staggerBonus *= r[1];
+                        extraStagger += r[3];
                     }
                 }
             }
@@ -265,6 +271,7 @@ public final class CombatHandler {
         }
 
         CombatData data = dataFor(target);
+        amount *= StarPassives.defendMultiplier(level, target, attacker, kind);
 
         // 츠바이 수호 태세: 물리 피해 감소 + 근접 공격자 반격 (넉백, 흐트러짐 피해)
         if (kind != null && data.isGuarding(now)) {
@@ -285,6 +292,8 @@ public final class CombatHandler {
                 hpResist = Resist.NORMAL;
             }
             Resist staggerResist = targetPage != null ? targetPage.staggerResist(kind) : MobResistances.of(target, kind);
+            hpResist = StarPassives.adjustResist(target, kind, hpResist);
+            staggerResist = StarPassives.adjustResist(target, kind, staggerResist);
             amount *= hpResist.multiplier();
             if (data.isStaggered(now)) {
                 amount *= STAGGERED_DAMAGE_MULTIPLIER;
@@ -294,7 +303,7 @@ public final class CombatHandler {
             if (target.invulnerableTime <= 10) {
                 float max = staggerMax(target);
                 float staggerDamage = base * staggerResist.multiplier() * staggerBonus
-                        * (kind == DamageKind.BLUNT ? BLUNT_STAGGER_BONUS : 1.0F);
+                        * (kind == DamageKind.BLUNT ? BLUNT_STAGGER_BONUS : 1.0F) + extraStagger;
                 boolean broke = data.damage(now, max, staggerDamage);
                 if (broke) {
                     onStaggered(level, target);
@@ -309,6 +318,11 @@ public final class CombatHandler {
             }
         }
 
+        amount = StarPassives.afterDamage(level, target, attacker, kind, amount, melee);
+        if (amount <= 0.0F) {
+            event.setCanceled(true);
+            return;
+        }
         event.setAmount(amount);
         // 웃는 얼굴들: 준 피해의 10% 회복
         if (kind != null && attacker != null && KeyPageHelper.hasPassive(attacker, com.fixercity.keypage.KeyPagePassive.DEVOUR)) {
@@ -332,6 +346,10 @@ public final class CombatHandler {
                 || source.is(DamageTypes.MOB_ATTACK_NO_AGGRO);
         if (!melee || attacker == null) {
             return null;
+        }
+        DamageKind stance = StarPassives.stanceKind(attacker);
+        if (stance != null) {
+            return stance;
         }
         Item weapon = attacker.getMainHandItem().getItem();
         if (weapon instanceof HasDamageKind kinded) {
@@ -415,6 +433,7 @@ public final class CombatHandler {
             player.displayClientMessage(Component.translatable("message.fixercity.you_staggered")
                     .withStyle(ChatFormatting.RED, ChatFormatting.BOLD), true);
         }
+        StarPassives.onStaggered(level, target);
     }
 
     /** 흐트러짐 게이지를 viewer의 HUD로 보낸다 (자기 자신 또는 공격 대상). */

@@ -44,7 +44,16 @@ public abstract class FixerWeaponItem extends SwordItem implements HasDamageKind
 
     public boolean isResonant(LivingEntity entity) {
         KeyPage page = KeyPageHelper.getPage(entity);
-        return page != null && page.id().equals(resonancePage);
+        if (page == null) {
+            return false;
+        }
+        // 여러 책장과 공명할 수 있다 ("a,b,c")
+        for (String id : resonancePage.split(",")) {
+            if (page.id().equals(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -59,7 +68,9 @@ public abstract class FixerWeaponItem extends SwordItem implements HasDamageKind
             if (result != AbilityResult.FAILED) {
                 if (result == AbilityResult.USED) {
                     float mul = (resonant ? RESONANCE_COOLDOWN : 1.0F)
-                            * (KeyPageHelper.hasPassive(player, com.fixercity.keypage.KeyPagePassive.WORKSHOP) ? 0.8F : 1.0F);
+                            * (KeyPageHelper.hasPassive(player, com.fixercity.keypage.KeyPagePassive.WORKSHOP) ? 0.8F : 1.0F)
+                            * (KeyPageHelper.hasPassive(player, com.fixercity.keypage.KeyPagePassive.GLORIA)
+                                    && player.getData(com.fixercity.registry.ModAttachments.COMBAT).emotion >= 2 ? 0.75F : 1.0F);
                     int cd = Math.round(cooldownTicks * mul);
                     player.getCooldowns().addCooldown(this, cd);
                 }
@@ -80,10 +91,15 @@ public abstract class FixerWeaponItem extends SwordItem implements HasDamageKind
         tooltip.add(Component.translatable(getDescriptionId() + ".ability").withStyle(ChatFormatting.GOLD));
         tooltip.add(Component.translatable("tooltip.fixercity.cooldown", String.format("%.1f", cooldownTicks / 20.0F))
                 .withStyle(ChatFormatting.DARK_GRAY));
-        KeyPage page = KeyPages.byId(resonancePage);
-        if (page != null) {
-            tooltip.add(Component.translatable("tooltip.fixercity.resonance_page",
-                    Component.translatable(page.translationKey())).withStyle(ChatFormatting.DARK_AQUA));
+        net.minecraft.network.chat.MutableComponent pages = null;
+        for (String id : resonancePage.split(",")) {
+            KeyPage p = KeyPages.byId(id);
+            if (p != null) {
+                pages = pages == null ? Component.translatable(p.translationKey()) : pages.append(", ").append(Component.translatable(p.translationKey()));
+            }
+        }
+        if (pages != null) {
+            tooltip.add(Component.translatable("tooltip.fixercity.resonance_page", pages).withStyle(ChatFormatting.DARK_AQUA));
             tooltip.add(Component.literal("  ").append(Component.translatable(getDescriptionId() + ".resonance"))
                     .withStyle(ChatFormatting.AQUA));
         }

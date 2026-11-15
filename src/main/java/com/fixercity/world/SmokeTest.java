@@ -61,5 +61,24 @@ public final class SmokeTest {
         } else {
             LOGGER.info("fixercity smoke: all {} request types generated", seen.size());
         }
+        // 키트가 모두 만들어지는지 (도시의 별 · 하나 협회 포함)
+        int kits = 0;
+        for (com.fixercity.kit.FixerKit kit : com.fixercity.kit.FixerKit.values()) {
+            try {
+                if (kit.createContents(event.getServer().registryAccess()).isEmpty()
+                        || kit.createContents(event.getServer().registryAccess(), true).isEmpty()) {
+                    LOGGER.error("fixercity smoke: kit {} is empty", kit.id());
+                }
+                kits++;
+            } catch (RuntimeException e) {
+                LOGGER.error("fixercity smoke: kit {} failed", kit.id(), e);
+            }
+        }
+        for (com.fixercity.keypage.KeyPage page : com.fixercity.keypage.KeyPages.ALL) {
+            if (com.fixercity.kit.FixerKit.forPage(page.id()) == null && page.grade() <= 2) {
+                LOGGER.error("fixercity smoke: no kit for key page {}", page.id());
+            }
+        }
+        LOGGER.info("fixercity smoke: {} kits and {} key pages OK", kits, com.fixercity.keypage.KeyPages.ALL.size());
     }
 }

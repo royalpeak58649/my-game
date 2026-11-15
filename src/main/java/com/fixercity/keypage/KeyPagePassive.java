@@ -47,7 +47,40 @@ public enum KeyPagePassive {
     /** 검지 수행자: 40초마다 지령(참격/관통/타격 중 하나)을 받는다. 지령대로 공격하면 피해 +30%. */
     PRESCRIPT("prescript"),
     /** 필립 (불완전): 공격 시 2초 점화, 체력 50% 아래면 피해 +25%. */
-    BURNING_EMOTION("burning_emotion");
+    BURNING_EMOTION("burning_emotion"),
+    // ---- 도시의 별 · 하나 협회 (인물별, StarPassives) ----
+    DONG_HWAN("dong_hwan"),
+    LOWELL("lowell"),
+    CECIL("cecil"),
+    MEI("mei"),
+    KALO("kalo"),
+    BORIS("boris"),
+    KATRIEL("katriel"),
+    DENIS("denis"),
+    NEMO("nemo"),
+    MARTINA("martina"),
+    BADA("bada"),
+    ESTHER("esther"),
+    HUBERT("hubert"),
+    GLORIA("gloria"),
+    CHUN("chun"),
+    XIAO("xiao"),
+    MIRIS("miris"),
+    RED_MIST("red_mist"),
+    NIKOLAI("nikolai"),
+    MYO("myo"),
+    MAXIM("maxim"),
+    RUDOLPH("rudolph"),
+    PURPLE_TEAR("purple_tear"),
+    YAN("yan"),
+    ALLEN("allen"),
+    IRINA("irina"),
+    YAE("yae"),
+    BAYARD("bayard"),
+    HANA_FIXER("hana_fixer"),
+    MIRINAE("mirinae"),
+    HAROLD("harold"),
+    OLIVIER("olivier");
 
     private final String id;
 

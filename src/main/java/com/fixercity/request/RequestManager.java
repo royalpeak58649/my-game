@@ -471,7 +471,7 @@ public final class RequestManager {
         String faction = r.target;
         EntityType<? extends Mob> type = switch (faction) {
             case "rat" -> EntityType.ZOMBIE;
-            case "thumb", "full_stop" -> EntityType.PILLAGER;
+            case "thumb", "full_stop", "kalo", "boris", "katriel", "denis", "myo", "nikolai" -> EntityType.PILLAGER;
             default -> EntityType.VINDICATOR;
         };
         Mob mob = type.create(level);
@@ -486,7 +486,7 @@ public final class RequestManager {
         mob.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), MobSpawnType.EVENT, null);
 
         Item weapon = factionWeapon(faction);
-        if (weapon != null && !"thumb".equals(faction) && !"full_stop".equals(faction)) {
+        if (weapon != null && type != EntityType.PILLAGER) {
             mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(weapon));
             mob.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         }
@@ -555,7 +555,11 @@ public final class RequestManager {
             case "smiling" -> ModItems.SMILING_MAW.get();
             case "index" -> ModItems.INDEX_BLADE.get();
             case "philip" -> ModItems.PHILIP_SWORD.get();
-            default -> null;
+            default -> {
+                // 도시의 별 · 하나 협회: 그 인물 키트의 무기
+                com.fixercity.kit.FixerKit kit = com.fixercity.kit.FixerKit.byId(faction);
+                yield kit == null ? null : kit.weaponItem();
+            }
         };
     }
 

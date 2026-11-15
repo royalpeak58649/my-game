@@ -66,9 +66,76 @@ public final class KeyPages {
     public static final KeyPage PHILIP = new KeyPage("philip", 4, 10, 30, 0.05F, 4,
             NORMAL, NORMAL, ENDURE, NORMAL, WEAK, ENDURE, KeyPagePassive.BURNING_EMOTION, false);
 
+    // ---- 도시의 별 · 하나 협회 (원작 책장 수치를 환산) ----
+    public static final KeyPage DONG_HWAN = new KeyPage("dong_hwan", 1, 15, 31, 0.05F, 7,
+            NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.DONG_HWAN, false);
+    public static final KeyPage LOWELL = new KeyPage("lowell", 2, 18, 35, 0.09F, 6,
+            NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.LOWELL, false);
+    public static final KeyPage CECIL = new KeyPage("cecil", 2, 16, 32, 0.05F, 6,
+            NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.CECIL, false);
+    public static final KeyPage MEI = new KeyPage("mei", 2, 16, 32, 0.05F, 6,
+            NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.MEI, false);
+    public static final KeyPage KALO = new KeyPage("kalo", 2, 18, 36, 0.09F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.KALO, true);
+    public static final KeyPage BORIS = new KeyPage("boris", 2, 16, 34, 0.05F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.BORIS, false);
+    public static final KeyPage KATRIEL = new KeyPage("katriel", 2, 16, 32, 0.05F, 6,
+            NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, NORMAL, KeyPagePassive.KATRIEL, false);
+    public static final KeyPage DENIS = new KeyPage("denis", 2, 16, 32, 0.05F, 6,
+            ENDURE, NORMAL, NORMAL, NORMAL, NORMAL, NORMAL, KeyPagePassive.DENIS, false);
+    public static final KeyPage NEMO = new KeyPage("nemo", 2, 18, 36, 0.12F, 6,
+            ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.NEMO, false);
+    public static final KeyPage MARTINA = new KeyPage("martina", 2, 15, 33, 0.05F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, KeyPagePassive.MARTINA, false);
+    public static final KeyPage BADA = new KeyPage("bada", 2, 16, 32, 0.05F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, KeyPagePassive.BADA, false);
+    public static final KeyPage ESTHER = new KeyPage("esther", 2, 20, 36, 0.09F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.ESTHER, false);
+    public static final KeyPage HUBERT = new KeyPage("hubert", 2, 20, 36, 0.12F, 6,
+            NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.HUBERT, false);
+    public static final KeyPage GLORIA = new KeyPage("gloria", 2, 20, 36, 0.09F, 6,
+            ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.GLORIA, false);
+    public static final KeyPage CHUN = new KeyPage("chun", 2, 18, 34, 0.09F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.CHUN, false);
+    public static final KeyPage XIAO = new KeyPage("xiao", 1, 20, 39, 0.09F, 7,
+            ENDURE, NORMAL, NORMAL, NORMAL, NORMAL, ENDURE, KeyPagePassive.XIAO, false);
+    public static final KeyPage MIRIS = new KeyPage("miris", 2, 18, 33, 0.09F, 6,
+            ENDURE, NORMAL, NORMAL, NORMAL, NORMAL, ENDURE, KeyPagePassive.MIRIS, false);
+    public static final KeyPage RED_MIST = new KeyPage("red_mist", 1, 22, 38, 0.09F, 8,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.RED_MIST, false);
+    public static final KeyPage NIKOLAI = new KeyPage("nikolai", 1, 20, 36, 0.09F, 7,
+            NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.NIKOLAI, true);
+    public static final KeyPage MYO = new KeyPage("myo", 2, 20, 36, 0.09F, 6,
+            ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.MYO, false);
+    public static final KeyPage MAXIM = new KeyPage("maxim", 2, 22, 35, 0.09F, 6,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.MAXIM, false);
+    public static final KeyPage RUDOLPH = new KeyPage("rudolph", 2, 20, 36, 0.09F, 6,
+            NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.RUDOLPH, false);
+    public static final KeyPage PURPLE_TEAR = new KeyPage("purple_tear", 1, 21, 36, 0.09F, 8,
+            ENDURE, NORMAL, NORMAL, NORMAL, NORMAL, ENDURE, KeyPagePassive.PURPLE_TEAR, false);
+    public static final KeyPage YAN = new KeyPage("yan", 1, 21, 37, 0.09F, 7,
+            NORMAL, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.YAN, false);
+    public static final KeyPage ALLEN = new KeyPage("allen", 1, 18, 33, 0.09F, 7,
+            NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.ALLEN, false);
+    public static final KeyPage IRINA = new KeyPage("irina", 1, 18, 39, 0.05F, 7,
+            ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, KeyPagePassive.IRINA, false);
+    public static final KeyPage YAE = new KeyPage("yae", 1, 18, 34, 0.05F, 7,
+            NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.YAE, false);
+    public static final KeyPage BAYARD = new KeyPage("bayard", 1, 18, 33, 0.05F, 7,
+            ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, KeyPagePassive.BAYARD, false);
+    public static final KeyPage HANA_FIXER = new KeyPage("hana_fixer", 2, 19, 34, 0.09F, 6,
+            NORMAL, ENDURE, NORMAL, NORMAL, NORMAL, ENDURE, KeyPagePassive.HANA_FIXER, false);
+    public static final KeyPage MIRINAE = new KeyPage("mirinae", 1, 21, 35, 0.09F, 7,
+            ENDURE, NORMAL, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.MIRINAE, false);
+    public static final KeyPage HAROLD = new KeyPage("harold", 1, 21, 35, 0.09F, 7,
+            NORMAL, NORMAL, ENDURE, ENDURE, NORMAL, NORMAL, KeyPagePassive.HAROLD, false);
+    public static final KeyPage OLIVIER = new KeyPage("olivier", 1, 22, 37, 0.09F, 7,
+            NORMAL, NORMAL, ENDURE, ENDURE, NORMAL, NORMAL, KeyPagePassive.OLIVIER, false);
+
     public static final List<KeyPage> ALL = List.of(RAT, OFFICE_FIXER, ZWEI, SHI, LIU, SEVEN, THUMB, KUROKUMO,
             YUN, HOOK, STREETLIGHT, MOLAR, FULL_STOP, DAWN, GAZE, WEDGE, WORKSHOP, JEONG,
-            W_CORP, WARP, SMILING, INDEX, PHILIP);
+            W_CORP, WARP, SMILING, INDEX, PHILIP,
+            DONG_HWAN, LOWELL, CECIL, MEI, KALO, BORIS, KATRIEL, DENIS, NEMO, MARTINA, BADA, ESTHER, HUBERT, GLORIA, CHUN, XIAO, MIRIS, RED_MIST, NIKOLAI, MYO, MAXIM, RUDOLPH, PURPLE_TEAR, YAN, ALLEN, IRINA, YAE, BAYARD, HANA_FIXER, MIRINAE, HAROLD, OLIVIER);
 
     private static final Map<String, KeyPage> BY_ID = new LinkedHashMap<>();
 

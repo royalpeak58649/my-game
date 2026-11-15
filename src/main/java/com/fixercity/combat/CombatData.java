@@ -95,4 +95,41 @@ public class CombatData {
         }
         return false;
     }
+
+    /** 흐트러짐을 즉시 풀고 게이지를 가득 채운다 (야에: 즉시 수리). */
+    public void clearStagger(long now, float max) {
+        staggeredUntil = 0;
+        stagger = max;
+        lastUpdate = now;
+    }
+
+    // ---- 도시의 별 · 하나 협회 책장 (StarPassives) ----
+    public int emotion;
+    public int emotionPoints;
+    public long lastCombat = Long.MIN_VALUE / 2;
+    public long combatStart;
+    public int combatHits;
+    public int lowellStacks;
+    public int smoke;
+    public long chargeGainedAt = Long.MIN_VALUE / 2;
+    public long chargeSpentAt = Long.MIN_VALUE / 2;
+    public boolean egoUsed;
+    public long egoUntil;
+    public long insuranceReadyAt;
+    public long fragileUntil;
+    public long boundAt;
+    public long trigramNextAt;
+    public int trigramUsed;
+    public int ammoCounter;
+    public long scarAt = Long.MIN_VALUE / 2;
+    public java.util.UUID markedTarget;
+    public long markedUntil;
+    public long markedFrom;
+    /** 보라색 눈물 자세: 0 참격, 1 관통, 2 타격, 3 수비. */
+    public int stance;
+    public int hitStreak;
+    public final float[] recentDamage = new float[3];
+    public long recentDamageAt = Long.MIN_VALUE / 2;
+    public long resuscitateReadyAt;
+    public boolean repairUsed;
 }

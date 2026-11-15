@@ -45,7 +45,9 @@ public final class RequestGenerator {
             {"kurokumo", "3", "5"}, {"full_stop", "3", "5"}, {"dawn", "3", "5"}, {"gaze", "3", "5"},
             {"wedge", "3", "5"}, {"workshop", "3", "5"}, {"jeong", "3", "5"},
             {"shi", "2", "4"}, {"seven", "2", "4"}, {"w_corp", "2", "4"}, {"warp", "2", "4"}, {"smiling", "2", "4"},
-            {"index", "2", "4"}, {"philip", "2", "4"}, {"liu", "1", "3"}, {"thumb", "1", "3"}};
+            {"index", "2", "4"}, {"philip", "2", "4"}, {"liu", "1", "3"}, {"thumb", "1", "3"},
+            // 도시의 별 · 하나 협회
+            {"dong_hwan", "1", "1"}, {"lowell", "1", "2"}, {"cecil", "1", "2"}, {"mei", "1", "2"}, {"kalo", "1", "2"}, {"boris", "1", "2"}, {"katriel", "1", "2"}, {"denis", "1", "2"}, {"nemo", "1", "2"}, {"martina", "1", "2"}, {"bada", "1", "2"}, {"esther", "1", "2"}, {"hubert", "1", "2"}, {"gloria", "1", "2"}, {"chun", "1", "2"}, {"xiao", "1", "1"}, {"miris", "1", "2"}, {"nikolai", "1", "1"}, {"myo", "1", "2"}, {"maxim", "1", "2"}, {"rudolph", "1", "2"}, {"yan", "1", "1"}, {"allen", "1", "1"}, {"irina", "1", "1"}, {"yae", "1", "1"}, {"bayard", "1", "1"}, {"hana_fixer", "1", "2"}, {"mirinae", "1", "1"}, {"harold", "1", "1"}, {"olivier", "1", "1"}};
 
     /** 현상범 조직: 등급 범위에 맞는 것 중에서 고른다. */
     private static List<String> bountyFactions(int grade) {

@@ -107,6 +107,9 @@ public final class FixerEvents {
             default -> {
             }
         }
+        if (com.fixercity.combat.StarPassives.usesEmotion(page.passive())) {
+            com.fixercity.combat.StarPassives.tick(player, page);
+        }
     }
 
     // ---- 책장 동기화: 접속, 리스폰(죽으면 책장을 잃음), 차원 이동, 다른 플레이어가 나를 보기 시작할 때 ----
