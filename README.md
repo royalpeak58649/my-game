@@ -135,7 +135,7 @@ OP 테스트: `/fixeradmin reception <층 id>` (history, technology, literature,
 
 **뽑힐 확률 (가중치):** 기본 5종·윤·갈고리 10, 가로등 7, 어금니 4, 도시 질병 사무소들(마침표·여명·시선·쐐기·공방·정) 각 2. 원작에서 강한 사무소일수록 드물다.
 
-모든 키트에 빵 8개. 5개를 다 쓰면 그다음부터는 의뢰로 번 돈으로 장비를 사야 한다.
+모든 키트에 빵 64개. 5개를 다 쓰면 그다음부터는 의뢰로 번 돈으로 장비를 사야 한다.
 OP는 `/fixerkit <키트 id> [플레이어]`로 (id: swordsman, brawler, assassin, gunner, backstreet, yun, hook, streetlight, molar, full_stop, dawn, gaze, wedge, workshop, jeong) 키트를 바로 줄 수 있다.
 
 ### 죽음
