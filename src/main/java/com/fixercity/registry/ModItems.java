@@ -41,6 +41,10 @@ public final class ModItems {
     public static final Tier FIXER_STEEL = new SimpleTier(
             BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 2.0F, 14, () -> Ingredient.of(Items.IRON_INGOT));
 
+    // ---- 블록 아이템 ----
+    public static final DeferredItem<net.minecraft.world.item.BlockItem> REQUEST_BOARD =
+            REGISTER.registerSimpleBlockItem("request_board", ModBlocks.REQUEST_BOARD);
+
     // ---- 무기 ----
     /** 장검: 공격력 8, 공속 1.4. 우클릭 = 돌진 베기. */
     public static final DeferredItem<LongswordItem> FIXER_LONGSWORD = REGISTER.register("fixer_longsword",

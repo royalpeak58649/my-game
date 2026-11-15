@@ -16,6 +16,7 @@ public final class ModCreativeTabs {
                     .title(Component.translatable("itemGroup.fixercity.fixer_gear"))
                     .icon(() -> ModItems.FIXER_LONGSWORD.get().getDefaultInstance())
                     .displayItems((params, output) -> {
+                        output.accept(ModItems.REQUEST_BOARD.get());
                         output.accept(ModItems.FIXER_LONGSWORD.get());
                         output.accept(ModItems.FIXER_MACE.get());
                         output.accept(ModItems.FIXER_DAGGER.get());

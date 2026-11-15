@@ -4,6 +4,9 @@ import com.fixercity.event.FixerEvents;
 import com.fixercity.combat.CombatHandler;
 import com.fixercity.network.ModNetwork;
 import com.fixercity.registry.ModArmorMaterials;
+import com.fixercity.registry.ModBlocks;
+import com.fixercity.request.RequestCommands;
+import com.fixercity.request.RequestManager;
 import com.fixercity.registry.ModAttachments;
 import com.fixercity.registry.ModEffects;
 import com.fixercity.registry.ModCreativeTabs;
@@ -26,6 +29,7 @@ public class FixerCity {
     public FixerCity(IEventBus modEventBus, ModContainer modContainer) {
         ModDataComponents.REGISTER.register(modEventBus);
         ModArmorMaterials.REGISTER.register(modEventBus);
+        ModBlocks.REGISTER.register(modEventBus);
         ModItems.REGISTER.register(modEventBus);
         ModCreativeTabs.REGISTER.register(modEventBus);
         ModAttachments.REGISTER.register(modEventBus);
@@ -34,6 +38,8 @@ public class FixerCity {
 
         NeoForge.EVENT_BUS.register(FixerEvents.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);
+        NeoForge.EVENT_BUS.register(RequestManager.class);
+        NeoForge.EVENT_BUS.register(RequestCommands.class);
     }
 
     public static ResourceLocation id(String path) {
