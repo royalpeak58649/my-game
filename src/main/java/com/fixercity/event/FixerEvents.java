@@ -83,19 +83,22 @@ public final class FixerEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             KeyPageHelper.refresh(player);
-            // 처음 접속: 5종 중 무작위 키트 하나
+            // 처음 접속: 무작위 키트 5개를 보관함에 넣어 준다 (중복 가능). 하나씩 꺼내 쓴다.
             FixerSavedData data = FixerSavedData.get(player.server);
             FixerSavedData.Profile profile = data.profile(player.getUUID());
             if (!profile.kitGiven) {
                 profile.kitGiven = true;
-                data.setDirty();
                 FixerKit[] kits = FixerKit.values();
-                FixerKit kit = kits[player.getRandom().nextInt(kits.length)];
-                equipKit(player, kit);
-                player.sendSystemMessage(Component.translatable("message.fixercity.welcome",
-                        Component.translatable("kit.fixercity." + kit.id()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
-                        .withStyle(ChatFormatting.YELLOW));
+                for (int i = 0; i < STARTING_KITS; i++) {
+                    profile.storedKits.add(kits[player.getRandom().nextInt(kits.length)].id());
+                }
+                data.setDirty();
+                player.sendSystemMessage(Component.translatable("message.fixercity.welcome").withStyle(ChatFormatting.YELLOW));
                 player.sendSystemMessage(Component.translatable("message.fixercity.welcome_hint").withStyle(ChatFormatting.GRAY));
+                showKitStorage(player);
+            } else if (!profile.storedKits.isEmpty() && player.getInventory().isEmpty()) {
+                // 빈손으로 접속했고 남은 키트가 있으면 알려준다
+                showKitStorage(player);
             }
         }
     }
@@ -138,6 +141,61 @@ public final class FixerEvents {
         }
     }
 
+    @SubscribeEvent
+    public static void onRespawnKitHint(PlayerEvent.PlayerRespawnEvent event) {
+        if (!event.isEndConquered() && event.getEntity() instanceof ServerPlayer player) {
+            showKitStorage(player);
+        }
+    }
+
+    // ---- 키트 보관함 ----
+    public static final int STARTING_KITS = 5;
+
+    /** /kit : 보관함의 키트 목록과 [꺼내기] 버튼. */
+    public static void showKitStorage(ServerPlayer player) {
+        FixerSavedData.Profile profile = FixerSavedData.get(player.server).profile(player.getUUID());
+        player.sendSystemMessage(Component.translatable("ui.fixercity.kit_header", profile.storedKits.size())
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+        if (profile.storedKits.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("ui.fixercity.kit_empty").withStyle(ChatFormatting.GRAY));
+            return;
+        }
+        for (int i = 0; i < profile.storedKits.size(); i++) {
+            String id = profile.storedKits.get(i);
+            player.sendSystemMessage(Component.literal(" ")
+                    .append(com.fixercity.request.RequestUi.button("ui.fixercity.kit_use", "/kit use " + (i + 1),
+                            ChatFormatting.GREEN, Component.translatable("kit.fixercity." + id + ".desc")))
+                    .append(" ")
+                    .append(Component.translatable("kit.fixercity." + id).withStyle(ChatFormatting.WHITE))
+                    .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
+                    .append(Component.translatable("kit.fixercity." + id + ".desc").withStyle(ChatFormatting.GRAY)));
+        }
+    }
+
+    /** 보관함에서 index번째(1부터) 키트를 꺼내 바로 장비한다. */
+    public static int useStoredKit(ServerPlayer player, int index) {
+        FixerSavedData data = FixerSavedData.get(player.server);
+        FixerSavedData.Profile profile = data.profile(player.getUUID());
+        if (index < 1 || index > profile.storedKits.size()) {
+            player.sendSystemMessage(Component.translatable("ui.fixercity.kit_empty").withStyle(ChatFormatting.RED));
+            return 0;
+        }
+        String id = profile.storedKits.remove(index - 1);
+        data.setDirty();
+        for (FixerKit kit : FixerKit.values()) {
+            if (kit.id().equals(id)) {
+                equipKit(player, kit);
+                player.sendSystemMessage(Component.translatable("message.fixercity.kit_opened",
+                        Component.translatable("kit.fixercity." + id).withStyle(ChatFormatting.GOLD),
+                        profile.storedKits.size()).withStyle(ChatFormatting.GREEN));
+                player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                        net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC.value(), net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+                return 1;
+            }
+        }
+        return 0;
+    }
+
     private static boolean wearsFullSet(Player player, Holder<ArmorMaterial> material) {
         for (EquipmentSlot slot : ARMOR_SLOTS) {
             ItemStack stack = player.getItemBySlot(slot);
@@ -160,6 +218,17 @@ public final class FixerEvents {
                                     net.minecraft.commands.arguments.EntityArgument.getPlayer(ctx, "target"), kit))));
         }
         event.getDispatcher().register(root);
+
+        // /kit : 키트 보관함, /kit use <번호> : 꺼내 쓰기
+        event.getDispatcher().register(Commands.literal("kit")
+                .executes(ctx -> {
+                    showKitStorage(ctx.getSource().getPlayerOrException());
+                    return 1;
+                })
+                .then(Commands.literal("use").then(Commands.argument("index",
+                        com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+                        .executes(ctx -> useStoredKit(ctx.getSource().getPlayerOrException(),
+                                com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "index"))))));
 
         // /accessory : 장신구 정보, /accessory remove : 장신구 벗기
         event.getDispatcher().register(Commands.literal("accessory")

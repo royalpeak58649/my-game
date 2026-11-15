@@ -243,7 +243,16 @@
   "bounty.fixercity.thumb": "Thumb Soldato",
   "bounty.fixercity.kurokumo": "Kurokumo Enforcer",
   "kit.fixercity.backstreet": "Backstreet Born",
-  "message.fixercity.welcome": "Welcome to the City, Grade 9 Fixer. You start as [%s].",
-  "message.fixercity.welcome_hint": "Take jobs at a request board. Death costs all your gear, but your money and reputation remain. (/fixer)",
-  "message.fixercity.lost_everything": "You lost all of your gear."
+  "message.fixercity.welcome": "Welcome to the City, Grade 9 Fixer. Five kits have been placed in your storage.",
+  "message.fixercity.welcome_hint": "Use one now and save the rest for after you die. Death costs all your gear, but money, reputation and stored kits remain. (/kit, /fixer)",
+  "message.fixercity.lost_everything": "You lost all of your gear.",
+  "message.fixercity.kit_opened": "Opened the [%s] kit. %s kits left",
+  "ui.fixercity.kit_header": "━━ Kit Storage (%s) ━━",
+  "ui.fixercity.kit_empty": "No kits in storage",
+  "ui.fixercity.kit_use": "Open",
+  "kit.fixercity.swordsman.desc": "Longsword, Fixer suit, Office Fixer key page",
+  "kit.fixercity.brawler.desc": "Mace, Armored coat, Office Fixer key page",
+  "kit.fixercity.assassin.desc": "Dagger, Smoke bomb, Fixer suit, Office Fixer key page",
+  "kit.fixercity.gunner.desc": "Revolver, 12 bullets, Dagger, Fixer suit, Office Fixer key page",
+  "kit.fixercity.backstreet.desc": "Rusty pipe, 2 First aid kits, Flashbang, Rat Gang key page, Lucky coin (no armor)"
 }
