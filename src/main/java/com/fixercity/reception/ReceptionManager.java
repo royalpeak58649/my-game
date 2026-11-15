@@ -52,6 +52,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 public final class ReceptionManager {
     public static final ResourceKey<Level> LIBRARY = ResourceKey.create(Registries.DIMENSION, FixerCity.id("library"));
     public static final String RECEPTION_TAG = "fixercity_reception";
+    private static final String RECEPTION_START_TAG = "fixercity_reception_start";
     private static final int MAX_SLOTS = 32;
     private static final int ARENA_Y = 100;
     private static final int HALF = 15;
@@ -102,6 +103,7 @@ public final class ReceptionManager {
         }
         buildArena(library, center, floor);
         rec.startTime = library.getGameTime();
+        ACTIVE.put(slot, rec); // 사서가 들어오기 전에 등록해야 정리 규칙에 걸리지 않는다
         for (int i = 0; i < party.size(); i++) {
             ServerPlayer p = party.get(i);
             rec.participants.put(p.getUUID(), new Reception.ReturnPoint(p.level().dimension(), p.position(), p.getYRot()));
@@ -109,7 +111,6 @@ public final class ReceptionManager {
             rec.bar.addPlayer(p);
         }
         spawnEnemies(library, rec, party.size());
-        ACTIVE.put(slot, rec);
 
         Component floorName = Component.translatable(floor.floorKey()).withStyle(ChatFormatting.GOLD);
         for (ServerPlayer p : party) {
@@ -211,6 +212,7 @@ public final class ReceptionManager {
         mob.setPersistenceRequired();
         mob.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, MobEffectInstance.INFINITE_DURATION, 0, false, false));
         mob.getPersistentData().putInt(RECEPTION_TAG, rec.slot);
+        mob.getPersistentData().putLong(RECEPTION_START_TAG, rec.startTime);
         mob.getPersistentData().putString(RequestManager.PAGE_TAG, rec.floor.resistPage());
     }
 
@@ -461,6 +463,32 @@ public final class ReceptionManager {
         p.teleportTo(dest, rp.pos().x, rp.pos().y, rp.pos().z, rp.yaw(), 0F);
     }
 
+    /**
+     * 지난 접대의 찌꺼기 정리. 모두 쓰러져 실패하면 투기장 청크가 내려가서 사서를 치우지 못하고 저장된다.
+     * 그런 사서·아이템이 나중에 다시 불러와질 때 여기서 없앤다:
+     * 접대 태그가 붙은 몹은 지금 그 자리에서 진행 중인 같은 접대의 것만, 그 밖의 것은 진행 중인 투기장 안에서만 남긴다.
+     */
+    @SubscribeEvent
+    public static void onEntityJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+        Entity e = event.getEntity();
+        if (e instanceof Player || event.getLevel().dimension() != LIBRARY) {
+            return;
+        }
+        if (e.getPersistentData().contains(RECEPTION_TAG)) {
+            Reception rec = ACTIVE.get(e.getPersistentData().getInt(RECEPTION_TAG));
+            if (rec == null || rec.endAt >= 0 || rec.startTime != e.getPersistentData().getLong(RECEPTION_START_TAG)) {
+                event.setCanceled(true);
+            }
+            return;
+        }
+        for (Reception rec : ACTIVE.values()) {
+            if (Math.abs(e.getX() - rec.center.getX()) <= HALF + 6 && Math.abs(e.getZ() - rec.center.getZ()) <= HALF + 6) {
+                return;
+            }
+        }
+        event.setCanceled(true);
+    }
+
     /** 접대 중이 아닌데 도서관에 남아 있으면 (서버 재시작 등) 스폰으로 보낸다. */
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -485,7 +513,9 @@ public final class ReceptionManager {
         for (LibraryFloor floor : LibraryFloor.values()) {
             BlockPos center = new BlockPos((MAX_SLOTS - 1) * 512, ARENA_Y, 0);
             Reception rec = new Reception(MAX_SLOTS - 1, floor, center);
+            rec.startTime = library.getGameTime() + floor.ordinal();
             buildArena(library, center, floor);
+            ACTIVE.put(rec.slot, rec);
             spawnEnemies(library, rec, 2);
             List<Mob> enemies = rec.livingEnemies(library);
             if (enemies.size() < floor.bossCount()) {
@@ -500,6 +530,17 @@ public final class ReceptionManager {
             }
             for (Mob m : rec.livingEnemies(library)) {
                 m.discard();
+            }
+            ACTIVE.remove(rec.slot);
+            // 끝난 접대의 사서가 다시 들어오면 막혀야 한다
+            Mob stale = EntityType.VINDICATOR.create(library);
+            if (stale != null) {
+                stale.moveTo(center.getX() + 0.5, ARENA_Y + 1, center.getZ() + 0.5, 0F, 0F);
+                prepare(stale, rec);
+                if (library.addFreshEntity(stale)) {
+                    log.error("fixercity smoke: stale librarian from a finished reception was not removed");
+                    stale.discard();
+                }
             }
         }
         if (Shop.rewardPool(1).isEmpty() || Shop.rewardPool(8).isEmpty()) {

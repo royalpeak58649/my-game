@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Blocks;
 /**
  * 도서관의 층과 그 층을 지키는 사서 (보스).
  * 이름과 싸움 방식만 원작을 따르고, 수치와 기술 구성은 이 모드의 오리지널이다.
+ * 층 순서와 등급은 원작의 해금 순서와 이 모드의 등급 체계(도시 괴담 9급 … 도시의 별 1~2급)에 맞췄다.
  *
  * @param grade      대응하는 해결사 등급 (보상·가격 기준)
  * @param bossCount  담당 사서 수 (자연과학의 층은 쌍둥이)
@@ -20,34 +21,34 @@ import net.minecraft.world.level.block.Blocks;
  * @param weapons    들고 있는 무기 (여러 개면 기술마다 바꿔 든다)
  */
 public enum LibraryFloor {
-    HISTORY("history", 8, EntityType.VINDICATOR, 1, 120, 3, 1, "office_fixer",
+    HISTORY("history", 9, EntityType.VINDICATOR, 1, 90, 3, 1, "office_fixer",
             List.of(BossSkill.DASH, BossSkill.WHIRLWIND), () -> List.of(ModItems.FIXER_LONGSWORD.get()),
             Blocks.BROWN_CARPET, BossEvent.BossBarColor.YELLOW),
-    TECHNOLOGY("technology", 7, EntityType.PILLAGER, 1, 140, 3, 1, "full_stop",
+    TECHNOLOGY("technology", 8, EntityType.PILLAGER, 1, 110, 3, 1, "full_stop",
             List.of(BossSkill.VOLLEY, BossSkill.STARE), List::of,
             Blocks.CYAN_CARPET, BossEvent.BossBarColor.BLUE),
-    LITERATURE("literature", 6, EntityType.VINDICATOR, 1, 170, 4, 2, "kurokumo",
+    LITERATURE("literature", 7, EntityType.VINDICATOR, 1, 140, 4, 2, "kurokumo",
             List.of(BossSkill.BLEED_FLURRY, BossSkill.HEAL), () -> List.of(ModItems.FIXER_DAGGER.get()),
             Blocks.ORANGE_CARPET, BossEvent.BossBarColor.YELLOW),
-    ART("art", 5, EntityType.VINDICATOR, 1, 220, 4, 2, "zwei",
+    ART("art", 6, EntityType.VINDICATOR, 1, 180, 4, 2, "zwei",
             List.of(BossSkill.GUARD, BossSkill.SLAM), () -> List.of(ModItems.FIXER_MACE.get()),
             Blocks.LIME_CARPET, BossEvent.BossBarColor.GREEN),
     NATURAL_SCIENCES("natural_sciences", 5, EntityType.EVOKER, 2, 140, 3, 0, "seven",
             List.of(BossSkill.FLAME_CONE, BossSkill.PULL), List::of,
             Blocks.YELLOW_CARPET, BossEvent.BossBarColor.YELLOW),
-    SOCIAL_SCIENCES("social_sciences", 4, EntityType.VINDICATOR, 1, 280, 5, 2, "wedge",
-            List.of(BossSkill.GUARD, BossSkill.HEAL, BossSkill.DASH), () -> List.of(ModItems.WEDGE_SPEAR.get()),
-            Blocks.LIGHT_BLUE_CARPET, BossEvent.BossBarColor.BLUE),
-    LANGUAGE("language", 3, EntityType.VINDICATOR, 1, 340, 6, 0, "liu",
+    LANGUAGE("language", 4, EntityType.VINDICATOR, 1, 280, 6, 0, "liu",
             List.of(BossSkill.DASH, BossSkill.SLAM, BossSkill.WHIRLWIND), () -> List.of(ModItems.ZWEI_GREATSWORD.get()),
             Blocks.RED_CARPET, BossEvent.BossBarColor.RED),
+    SOCIAL_SCIENCES("social_sciences", 3, EntityType.VINDICATOR, 1, 320, 5, 2, "wedge",
+            List.of(BossSkill.GUARD, BossSkill.HEAL, BossSkill.DASH), () -> List.of(ModItems.WEDGE_SPEAR.get()),
+            Blocks.LIGHT_BLUE_CARPET, BossEvent.BossBarColor.BLUE),
     PHILOSOPHY("philosophy", 2, EntityType.EVOKER, 1, 380, 6, 0, "seven",
             List.of(BossSkill.PULL, BossSkill.STARE, BossSkill.SUMMON, BossSkill.TIME_SLOW), List::of,
             Blocks.GRAY_CARPET, BossEvent.BossBarColor.WHITE),
-    RELIGION("religion", 2, EntityType.VINDICATOR, 1, 360, 6, 1, "shi",
+    RELIGION("religion", 2, EntityType.VINDICATOR, 1, 400, 6, 1, "shi",
             List.of(BossSkill.TIME_SLOW, BossSkill.BLEED_FLURRY, BossSkill.WHIRLWIND), () -> List.of(ModItems.KUROKUMO_BLADE.get()),
             Blocks.WHITE_CARPET, BossEvent.BossBarColor.WHITE),
-    GENERAL_WORKS("general_works", 1, EntityType.WITHER_SKELETON, 1, 500, 8, 0, "thumb",
+    GENERAL_WORKS("general_works", 1, EntityType.WITHER_SKELETON, 1, 520, 8, 0, "thumb",
             List.of(BossSkill.DASH, BossSkill.SLAM, BossSkill.VOLLEY, BossSkill.WHIRLWIND, BossSkill.BLEED_FLURRY, BossSkill.PULL),
             () -> List.of(ModItems.SHI_BLADE.get(), ModItems.MOLAR_HAMMER.get(), ModItems.WORKSHOP_HALBERD.get(),
                     ModItems.KUROKUMO_BLADE.get(), ModItems.WEDGE_SPEAR.get(), ModItems.ZWEI_GREATSWORD.get()),
