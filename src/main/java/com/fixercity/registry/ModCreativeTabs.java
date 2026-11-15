@@ -18,6 +18,9 @@ public final class ModCreativeTabs {
                     .displayItems((params, output) -> {
                         output.accept(ModItems.REQUEST_BOARD.get());
                         output.accept(ModItems.CITY_PASS.get());
+                        for (com.fixercity.reception.LibraryFloor floor : com.fixercity.reception.LibraryFloor.values()) {
+                            output.accept(ModItems.invitation(floor));
+                        }
                         output.accept(ModItems.BRIEFCASE.get());
                         output.accept(ModItems.FIXER_LONGSWORD.get());
                         output.accept(ModItems.FIXER_MACE.get());

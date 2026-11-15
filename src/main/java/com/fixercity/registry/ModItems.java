@@ -41,6 +41,16 @@ public final class ModItems {
     public static final Tier FIXER_STEEL = new SimpleTier(
             BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 2.0F, 14, () -> Ingredient.of(Items.IRON_INGOT));
 
+    /** 도서관 초대장 (층은 데이터 컴포넌트). */
+    public static final DeferredItem<com.fixercity.item.InvitationItem> INVITATION = REGISTER.register("invitation",
+            () -> new com.fixercity.item.InvitationItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
+
+    public static net.minecraft.world.item.ItemStack invitation(com.fixercity.reception.LibraryFloor floor) {
+        net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(INVITATION.get());
+        stack.set(com.fixercity.registry.ModDataComponents.FLOOR.get(), floor.id());
+        return stack;
+    }
+
     /** 회수 의뢰의 의뢰품. */
     public static final DeferredItem<Item> BRIEFCASE = REGISTER.registerSimpleItem("briefcase",
             new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));

@@ -40,6 +40,7 @@ public class FixerCity {
         NeoForge.EVENT_BUS.register(FixerEvents.class);
         NeoForge.EVENT_BUS.register(CombatHandler.class);
         NeoForge.EVENT_BUS.register(RequestManager.class);
+        NeoForge.EVENT_BUS.register(com.fixercity.reception.ReceptionManager.class);
         NeoForge.EVENT_BUS.addListener(com.fixercity.world.SmokeTest::onServerStarted);
         NeoForge.EVENT_BUS.register(RequestCommands.class);
         NeoForge.EVENT_BUS.register(com.fixercity.request.OfficeCommands.class);

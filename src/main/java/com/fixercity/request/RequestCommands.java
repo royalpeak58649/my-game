@@ -134,6 +134,17 @@ public final class RequestCommands {
                             ctx.getSource().sendSuccess(() -> RequestUi.profileLine(target.server, target), true);
                             return 1;
                         }))))
+                .then(Commands.literal("reception").then(Commands.argument("floor", StringArgumentType.word())
+                        .suggests((ctx, b) -> {
+                            for (com.fixercity.reception.LibraryFloor f : com.fixercity.reception.LibraryFloor.values()) {
+                                b.suggest(f.id());
+                            }
+                            return b.buildFuture();
+                        })
+                        .executes(ctx -> {
+                            com.fixercity.reception.LibraryFloor f = com.fixercity.reception.LibraryFloor.byId(StringArgumentType.getString(ctx, "floor"));
+                            return f != null && com.fixercity.reception.ReceptionManager.start(ctx.getSource().getPlayerOrException(), f) ? 1 : 0;
+                        })))
                 .then(Commands.literal("refresh").executes(ctx -> {
                     RequestManager.forceRefresh(ctx.getSource().getServer());
                     ctx.getSource().sendSuccess(() -> Component.translatable("message.fixercity.board_refreshed"), true);

@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 
 /** 협회 상점 화면. */
 public class ShopScreen extends Screen {
-    private static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories");
+    private static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations");
     private static final int PANEL_W = 320;
     private static final int ROW_H = 22;
     private ShopPayload data;

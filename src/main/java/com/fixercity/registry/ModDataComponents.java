@@ -19,5 +19,12 @@ public final class ModDataComponents {
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
+    /** 도서관 초대장의 층 id. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> FLOOR =
+            REGISTER.register("floor", () -> DataComponentType.<String>builder()
+                    .persistent(Codec.STRING)
+                    .networkSynchronized(ByteBufCodecs.STRING_UTF8)
+                    .build());
+
     private ModDataComponents() {}
 }

@@ -42,6 +42,8 @@ public final class SmokeTest {
             LOGGER.info("fixercity smoke: city generation OK");
         }
 
+        com.fixercity.reception.ReceptionManager.smoke(event.getServer(), LOGGER);
+
         EnumSet<RequestType> seen = EnumSet.noneOf(RequestType.class);
         RandomSource random = RandomSource.create(1);
         for (int g = 1; g <= 9; g++) {

@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 public final class Shop {
     public record Entry(String id, String category, Supplier<ItemStack> stack, int price, int minGrade) {}
 
-    public static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories");
+    public static final List<String> CATEGORIES = List.of("supplies", "pages", "weapons", "accessories", "invitations");
     private static final List<Entry> ENTRIES = new ArrayList<>();
 
     static {
@@ -66,6 +66,10 @@ public final class Shop {
         add("thumb_rifle", "weapons", () -> new ItemStack(ModItems.THUMB_RIFLE.get()), 4500, 3);
         add("kurokumo_blade", "weapons", () -> new ItemStack(ModItems.KUROKUMO_BLADE.get()), 1500, 5);
 
+        for (com.fixercity.reception.LibraryFloor floor : com.fixercity.reception.LibraryFloor.values()) {
+            add("invitation_" + floor.id(), "invitations", () -> ModItems.invitation(floor),
+                    Grades.baseAhn(floor.grade()) * 2, Math.min(9, floor.grade() + 1));
+        }
         add("lucky_coin", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.LUCKY_COIN)), 150, 9);
         add("office_badge", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.OFFICE_BADGE)), 300, 8);
         add("zwei_armband", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.ZWEI_ARMBAND)), 900, 6);
@@ -80,6 +84,25 @@ public final class Shop {
 
     private static void add(String id, String category, Supplier<ItemStack> stack, int price, int minGrade) {
         ENTRIES.add(new Entry(id, category, stack, price, minGrade));
+    }
+
+    /** 접대 보상 후보: 그 등급 근처(같거나 3단계 아래까지)의 책장·무기·장신구. */
+    public static List<ItemStack> rewardPool(int grade) {
+        List<ItemStack> list = new ArrayList<>();
+        for (Entry e : ENTRIES) {
+            boolean gear = e.category().equals("pages") || e.category().equals("weapons") || e.category().equals("accessories");
+            if (gear && e.minGrade() >= grade && e.minGrade() <= grade + 3) {
+                list.add(e.stack().get());
+            }
+        }
+        if (list.isEmpty()) {
+            for (Entry e : ENTRIES) {
+                if (e.category().equals("pages") || e.category().equals("weapons")) {
+                    list.add(e.stack().get());
+                }
+            }
+        }
+        return list;
     }
 
     public static Entry find(String id) {
