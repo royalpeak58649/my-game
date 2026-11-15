@@ -42,6 +42,10 @@ public final class FixerEvents {
             return;
         }
         tickPagePassives(player);
+        if (com.fixercity.accessory.AccessoryHelper.has(player, com.fixercity.accessory.Accessory.SEVEN_MONOCLE)) {
+            player.removeEffect(MobEffects.BLINDNESS);
+            player.removeEffect(MobEffects.DARKNESS);
+        }
         if (wearsFullSet(player, ModArmorMaterials.FIXER_SUIT)) {
             player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 0, true, false, true));
         } else if (wearsFullSet(player, ModArmorMaterials.HEAVY_COAT)) {
@@ -123,6 +127,23 @@ public final class FixerEvents {
         }
         event.getDispatcher().register(root);
 
+        // /accessory : 장신구 정보, /accessory remove : 장신구 벗기
+        event.getDispatcher().register(Commands.literal("accessory")
+                .executes(ctx -> showAccessory(ctx.getSource(), ctx.getSource().getPlayerOrException()))
+                .then(Commands.literal("remove").executes(ctx -> {
+                    ServerPlayer player = ctx.getSource().getPlayerOrException();
+                    ItemStack old = com.fixercity.accessory.AccessoryHelper.unequip(player);
+                    if (old.isEmpty()) {
+                        ctx.getSource().sendFailure(Component.translatable("message.fixercity.no_accessory"));
+                        return 0;
+                    }
+                    if (!player.getInventory().add(old)) {
+                        player.drop(old, false);
+                    }
+                    ctx.getSource().sendSuccess(() -> Component.translatable("message.fixercity.accessory_removed"), false);
+                    return 1;
+                })));
+
         // /keypage : 낀 책장 정보, /keypage remove : 책장 벗기
         event.getDispatcher().register(Commands.literal("keypage")
                 .executes(ctx -> showPage(ctx.getSource(), ctx.getSource().getPlayerOrException()))
@@ -139,6 +160,23 @@ public final class FixerEvents {
                     ctx.getSource().sendSuccess(() -> Component.translatable("message.fixercity.page_removed"), false);
                     return 1;
                 })));
+    }
+
+    private static int showAccessory(CommandSourceStack source, ServerPlayer player) {
+        com.fixercity.accessory.Accessory accessory = com.fixercity.accessory.AccessoryHelper.get(player);
+        if (accessory == null) {
+            source.sendFailure(Component.translatable("message.fixercity.no_accessory"));
+            return 0;
+        }
+        net.minecraft.world.item.Item item = com.fixercity.registry.ModItems.accessoryItem(accessory);
+        source.sendSuccess(() -> Component.translatable(item.getDescriptionId()).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD), false);
+        List<Component> lines = new ArrayList<>();
+        com.fixercity.item.AccessoryItem.appendInfo(item, lines);
+        if (com.fixercity.accessory.AccessoryHelper.isResonant(player)) {
+            lines.add(Component.translatable("message.fixercity.resonating").withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+        }
+        lines.forEach(line -> source.sendSuccess(() -> line, false));
+        return 1;
     }
 
     private static int showPage(CommandSourceStack source, ServerPlayer player) {

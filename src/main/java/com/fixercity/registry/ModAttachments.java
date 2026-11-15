@@ -19,6 +19,10 @@ public final class ModAttachments {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>> KEY_PAGE =
             REGISTER.register("key_page", () -> AttachmentType.builder(() -> "").serialize(Codec.STRING).build());
 
+    /** 착용한 장신구 id ("" = 없음). 저장되며, 죽으면 잃는다. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>> ACCESSORY =
+            REGISTER.register("accessory", () -> AttachmentType.builder(() -> "").serialize(Codec.STRING).build());
+
     /** 흐트러짐 게이지 등 전투 중 임시 상태 (저장 안 함). 모든 생물에 붙는다. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<CombatData>> COMBAT =
             REGISTER.register("combat", () -> AttachmentType.builder(() -> new CombatData()).build());

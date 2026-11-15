@@ -113,7 +113,9 @@ public abstract class GunItem extends Item implements HasDamageKind {
             return;
         }
         setAmmo(stack, ammo + loaded);
-        player.getCooldowns().addCooldown(this, reloadCooldown);
+        float reloadMul = com.fixercity.accessory.AccessoryHelper.value(player,
+                com.fixercity.accessory.Accessory.THUMB_BANDOLIER, 0.6F, 0.4F, 1.0F);
+        player.getCooldowns().addCooldown(this, Math.round(reloadCooldown * reloadMul));
         player.displayClientMessage(Component.translatable("message.fixercity.reloaded", ammo + loaded, capacity), true);
         level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.PLAYERS, 0.7F, 1.6F);
     }
@@ -134,7 +136,9 @@ public abstract class GunItem extends Item implements HasDamageKind {
 
     private void shoot(ServerLevel level, Player player, ItemStack stack, InteractionHand hand) {
         // 엄지 책장 패시브: 30% 확률로 탄환을 쓰지 않는다
-        boolean saved = KeyPageHelper.hasPassive(player, KeyPagePassive.MARKSMAN) && level.getRandom().nextFloat() < 0.3F;
+        float saveChance = (KeyPageHelper.hasPassive(player, KeyPagePassive.MARKSMAN) ? 0.3F : 0.0F)
+                + com.fixercity.accessory.AccessoryHelper.value(player, com.fixercity.accessory.Accessory.THUMB_BANDOLIER, 0.15F, 0.25F, 0.0F);
+        boolean saved = level.getRandom().nextFloat() < saveChance;
         if (!saved) {
             setAmmo(stack, getAmmo(stack) - 1);
         }

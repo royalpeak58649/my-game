@@ -32,6 +32,11 @@ public final class ModCreativeTabs {
                         ModItems.HEAVY_COAT_SET.forEach(i -> output.accept(i.get()));
                         output.accept(ModItems.BLANK_KEY_PAGE.get());
                         ModItems.KEY_PAGES.values().forEach(i -> output.accept(i.get()));
+                        ModItems.ACCESSORIES.values().forEach(i -> output.accept(i.get()));
+                        output.accept(ModItems.FIRST_AID_KIT.get());
+                        output.accept(ModItems.FLASHBANG.get());
+                        output.accept(ModItems.SMOKE_BOMB.get());
+                        output.accept(ModItems.PAINKILLER.get());
                     })
                     .build());
 

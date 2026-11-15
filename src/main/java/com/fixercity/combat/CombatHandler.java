@@ -1,5 +1,7 @@
 package com.fixercity.combat;
 
+import com.fixercity.accessory.Accessory;
+import com.fixercity.accessory.AccessoryHelper;
 import com.fixercity.effect.ExposedEffect;
 import com.fixercity.item.DaggerItem;
 import com.fixercity.item.HasDamageKind;
@@ -65,6 +67,27 @@ public final class CombatHandler {
         float staggerBonus = 1.0F;
         DamageKind kind = classify(source, attacker);
 
+        // 행운의 동전: 물리 피해 회피
+        float dodge = AccessoryHelper.value(target, Accessory.LUCKY_COIN, 0.10F, 0.18F, 0.0F);
+        if (kind != null && dodge > 0 && level.getRandom().nextFloat() < dodge) {
+            event.setCanceled(true);
+            level.sendParticles(ParticleTypes.CLOUD, target.getX(), target.getY() + 1.0, target.getZ(), 6, 0.3, 0.3, 0.3, 0.02);
+            level.playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.PLAYER_ATTACK_NODAMAGE, SoundSource.PLAYERS, 1.0F, 1.6F);
+            if (target instanceof Player p) {
+                p.displayClientMessage(Component.translatable("message.fixercity.dodged").withStyle(ChatFormatting.GREEN), true);
+            }
+            return;
+        }
+        // 리우 화염 부적 (공명 시 화염 면역)
+        if (source.is(DamageTypeTags.IS_FIRE) && AccessoryHelper.has(target, Accessory.LIU_TALISMAN)) {
+            if (AccessoryHelper.isResonant(target)) {
+                event.setCanceled(true);
+                target.clearFire();
+                return;
+            }
+            amount *= 0.5F;
+        }
+
         // ---- 공격자 쪽 (책장 패시브, 백스탭) ----
         if (attacker instanceof Player player && kind != null) {
             KeyPage page = KeyPageHelper.getPage(player);
@@ -112,6 +135,26 @@ public final class CombatHandler {
             }
         }
 
+        // ---- 공격자 장신구 ----
+        if (attacker instanceof Player player && kind != null) {
+            CombatData targetData = target.getData(ModAttachments.COMBAT);
+            if (targetData.isStaggered(now)) {
+                amount *= AccessoryHelper.value(player, Accessory.SHI_TASSEL, 1.3F, 1.5F, 1.0F);
+            }
+            if (target.isOnFire()) {
+                amount *= AccessoryHelper.value(player, Accessory.LIU_TALISMAN, 1.15F, 1.25F, 1.0F);
+            }
+            if (target.hasEffect(ModEffects.EXPOSED)) {
+                amount *= AccessoryHelper.value(player, Accessory.SEVEN_MONOCLE, 1.1F, 1.2F, 1.0F);
+            }
+            float heal = AccessoryHelper.value(player, Accessory.KUROKUMO_KNOT, 1.0F, 2.0F, 0.0F);
+            CombatData attackerData = player.getData(ModAttachments.COMBAT);
+            if (heal > 0 && target.hasEffect(ModEffects.BLEED) && now - attackerData.lastLifesteal >= 20) {
+                attackerData.lastLifesteal = now;
+                player.heal(heal);
+            }
+        }
+
         // ---- 방어자 쪽 ----
         KeyPage targetPage = KeyPageHelper.getPage(target);
         if (targetPage != null && targetPage.passive() == com.fixercity.keypage.KeyPagePassive.BLAZE
@@ -123,7 +166,7 @@ public final class CombatHandler {
             amount *= ExposedEffect.multiplier(exposed.getAmplifier());
         }
 
-        CombatData data = target.getData(ModAttachments.COMBAT);
+        CombatData data = dataFor(target);
 
         // 츠바이 수호 태세: 물리 피해 감소 + 근접 공격자 반격 (넉백, 흐트러짐 피해)
         if (kind != null && data.isGuarding(now)) {
@@ -196,13 +239,21 @@ public final class CombatHandler {
         return DamageKind.BLUNT;
     }
 
+    /** 개체의 전투 데이터 (장신구에 따른 회복 수치를 반영해서). */
+    public static CombatData dataFor(LivingEntity entity) {
+        CombatData data = entity.getData(ModAttachments.COMBAT);
+        data.regenDelay = Math.round(AccessoryHelper.value(entity, Accessory.OFFICE_BADGE, 60, 40, CombatData.REGEN_DELAY));
+        data.regenRate = AccessoryHelper.value(entity, Accessory.OFFICE_BADGE, 0.1F, 0.15F, 0.1F);
+        return data;
+    }
+
     /** 기술 등에서 체력 피해와 별개로 흐트러짐 피해를 직접 준다. */
     public static void addStagger(LivingEntity target, float amount) {
         if (!(target.level() instanceof ServerLevel level) || amount <= 0) {
             return;
         }
         float max = staggerMax(target);
-        if (target.getData(ModAttachments.COMBAT).damage(level.getGameTime(), max, amount)) {
+        if (dataFor(target).damage(level.getGameTime(), max, amount)) {
             onStaggered(level, target);
         }
     }
@@ -214,7 +265,8 @@ public final class CombatHandler {
     public static float staggerMax(LivingEntity entity) {
         if (entity instanceof Player) {
             KeyPage page = KeyPageHelper.getPage(entity);
-            return page != null ? page.stagger() : KeyPages.BARE_STAGGER;
+            float bonus = AccessoryHelper.value(entity, Accessory.ZWEI_ARMBAND, 4.0F, 8.0F, 0.0F);
+            return (page != null ? page.stagger() : KeyPages.BARE_STAGGER) + bonus;
         }
         return Math.max(10.0F, entity.getMaxHealth() * 0.8F);
     }

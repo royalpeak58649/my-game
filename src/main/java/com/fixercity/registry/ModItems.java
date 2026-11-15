@@ -1,7 +1,10 @@
 package com.fixercity.registry;
 
 import com.fixercity.FixerCity;
+import com.fixercity.accessory.Accessory;
+import com.fixercity.item.AccessoryItem;
 import com.fixercity.item.DaggerItem;
+import com.fixercity.item.FixerToolItem;
 import com.fixercity.item.FixerArmorItem;
 import com.fixercity.item.FixerMaceItem;
 import com.fixercity.item.KeyPageItem;
@@ -124,6 +127,30 @@ public final class ModItems {
                     () -> new KeyPageItem(page.id(), new Item.Properties().stacksTo(1).rarity(rarity))));
         }
     }
+
+    // ---- 장신구 ----
+    public static final Map<Accessory, DeferredItem<AccessoryItem>> ACCESSORIES = new LinkedHashMap<>();
+
+    static {
+        for (Accessory accessory : Accessory.values()) {
+            ACCESSORIES.put(accessory, REGISTER.register(accessory.id(),
+                    () -> new AccessoryItem(accessory, new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON))));
+        }
+    }
+
+    public static Item accessoryItem(Accessory accessory) {
+        return ACCESSORIES.get(accessory).get();
+    }
+
+    // ---- 보조 장비 (소모품) ----
+    public static final DeferredItem<FixerToolItem> FIRST_AID_KIT = REGISTER.register("first_aid_kit",
+            () -> new FixerToolItem(FixerToolItem.Kind.FIRST_AID, new Item.Properties().stacksTo(8)));
+    public static final DeferredItem<FixerToolItem> FLASHBANG = REGISTER.register("flashbang",
+            () -> new FixerToolItem(FixerToolItem.Kind.FLASHBANG, new Item.Properties().stacksTo(8)));
+    public static final DeferredItem<FixerToolItem> SMOKE_BOMB = REGISTER.register("smoke_bomb",
+            () -> new FixerToolItem(FixerToolItem.Kind.SMOKE_BOMB, new Item.Properties().stacksTo(8)));
+    public static final DeferredItem<FixerToolItem> PAINKILLER = REGISTER.register("painkiller",
+            () -> new FixerToolItem(FixerToolItem.Kind.PAINKILLER, new Item.Properties().stacksTo(16)));
 
     public static Item keyPageItem(KeyPage page) {
         return KEY_PAGES.get(page.id()).get();

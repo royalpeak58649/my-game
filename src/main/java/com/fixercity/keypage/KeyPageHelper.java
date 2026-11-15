@@ -71,6 +71,7 @@ public final class KeyPageHelper {
         set(player, Attributes.MAX_HEALTH, HEALTH_ID, page == null ? 0 : page.health(), AttributeModifier.Operation.ADD_VALUE);
         set(player, Attributes.MOVEMENT_SPEED, SPEED_ID, page == null ? 0 : page.speed(), AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
         set(player, Attributes.ARMOR, ARMOR_ID, page == null ? 0 : page.armor(), AttributeModifier.Operation.ADD_VALUE);
+        com.fixercity.accessory.AccessoryHelper.applyAttributes(player);
         if (player.getHealth() > player.getMaxHealth()) {
             player.setHealth(player.getMaxHealth());
         }
