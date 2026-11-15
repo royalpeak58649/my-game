@@ -529,5 +529,6 @@
   "message.fixercity.distortion_down": "The Distorted has fallen! Fixers nearby get %s Ahn each",
   "message.fixercity.event_bounty": "+%s Ahn",
   "message.fixercity.no_event": "No event in progress",
-  "message.fixercity.event_status": "%s — %s (about %s min left)"
+  "message.fixercity.event_status": "%s — %s (about %s min left)",
+  "message.fixercity.kill_reward": "%s defeated +%s Ahn"
 }

@@ -45,6 +45,7 @@ public class FixerCity {
         NeoForge.EVENT_BUS.register(RequestCommands.class);
         NeoForge.EVENT_BUS.register(com.fixercity.progress.Workshop.class);
         NeoForge.EVENT_BUS.register(com.fixercity.event.CityEvents.class);
+        NeoForge.EVENT_BUS.register(com.fixercity.event.KillRewards.class);
         NeoForge.EVENT_BUS.register(com.fixercity.request.OfficeCommands.class);
     }
 

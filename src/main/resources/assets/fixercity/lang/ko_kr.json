@@ -529,5 +529,6 @@
   "message.fixercity.distortion_down": "뒤틀린 자가 쓰러졌다! 근처의 해결사들에게 %s안씩 지급",
   "message.fixercity.event_bounty": "+%s안",
   "message.fixercity.no_event": "진행 중인 이벤트가 없다",
-  "message.fixercity.event_status": "%s — %s (약 %s분 남음)"
+  "message.fixercity.event_status": "%s — %s (약 %s분 남음)",
+  "message.fixercity.kill_reward": "%s 처치 +%s안"
 }
