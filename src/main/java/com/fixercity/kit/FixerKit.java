@@ -87,12 +87,28 @@ public enum FixerKit {
 
     /** 가중치에 따라 무작위로 하나 고른다. */
     public static FixerKit random(net.minecraft.util.RandomSource random) {
+        return pick(random, 99);
+    }
+
+    /** 희귀 키트(가중치 2 이하: 도시 질병·도시 악몽)만 놓고 무작위로 하나 고른다. */
+    public static FixerKit randomRare(net.minecraft.util.RandomSource random) {
+        return pick(random, RARE_WEIGHT);
+    }
+
+    public static final int RARE_WEIGHT = 2;
+
+    public boolean isRare() {
+        return weight <= RARE_WEIGHT;
+    }
+
+    private static FixerKit pick(net.minecraft.util.RandomSource random, int maxWeight) {
         int total = 0;
         for (FixerKit k : values()) {
-            total += k.weight;
+            if (k.weight <= maxWeight) total += k.weight;
         }
         int roll = random.nextInt(total);
         for (FixerKit k : values()) {
+            if (k.weight > maxWeight) continue;
             roll -= k.weight;
             if (roll < 0) {
                 return k;

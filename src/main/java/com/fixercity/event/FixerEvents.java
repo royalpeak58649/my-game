@@ -114,13 +114,16 @@ public final class FixerEvents {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             KeyPageHelper.refresh(player);
-            // 처음 접속: 무작위 키트 5개를 보관함에 넣어 준다 (중복 가능). 하나씩 꺼내 쓴다.
+            // 처음 접속: 무작위 키트 10개 + 희귀 키트 3개를 보관함에 넣어 준다 (중복 가능). 하나씩 꺼내 쓴다.
             FixerSavedData data = FixerSavedData.get(player.server);
             FixerSavedData.Profile profile = data.profile(player.getUUID());
             if (!profile.kitGiven) {
                 profile.kitGiven = true;
                 for (int i = 0; i < STARTING_KITS; i++) {
                     profile.storedKits.add(FixerKit.random(player.getRandom()).id());
+                }
+                for (int i = 0; i < STARTING_RARE_KITS; i++) {
+                    profile.storedKits.add(FixerKit.randomRare(player.getRandom()).id());
                 }
                 data.setDirty();
                 player.sendSystemMessage(Component.translatable("message.fixercity.welcome").withStyle(ChatFormatting.YELLOW));
@@ -180,6 +183,14 @@ public final class FixerEvents {
 
     // ---- 키트 보관함 ----
     public static final int STARTING_KITS = 10;
+    public static final int STARTING_RARE_KITS = 3;
+
+    private static boolean isRareKit(String id) {
+        for (FixerKit k : FixerKit.values()) {
+            if (k.id().equals(id)) return k.isRare();
+        }
+        return false;
+    }
 
     /** /kit : 보관함의 키트 목록과 [꺼내기] 버튼. */
     public static void showKitStorage(ServerPlayer player) {
@@ -196,7 +207,7 @@ public final class FixerEvents {
                     .append(com.fixercity.request.RequestUi.button("ui.fixercity.kit_use", "/kit use " + (i + 1),
                             ChatFormatting.GREEN, Component.translatable("kit.fixercity." + id + ".desc")))
                     .append(" ")
-                    .append(Component.translatable("kit.fixercity." + id).withStyle(ChatFormatting.WHITE))
+                    .append(Component.translatable("kit.fixercity." + id).withStyle(isRareKit(id) ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE))
                     .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
                     .append(Component.translatable("kit.fixercity." + id + ".desc").withStyle(ChatFormatting.GRAY)));
         }
