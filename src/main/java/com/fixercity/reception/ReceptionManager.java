@@ -467,6 +467,9 @@ public final class ReceptionManager {
                     }
                 }
                 log.info("fixercity smoke: guest {} hp={} nbt: {}", g.id(), boss.getMaxHealth(), sb.toString().trim());
+                if (!GuestAwakening.isAwake(boss)) {
+                    log.error("fixercity smoke: guest {} is still dormant after spawning", g.id());
+                }
                 ok++;
             }
             ACTIVE.remove(rec.slot);

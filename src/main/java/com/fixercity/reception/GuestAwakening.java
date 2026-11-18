@@ -15,7 +15,12 @@ import net.minecraft.world.entity.LivingEntity;
  */
 public final class GuestAwakening {
     /** 엔티티 id -> (NBT 키 -> 넣을 값). */
-    private static final Map<String, Map<String, Tag>> OVERRIDES = Map.of();
+    private static final Map<String, Map<String, Tag>> OVERRIDES = Map.of(
+            "kobolediator", Map.of("Awaken", flag(true)),
+            "wadjet", Map.of("Awaken", flag(true)),
+            "ender_golem", Map.of("is_Awaken", flag(true)),
+            "netherite_monstrosity", Map.of("is_Awaken", flag(true)),
+            "scylla", Map.of("Act", flag(true)));
 
     private GuestAwakening() {}
 
@@ -34,6 +39,22 @@ public final class GuestAwakening {
         boss.saveWithoutId(tag);
         o.forEach((k, v) -> tag.put(k, v.copy()));
         boss.load(tag);
+    }
+
+    /** CI 점검: 깨우는 값이 실제로 들어갔는지. */
+    public static boolean isAwake(LivingEntity boss) {
+        Map<String, Tag> o = overridesFor(boss);
+        if (o.isEmpty()) {
+            return true;
+        }
+        CompoundTag tag = new CompoundTag();
+        boss.saveWithoutId(tag);
+        for (Map.Entry<String, Tag> e : o.entrySet()) {
+            if (!e.getValue().equals(tag.get(e.getKey()))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static Tag flag(boolean value) {
