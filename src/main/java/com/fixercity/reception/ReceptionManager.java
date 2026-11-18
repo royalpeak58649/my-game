@@ -6,14 +6,17 @@ import com.fixercity.request.Grades;
 import com.fixercity.request.RequestManager;
 import com.fixercity.request.Shop;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -21,43 +24,44 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * 도서관의 접대.
- * 초대장을 쓰면 근처(8칸) 플레이어와 함께 도서관 차원의 투기장으로 이동해 그 층의 사서와 싸운다.
- * 이기면 보상을 받고 10초 뒤 원래 자리로, 모두 쓰러지면 (= 책이 되면) 실패.
+ * 도서관의 접대 (손님 = L_Ender's Cataclysm 보스).
+ * 초대장을 쓰면 근처(8칸) 플레이어와 함께 접대실 차원의 무대로 이동해 그 손님과 싸운다.
+ * 손님을 쓰러뜨리면 보상과 손님의 책을 받고 30초 뒤 원래 자리로, 모두 쓰러지면 (= 책이 되면) 실패.
  */
 public final class ReceptionManager {
-    public static final ResourceKey<Level> LIBRARY = ResourceKey.create(Registries.DIMENSION, FixerCity.id("library"));
+    public static final ResourceKey<Level> STAGE = ResourceKey.create(Registries.DIMENSION, FixerCity.id("reception"));
     public static final String RECEPTION_TAG = "fixercity_reception";
     private static final String RECEPTION_START_TAG = "fixercity_reception_start";
     private static final int MAX_SLOTS = 32;
+    private static final int SPACING = 512;
     private static final int ARENA_Y = 100;
-    private static final int HALF = 15;
-    private static final int TIME_LIMIT = 20 * 60 * 15;
+    private static final int TIME_LIMIT = 20 * 60 * 20;
+    private static final int RETURN_DELAY = 20 * 30;
+    /** 인원이 한 명 늘 때마다 손님 체력 배율 +35%. */
+    private static final double HEALTH_PER_EXTRA = 0.35;
     private static final Map<Integer, Reception> ACTIVE = new HashMap<>();
+    /** 쓰러진 손님 (다음 점검 때 승리 처리). */
+    private static final java.util.Set<UUID> FALLEN = new java.util.HashSet<>();
 
     private ReceptionManager() {}
 
@@ -72,18 +76,26 @@ public final class ReceptionManager {
 
     // ================= 시작 =================
 
-    public static boolean start(ServerPlayer leader, LibraryFloor floor) {
+    public static boolean start(ServerPlayer leader, Guest guest) {
         MinecraftServer server = leader.server;
-        ServerLevel library = server.getLevel(LIBRARY);
-        if (library == null) {
+        ServerLevel stage = server.getLevel(STAGE);
+        if (stage == null) {
             return false;
         }
-        if (receptionOf(leader) != null || leader.level().dimension() == LIBRARY) {
+        if (!guest.available()) {
+            leader.sendSystemMessage(Component.translatable("message.fixercity.reception_no_boss_mod").withStyle(ChatFormatting.RED));
+            return false;
+        }
+        if (server.getWorldData().getDifficulty() == Difficulty.PEACEFUL) {
+            leader.sendSystemMessage(Component.translatable("message.fixercity.reception_peaceful").withStyle(ChatFormatting.RED));
+            return false;
+        }
+        if (receptionOf(leader) != null || leader.level().dimension() == STAGE) {
             leader.sendSystemMessage(Component.translatable("message.fixercity.reception_busy").withStyle(ChatFormatting.RED));
             return false;
         }
         int slot = -1;
-        for (int i = 0; i < MAX_SLOTS; i++) {
+        for (int i = 0; i < MAX_SLOTS - 1; i++) { // 마지막 칸은 CI 점검용
             if (!ACTIVE.containsKey(i)) {
                 slot = i;
                 break;
@@ -93,147 +105,88 @@ public final class ReceptionManager {
             leader.sendSystemMessage(Component.translatable("message.fixercity.reception_full").withStyle(ChatFormatting.RED));
             return false;
         }
-        BlockPos center = new BlockPos(slot * 512, ARENA_Y, 0);
-        Reception rec = new Reception(slot, floor, center);
+        BlockPos center = new BlockPos(slot * SPACING, ARENA_Y, 0);
+        Reception rec = new Reception(slot, guest, center);
         List<ServerPlayer> party = new ArrayList<>();
         party.add(leader);
         for (ServerPlayer other : leader.serverLevel().getEntitiesOfClass(ServerPlayer.class, leader.getBoundingBox().inflate(8.0),
                 p -> p != leader && !p.isSpectator() && receptionOf(p) == null)) {
             party.add(other);
         }
-        buildArena(library, center, floor);
-        rec.startTime = library.getGameTime();
-        ACTIVE.put(slot, rec); // 사서가 들어오기 전에 등록해야 정리 규칙에 걸리지 않는다
+        prepareStage(stage, rec);
+        rec.startTime = stage.getGameTime();
+        ACTIVE.put(slot, rec); // 손님이 들어오기 전에 등록해야 정리 규칙에 걸리지 않는다
         for (int i = 0; i < party.size(); i++) {
             ServerPlayer p = party.get(i);
             rec.participants.put(p.getUUID(), new Reception.ReturnPoint(p.level().dimension(), p.position(), p.getYRot()));
-            p.teleportTo(library, center.getX() + 0.5 + (i % 4 - 1.5) * 2, ARENA_Y + 1, center.getZ() + 11.5, 180F, 0F);
-            rec.bar.addPlayer(p);
+            p.teleportTo(stage, center.getX() + 0.5 + (i % 4 - 1.5) * 2, ARENA_Y, center.getZ() + 26.5 + (i / 4) * 2, 180F, 0F);
         }
-        spawnEnemies(library, rec, party.size());
+        if (spawnGuest(stage, rec, party.size()) == null) {
+            fail(server, stage, rec, "message.fixercity.reception_guest_missing");
+            return true;
+        }
 
-        Component floorName = Component.translatable(floor.floorKey()).withStyle(ChatFormatting.GOLD);
+        Component name = Component.translatable(guest.nameKey()).withStyle(ChatFormatting.GOLD);
         for (ServerPlayer p : party) {
-            p.sendSystemMessage(Component.translatable("message.fixercity.reception_start", floorName).withStyle(ChatFormatting.YELLOW));
+            p.sendSystemMessage(Component.translatable("message.fixercity.reception_start", name,
+                    Component.translatable(guest.stageKey())).withStyle(ChatFormatting.YELLOW));
             p.sendSystemMessage(Component.translatable("message.fixercity.reception_rule").withStyle(ChatFormatting.GRAY));
         }
-        library.playSound(null, center, SoundEvents.BELL_BLOCK, SoundSource.HOSTILE, 3.0F, 0.6F);
+        stage.playSound(null, center, SoundEvents.BELL_BLOCK, SoundSource.HOSTILE, 3.0F, 0.6F);
         return true;
     }
 
-    /** 책장으로 둘러싸인 31x31 투기장. 층마다 카펫 색이 다르다. */
-    public static void buildArena(ServerLevel level, BlockPos c, LibraryFloor floor) {
-        // 남은 몹/아이템 정리
-        for (Entity e : level.getEntities((Entity) null, new AABB(c).inflate(HALF + 4, 16, HALF + 4), e -> !(e instanceof Player))) {
+    /** 남은 몹·아이템을 치우고 손님의 무대를 짓는다. */
+    private static void prepareStage(ServerLevel level, Reception rec) {
+        clearEntities(level, rec);
+        rec.guest.stage().build(level, rec.center);
+    }
+
+    private static void clearEntities(ServerLevel level, Reception rec) {
+        AABB box = new AABB(rec.center).inflate(Stage.WALL + 6, Stage.CEILING + Stage.DEPTH, Stage.WALL + 6);
+        for (Entity e : level.getEntities((Entity) null, box, e -> !(e instanceof Player))) {
             e.discard();
         }
-        BlockState floorBlock = Blocks.DARK_OAK_PLANKS.defaultBlockState();
-        BlockState carpet = floor.carpet().defaultBlockState();
-        BlockState shelf = Blocks.BOOKSHELF.defaultBlockState();
-        BlockState pillar = Blocks.STRIPPED_DARK_OAK_LOG.defaultBlockState();
-        BlockState air = Blocks.AIR.defaultBlockState();
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-        for (int dx = -HALF - 1; dx <= HALF + 1; dx++) {
-            for (int dz = -HALF - 1; dz <= HALF + 1; dz++) {
-                boolean wall = Math.abs(dx) == HALF + 1 || Math.abs(dz) == HALF + 1;
-                level.setBlock(pos.set(c.getX() + dx, ARENA_Y - 1, c.getZ() + dz), floorBlock, 2);
-                for (int y = 0; y <= 9; y++) {
-                    BlockState s;
-                    if (y == 9) {
-                        s = (Math.floorMod(dx, 5) == 0 && Math.floorMod(dz, 5) == 0) ? Blocks.GLOWSTONE.defaultBlockState()
-                                : Blocks.DARK_OAK_PLANKS.defaultBlockState();
-                    } else if (wall) {
-                        s = Math.floorMod(dx + dz, 6) == 0 ? pillar : shelf;
-                    } else if (y == 0) {
-                        boolean ring = Math.max(Math.abs(dx), Math.abs(dz)) == 10 || dx == 0 || dz == 0;
-                        s = ring ? carpet : air;
-                    } else {
-                        s = air;
-                    }
-                    level.setBlock(pos.set(c.getX() + dx, ARENA_Y + y, c.getZ() + dz), s, 2);
-                }
+    }
+
+    /** 손님을 무대에 들인다. 실패하면 null. */
+    public static LivingEntity spawnGuest(ServerLevel level, Reception rec, int partySize) {
+        Guest g = rec.guest;
+        EntityType<?> type = g.entityType().orElse(null);
+        if (type == null) {
+            return null;
+        }
+        Entity created = type.create(level);
+        if (!(created instanceof LivingEntity boss)) {
+            if (created != null) {
+                created.discard();
             }
+            return null;
         }
-        // 네 모서리 촛대
-        int[][] corners = {{-12, -12}, {12, -12}, {-12, 12}, {12, 12}};
-        for (int[] k : corners) {
-            level.setBlock(pos.set(c.getX() + k[0], ARENA_Y, c.getZ() + k[1]), Blocks.BOOKSHELF.defaultBlockState(), 2);
-            level.setBlock(pos.set(c.getX() + k[0], ARENA_Y + 1, c.getZ() + k[1]), Blocks.LANTERN.defaultBlockState(), 2);
+        double x = rec.center.getX() + 0.5;
+        double y = g.aquatic() ? ARENA_Y - 7 : ARENA_Y;
+        double z = g.aquatic() ? rec.center.getZ() + 0.5 : rec.center.getZ() - 17.5;
+        boss.moveTo(x, y, z, 0F, 0F);
+        boss.setYHeadRot(0F);
+        if (boss instanceof Mob mob) {
+            mob.finalizeSpawn(level, level.getCurrentDifficultyAt(rec.center), MobSpawnType.EVENT, null);
+            mob.setPersistenceRequired();
         }
-    }
-
-    private static void setBase(Mob mob, net.minecraft.core.Holder<Attribute> attr, double value) {
-        AttributeInstance inst = mob.getAttribute(attr);
-        if (inst != null) {
-            inst.setBaseValue(value);
+        AttributeInstance maxHealth = boss.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHealth != null && partySize > 1) {
+            maxHealth.setBaseValue(maxHealth.getBaseValue() * (1.0 + HEALTH_PER_EXTRA * (partySize - 1)));
         }
-    }
-
-    public static void spawnEnemies(ServerLevel level, Reception rec, int partySize) {
-        LibraryFloor f = rec.floor;
-        double scale = 1.0 + 0.5 * (partySize - 1);
-        for (int i = 0; i < f.bossCount(); i++) {
-            Mob boss = f.bossType().create(level);
-            if (boss == null) {
-                continue;
-            }
-            double x = rec.center.getX() + 0.5 + (i * 4 - (f.bossCount() - 1) * 2);
-            boss.moveTo(x, ARENA_Y + 1, rec.center.getZ() - 9.5, 0F, 0F);
-            boss.finalizeSpawn(level, level.getCurrentDifficultyAt(rec.center), MobSpawnType.EVENT, null);
-            List<Item> weapons = f.weapons();
-            if (!weapons.isEmpty()) {
-                boss.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(weapons.get(0)));
-            }
-            boss.setDropChance(EquipmentSlot.MAINHAND, 0F);
-            setBase(boss, Attributes.MAX_HEALTH, f.health() * scale);
-            setBase(boss, Attributes.ATTACK_DAMAGE, f.attack());
-            setBase(boss, Attributes.ARMOR, 6);
-            setBase(boss, Attributes.KNOCKBACK_RESISTANCE, 0.7);
-            setBase(boss, Attributes.FOLLOW_RANGE, 48);
-            boss.setHealth(boss.getMaxHealth());
-            Component name = f.bossCount() > 1
-                    ? Component.translatable(f.librarianKey()).append(Component.literal(i == 0 ? " A" : " B"))
-                    : Component.translatable(f.librarianKey());
-            boss.setCustomName(name.copy().withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
-            boss.setCustomNameVisible(true);
-            prepare(boss, rec);
-            level.addFreshEntity(boss);
-            rec.enemies.add(boss.getUUID());
-            Reception.BossState state = new Reception.BossState();
-            state.nextSkillAt = level.getGameTime() + 60;
-            rec.bosses.put(boss.getUUID(), state);
+        boss.setHealth(boss.getMaxHealth());
+        boss.getPersistentData().putInt(RECEPTION_TAG, rec.slot);
+        boss.getPersistentData().putLong(RECEPTION_START_TAG, rec.startTime);
+        // 손님은 자기 책장의 내성을 쓴다
+        boss.getPersistentData().putString(RequestManager.PAGE_TAG, g.page().id());
+        GuestAwakening.awaken(boss);
+        if (!level.addFreshEntity(boss)) {
+            return null;
         }
-        for (int i = 0; i < f.assistants(); i++) {
-            spawnAssistant(level, rec, rec.center.getX() + 0.5 + (i == 0 ? 5 : -5), rec.center.getZ() - 7.5);
-        }
-    }
-
-    private static void prepare(Mob mob, Reception rec) {
-        mob.setPersistenceRequired();
-        mob.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, MobEffectInstance.INFINITE_DURATION, 0, false, false));
-        mob.getPersistentData().putInt(RECEPTION_TAG, rec.slot);
-        mob.getPersistentData().putLong(RECEPTION_START_TAG, rec.startTime);
-        mob.getPersistentData().putString(RequestManager.PAGE_TAG, rec.floor.resistPage());
-    }
-
-    /** 보조 사서 (층의 사서를 돕는 졸개). */
-    public static void spawnAssistant(ServerLevel level, Reception rec, double x, double z) {
-        Mob mob = EntityType.VINDICATOR.create(level);
-        if (mob == null) {
-            return;
-        }
-        mob.moveTo(x, ARENA_Y + 1, z, 0F, 0F);
-        mob.finalizeSpawn(level, level.getCurrentDifficultyAt(rec.center), MobSpawnType.EVENT, null);
-        mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModItems.FIXER_LONGSWORD.get()));
-        mob.setDropChance(EquipmentSlot.MAINHAND, 0F);
-        setBase(mob, Attributes.MAX_HEALTH, 30 + (9 - rec.floor.grade()) * 8);
-        setBase(mob, Attributes.ATTACK_DAMAGE, 2 + (9 - rec.floor.grade()) / 2.0);
-        mob.setHealth(mob.getMaxHealth());
-        mob.setCustomName(Component.translatable("librarian.fixercity.assistant", Component.translatable(rec.floor.floorKey()))
-                .withStyle(ChatFormatting.YELLOW));
-        prepare(mob, rec);
-        level.addFreshEntity(mob);
-        rec.enemies.add(mob.getUUID());
+        rec.boss = boss.getUUID();
+        return boss;
     }
 
     // ================= 진행 =================
@@ -244,32 +197,26 @@ public final class ReceptionManager {
             return;
         }
         MinecraftServer server = event.getServer();
-        ServerLevel library = server.getLevel(LIBRARY);
-        if (library == null) {
+        ServerLevel stage = server.getLevel(STAGE);
+        if (stage == null) {
             return;
         }
-        long now = library.getGameTime();
+        long now = stage.getGameTime();
+        if (now % 20 != 0) {
+            return;
+        }
         for (Reception rec : new ArrayList<>(ACTIVE.values())) {
             if (rec.endAt >= 0) {
                 if (now >= rec.endAt) {
-                    finish(server, rec);
+                    finish(server, stage, rec);
                 }
                 continue;
             }
-            if (now % 5 == 0) {
-                for (Map.Entry<UUID, Reception.BossState> e : rec.bosses.entrySet()) {
-                    if (library.getEntity(e.getKey()) instanceof Mob boss && boss.isAlive()) {
-                        bossTick(library, rec, boss, e.getValue(), now);
-                    }
-                }
-            }
-            if (now % 20 == 0) {
-                slowTick(server, library, rec, now);
-            }
+            check(server, stage, rec, now);
         }
     }
 
-    private static Player nearestInside(ServerLevel level, Reception rec, Mob from) {
+    private static Player nearestInside(ServerLevel level, Reception rec, Entity from) {
         Player best = null;
         double bestD = Double.MAX_VALUE;
         for (Player p : level.players()) {
@@ -284,97 +231,23 @@ public final class ReceptionManager {
         return best;
     }
 
-    private static void bossTick(ServerLevel level, Reception rec, Mob boss, Reception.BossState st, long now) {
-        Player target = nearestInside(level, rec, boss);
-        if (target == null) {
-            return;
-        }
-        if (boss.getTarget() != target) {
-            boss.setTarget(target);
-        }
-        // 감정 격화: 체력 50% 아래
-        if (!st.enraged && boss.getHealth() < boss.getMaxHealth() * 0.5F) {
-            st.enraged = true;
-            boss.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, MobEffectInstance.INFINITE_DURATION, 0, false, true));
-            boss.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, MobEffectInstance.INFINITE_DURATION, 0, false, true));
-            level.sendParticles(net.minecraft.core.particles.ParticleTypes.FLAME, boss.getX(), boss.getY() + 1, boss.getZ(), 40, 0.6, 1, 0.6, 0.05);
-            level.playSound(null, boss.getX(), boss.getY(), boss.getZ(), SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 1.5F, 0.8F);
-            broadcastInside(level, rec, Component.translatable("message.fixercity.reception_enraged", boss.getDisplayName())
-                    .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-        }
-        float atk = (float) (rec.floor.attack() * (st.enraged ? 1.25 : 1.0));
-        if (st.pending != null) {
-            if (now >= st.pendingAt) {
-                Entity pt = st.pendingTarget == null ? null : level.getEntity(st.pendingTarget);
-                st.pending.perform(level, boss, pt instanceof Player p && p.isAlive() ? p : target, atk, rec);
-                st.pending = null;
-                st.nextSkillAt = now + (st.enraged ? 25 : 40);
-            }
-            return;
-        }
-        if (now < st.nextSkillAt) {
-            return;
-        }
-        List<BossSkill> skills = new ArrayList<>(rec.floor.skills());
-        Collections.shuffle(skills, new java.util.Random(now ^ boss.getId()));
-        double dist = Math.sqrt(boss.distanceToSqr(target));
-        for (BossSkill s : skills) {
-            if (st.ready.getOrDefault(s, 0L) <= now && dist <= s.range()) {
-                st.pending = s;
-                st.pendingAt = now + BossSkill.WINDUP;
-                st.pendingTarget = target.getUUID();
-                st.ready.put(s, now + Math.round(s.cooldown() * (st.enraged ? 0.6 : 1.0)));
-                List<Item> weapons = rec.floor.weapons();
-                if (weapons.size() > 1) {
-                    st.weaponIndex = (st.weaponIndex + 1) % weapons.size();
-                    boss.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(weapons.get(st.weaponIndex)));
-                }
-                s.telegraph(level, boss);
-                for (Player p : level.players()) {
-                    if (rec.isParticipant(p) && rec.isInside(p)) {
-                        p.displayClientMessage(Component.translatable("message.fixercity.boss_skill", boss.getDisplayName(),
-                                Component.translatable(s.key()).withStyle(ChatFormatting.RED)), true);
-                    }
-                }
-                return;
-            }
-        }
-    }
-
-    private static void broadcastInside(ServerLevel level, Reception rec, Component msg) {
-        for (Player p : level.players()) {
-            if (rec.isParticipant(p)) {
-                p.sendSystemMessage(msg);
-            }
-        }
-    }
-
-    private static void slowTick(MinecraftServer server, ServerLevel level, Reception rec, long now) {
-        // 보스바: 사서 전체 체력
-        float hp = 0;
-        float max = 0;
-        List<Mob> alive = rec.livingEnemies(level);
-        for (Mob m : alive) {
-            if (rec.bosses.containsKey(m.getUUID())) {
-                hp += m.getHealth();
-                max += m.getMaxHealth();
-            }
-        }
-        rec.bar.setProgress(max <= 0 ? 0 : Math.max(0, Math.min(1, hp / max)));
-
+    private static void check(MinecraftServer server, ServerLevel level, Reception rec, long now) {
         int inside = 0;
         for (UUID id : rec.participants.keySet()) {
             ServerPlayer p = server.getPlayerList().getPlayer(id);
             if (p != null && rec.isInside(p) && p.isAlive()) {
                 inside++;
-                rec.bar.addPlayer(p);
-            } else if (p != null) {
-                rec.bar.removePlayer(p);
             }
         }
-
+        if (rec.boss != null && FALLEN.remove(rec.boss)) {
+            // 쓰러졌다가 (불사의 토템 등으로) 다시 일어난 경우는 승리가 아니다
+            if (!(level.getEntity(rec.boss) instanceof LivingEntity b) || !b.isAlive()) {
+                victory(server, level, rec, now);
+                return;
+            }
+        }
         if (inside == 0) {
-            // 아무도 안에 없으면 (모두 쓰러짐 = 책이 됨) 5초 뒤 실패. 이때는 청크가 내려갈 수 있어 적 수를 세지 않는다.
+            // 아무도 안에 없으면 (모두 쓰러짐 = 책이 됨) 5초 뒤 실패. 이때는 청크가 내려갈 수 있어 손님을 찾지 않는다.
             if (rec.emptySince < 0) {
                 rec.emptySince = now;
             } else if (now - rec.emptySince >= 100) {
@@ -383,13 +256,42 @@ public final class ReceptionManager {
             return;
         }
         rec.emptySince = -1;
-        rec.enemies.removeIf(id -> !(level.getEntity(id) instanceof Mob m && m.isAlive()));
-        if (rec.enemies.isEmpty()) {
-            victory(server, level, rec, now);
+        Entity boss = rec.boss == null ? null : level.getEntity(rec.boss);
+        if (!(boss instanceof LivingEntity living) || living.isRemoved()) {
+            // 쓰러지지 않고 사라졌다 (명령어 등)
+            fail(server, level, rec, "message.fixercity.reception_guest_left");
             return;
+        }
+        if (living.isAlive()) {
+            // 무대 밖으로 나가면 제자리로
+            if (!rec.isInside(living)) {
+                double y = rec.guest.aquatic() ? ARENA_Y - 7 : ARENA_Y;
+                living.teleportTo(rec.center.getX() + 0.5, y, rec.center.getZ() - (rec.guest.aquatic() ? -0.5 : 17.5));
+            }
+            if (living instanceof Mob mob) {
+                LivingEntity target = mob.getTarget();
+                if (!(target instanceof Player tp) || !tp.isAlive() || !rec.isParticipant(tp) || !rec.isInside(tp)) {
+                    Player next = nearestInside(level, rec, mob);
+                    if (next != null) {
+                        mob.setTarget(next);
+                    }
+                }
+            }
         }
         if (now - rec.startTime > TIME_LIMIT) {
             fail(server, level, rec, "message.fixercity.reception_timeout");
+        }
+    }
+
+    @SubscribeEvent
+    public static void onDeath(LivingDeathEvent event) {
+        LivingEntity dead = event.getEntity();
+        if (dead.level().isClientSide() || !dead.getPersistentData().contains(RECEPTION_TAG)) {
+            return;
+        }
+        Reception rec = ACTIVE.get(dead.getPersistentData().getInt(RECEPTION_TAG));
+        if (rec != null && dead.getUUID().equals(rec.boss) && rec.endAt < 0) {
+            FALLEN.add(rec.boss);
         }
     }
 
@@ -397,10 +299,8 @@ public final class ReceptionManager {
 
     private static void victory(MinecraftServer server, ServerLevel level, Reception rec, long now) {
         rec.victory = true;
-        rec.endAt = now + 200;
-        rec.bar.setName(Component.translatable("message.fixercity.reception_clear_bar"));
-        rec.bar.setProgress(0);
-        int g = rec.floor.grade();
+        rec.endAt = now + RETURN_DELAY;
+        int g = rec.guest.grade();
         int ahn = Grades.baseAhn(g) * 3;
         int rep = Grades.baseRep(g) * 2;
         List<Component> names = new ArrayList<>();
@@ -412,6 +312,16 @@ public final class ReceptionManager {
                 names.add(p.getDisplayName());
                 p.sendSystemMessage(Component.translatable("message.fixercity.reception_reward", String.format("%,d", ahn), rep)
                         .withStyle(ChatFormatting.GOLD));
+                // 손님의 책: 참가자마다 한 권 (공방에서 빈 책장과 함께 제본하면 손님 책장이 된다)
+                ItemStack book = new ItemStack(ModItems.guestBook(rec.guest));
+                if (!p.getInventory().add(book)) {
+                    p.drop(book, false);
+                }
+                p.sendSystemMessage(Component.translatable("message.fixercity.reception_book",
+                        Component.translatable(ModItems.guestBook(rec.guest).getDescriptionId()).withStyle(ChatFormatting.LIGHT_PURPLE))
+                        .withStyle(ChatFormatting.GRAY));
+                p.sendSystemMessage(Component.translatable("message.fixercity.reception_return", RETURN_DELAY / 20)
+                        .withStyle(ChatFormatting.GRAY));
             }
         }
         // 전리품: 참가자 수 + 1개
@@ -419,36 +329,40 @@ public final class ReceptionManager {
         BlockPos c = rec.center;
         for (int i = 0; i < rec.participants.size() + 1 && !pool.isEmpty(); i++) {
             ItemStack stack = pool.get(level.random.nextInt(pool.size())).copy();
-            level.addFreshEntity(new ItemEntity(level, c.getX() + 0.5, ARENA_Y + 1.5, c.getZ() + 0.5, stack));
+            level.addFreshEntity(new ItemEntity(level, c.getX() + 0.5, ARENA_Y + 1.5, c.getZ() + 8.5, stack));
         }
         level.playSound(null, c, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 2.0F, 1.0F);
         server.getPlayerList().broadcastSystemMessage(Component.translatable("message.fixercity.reception_clear_broadcast",
                 net.minecraft.network.chat.ComponentUtils.formatList(names, Component.literal(", ")),
-                Component.translatable(rec.floor.floorKey())).withStyle(ChatFormatting.GOLD), false);
+                Component.translatable(rec.guest.nameKey())).withStyle(ChatFormatting.GOLD), false);
     }
 
     private static void fail(MinecraftServer server, ServerLevel level, Reception rec, String key) {
-        for (Mob m : rec.livingEnemies(level)) {
-            m.discard();
+        Entity boss = rec.boss == null ? null : level.getEntity(rec.boss);
+        if (boss != null) {
+            boss.discard();
         }
         for (UUID id : rec.participants.keySet()) {
             ServerPlayer p = server.getPlayerList().getPlayer(id);
             if (p != null) {
-                p.sendSystemMessage(Component.translatable(key, Component.translatable(rec.floor.floorKey())).withStyle(ChatFormatting.DARK_RED));
+                p.sendSystemMessage(Component.translatable(key, Component.translatable(rec.guest.nameKey())).withStyle(ChatFormatting.DARK_RED));
             }
         }
-        finish(server, rec);
+        finish(server, level, rec);
     }
 
-    /** 끝: 투기장 안에 남은 참가자를 원래 자리로 돌려보내고 정리. */
-    private static void finish(MinecraftServer server, Reception rec) {
+    /** 끝: 무대 안에 남은 참가자를 원래 자리로 돌려보내고, 남은 졸개·투사체를 치운다. */
+    private static void finish(MinecraftServer server, ServerLevel level, Reception rec) {
         for (Map.Entry<UUID, Reception.ReturnPoint> e : rec.participants.entrySet()) {
             ServerPlayer p = server.getPlayerList().getPlayer(e.getKey());
             if (p != null && rec.isInside(p)) {
                 sendBack(server, p, e.getValue());
             }
         }
-        rec.bar.removeAllPlayers();
+        clearEntities(level, rec);
+        if (rec.boss != null) {
+            FALLEN.remove(rec.boss);
+        }
         ACTIVE.remove(rec.slot);
     }
 
@@ -464,35 +378,35 @@ public final class ReceptionManager {
     }
 
     /**
-     * 지난 접대의 찌꺼기 정리. 모두 쓰러져 실패하면 투기장 청크가 내려가서 사서를 치우지 못하고 저장된다.
-     * 그런 사서·아이템이 나중에 다시 불러와질 때 여기서 없앤다:
-     * 접대 태그가 붙은 몹은 지금 그 자리에서 진행 중인 같은 접대의 것만, 그 밖의 것은 진행 중인 투기장 안에서만 남긴다.
+     * 지난 접대의 찌꺼기 정리. 모두 쓰러져 실패하면 무대 청크가 내려가서 손님을 치우지 못하고 저장된다.
+     * 그런 손님·졸개·아이템이 나중에 다시 불러와질 때 여기서 없앤다:
+     * 접대 태그가 붙은 손님은 지금 그 자리에서 진행 중인 같은 접대의 것만, 그 밖의 것은 진행 중인 무대 범위 안에서만 남긴다.
      */
     @SubscribeEvent
-    public static void onEntityJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+    public static void onEntityJoin(EntityJoinLevelEvent event) {
         Entity e = event.getEntity();
-        if (e instanceof Player || event.getLevel().dimension() != LIBRARY) {
+        if (e instanceof Player || event.getLevel().dimension() != STAGE) {
             return;
         }
         if (e.getPersistentData().contains(RECEPTION_TAG)) {
             Reception rec = ACTIVE.get(e.getPersistentData().getInt(RECEPTION_TAG));
-            if (rec == null || rec.endAt >= 0 || rec.startTime != e.getPersistentData().getLong(RECEPTION_START_TAG)) {
+            if (rec == null || rec.startTime != e.getPersistentData().getLong(RECEPTION_START_TAG)) {
                 event.setCanceled(true);
             }
             return;
         }
         for (Reception rec : ACTIVE.values()) {
-            if (Math.abs(e.getX() - rec.center.getX()) <= HALF + 6 && Math.abs(e.getZ() - rec.center.getZ()) <= HALF + 6) {
+            if (rec.inArea(e.getX(), e.getZ())) {
                 return;
             }
         }
         event.setCanceled(true);
     }
 
-    /** 접대 중이 아닌데 도서관에 남아 있으면 (서버 재시작 등) 스폰으로 보낸다. */
+    /** 접대 중이 아닌데 접대실에 남아 있으면 (서버 재시작 등) 스폰으로 보낸다. */
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer p && p.level().dimension() == LIBRARY && receptionOf(p) == null) {
+        if (event.getEntity() instanceof ServerPlayer p && p.level().dimension() == STAGE && receptionOf(p) == null) {
             sendBack(p.server, p, null);
         }
     }
@@ -503,49 +417,77 @@ public final class ReceptionManager {
 
     // ================= CI 점검 =================
 
-    /** 모든 층의 투기장을 짓고 사서를 소환해 기술을 한 번씩 써 본 뒤 치운다. */
+    /**
+     * 모든 무대를 지어 보고, 보스 모드가 있으면 손님을 하나씩 들여 본 뒤 치운다.
+     * 손님의 저장 데이터(NBT) 중 짧은 값은 로그로 남겨, 깨어나게 하는 값 등을 확인할 수 있게 한다.
+     */
     public static void smoke(MinecraftServer server, org.slf4j.Logger log) {
-        ServerLevel library = server.getLevel(LIBRARY);
-        if (library == null) {
-            log.error("fixercity smoke: library dimension is missing");
+        ServerLevel stage = server.getLevel(STAGE);
+        if (stage == null) {
+            log.error("fixercity smoke: reception dimension is missing");
             return;
         }
-        for (LibraryFloor floor : LibraryFloor.values()) {
-            BlockPos center = new BlockPos((MAX_SLOTS - 1) * 512, ARENA_Y, 0);
-            Reception rec = new Reception(MAX_SLOTS - 1, floor, center);
-            rec.startTime = library.getGameTime() + floor.ordinal();
-            buildArena(library, center, floor);
-            ACTIVE.put(rec.slot, rec);
-            spawnEnemies(library, rec, 2);
-            List<Mob> enemies = rec.livingEnemies(library);
-            if (enemies.size() < floor.bossCount()) {
-                log.error("fixercity smoke: floor {} spawned {} enemies", floor.id(), enemies.size());
+        BlockPos center = new BlockPos((MAX_SLOTS - 1) * SPACING, ARENA_Y, 0);
+        for (Stage s : Stage.values()) {
+            s.build(stage, center);
+        }
+        if (!Guest.bossModLoaded()) {
+            log.info("fixercity smoke: library receptions OK ({} stages, boss mod not installed)", Stage.values().length);
+            return;
+        }
+        List<String> ids = new ArrayList<>();
+        for (net.minecraft.resources.ResourceLocation id : BuiltInRegistries.ENTITY_TYPE.keySet()) {
+            if (id.getNamespace().equals(Guest.BOSS_MOD)) {
+                ids.add(id.getPath());
+            }
+        }
+        java.util.Collections.sort(ids);
+        log.info("fixercity smoke: {} entities: {}", Guest.BOSS_MOD, ids);
+        int ok = 0;
+        for (Guest g : Guest.values()) {
+            if (!g.available()) {
+                log.error("fixercity smoke: guest {} has no entity {}", g.id(), g.entityId());
                 continue;
             }
-            Mob boss = enemies.get(0);
-            Mob dummy = enemies.get(enemies.size() - 1);
-            for (BossSkill s : floor.skills()) {
-                s.telegraph(library, boss);
-                s.perform(library, boss, dummy, floor.attack(), rec);
-            }
-            for (Mob m : rec.livingEnemies(library)) {
-                m.discard();
+            Reception rec = new Reception(MAX_SLOTS - 1, g, center);
+            rec.startTime = stage.getGameTime() + g.ordinal();
+            prepareStage(stage, rec);
+            ACTIVE.put(rec.slot, rec);
+            LivingEntity boss = spawnGuest(stage, rec, 2);
+            if (boss == null || !boss.isAlive()) {
+                log.error("fixercity smoke: guest {} could not be spawned", g.id());
+            } else {
+                CompoundTag tag = new CompoundTag();
+                boss.saveWithoutId(tag);
+                StringBuilder sb = new StringBuilder();
+                for (String key : tag.getAllKeys()) {
+                    net.minecraft.nbt.Tag t = tag.get(key);
+                    if (t instanceof NumericTag || (t instanceof StringTag st && st.getAsString().length() < 40)) {
+                        sb.append(key).append('=').append(t.getAsString()).append(' ');
+                    }
+                }
+                log.info("fixercity smoke: guest {} hp={} nbt: {}", g.id(), boss.getMaxHealth(), sb.toString().trim());
+                ok++;
             }
             ACTIVE.remove(rec.slot);
-            // 끝난 접대의 사서가 다시 들어오면 막혀야 한다
-            Mob stale = EntityType.VINDICATOR.create(library);
-            if (stale != null) {
-                stale.moveTo(center.getX() + 0.5, ARENA_Y + 1, center.getZ() + 0.5, 0F, 0F);
-                prepare(stale, rec);
-                if (library.addFreshEntity(stale)) {
-                    log.error("fixercity smoke: stale librarian from a finished reception was not removed");
-                    stale.discard();
+            clearEntities(stage, rec);
+            // 끝난 접대의 손님이 다시 들어오면 막혀야 한다
+            if (boss != null) {
+                Entity stale = g.entityType().get().create(stage);
+                if (stale != null) {
+                    stale.moveTo(center.getX() + 0.5, ARENA_Y, center.getZ() + 0.5, 0F, 0F);
+                    stale.getPersistentData().putInt(RECEPTION_TAG, rec.slot);
+                    stale.getPersistentData().putLong(RECEPTION_START_TAG, rec.startTime);
+                    if (stage.addFreshEntity(stale)) {
+                        log.error("fixercity smoke: stale guest from a finished reception was not removed");
+                        stale.discard();
+                    }
                 }
             }
         }
         if (Shop.rewardPool(1).isEmpty() || Shop.rewardPool(8).isEmpty()) {
             log.error("fixercity smoke: empty reception reward pool");
         }
-        log.info("fixercity smoke: library receptions OK ({} floors)", LibraryFloor.values().length);
+        log.info("fixercity smoke: library receptions OK ({} stages, {}/{} guests)", Stage.values().length, ok, Guest.values().length);
     }
 }

@@ -25,3 +25,11 @@ A semi-hardcore mod about living as a Fixer in the City.
     versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
+
+# 도서관의 접대 손님 (보스). 없으면 접대만 열리지 않는다.
+[[dependencies.${mod_id}]]
+    modId="cataclysm"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"

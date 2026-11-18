@@ -10,7 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /** 서버 -> 클라이언트: 공방 화면 데이터. */
-public record WorkshopPayload(Component profile, List<AugEntry> augments, RefineInfo refine) implements CustomPacketPayload {
+public record WorkshopPayload(Component profile, List<AugEntry> augments, RefineInfo refine, List<BindEntry> binds)
+        implements CustomPacketPayload {
 
     public record AugEntry(String id, int level, int cost, int requiredGrade, boolean allowed) {
         public static final StreamCodec<RegistryFriendlyByteBuf, AugEntry> STREAM_CODEC = StreamCodec.composite(
@@ -32,12 +33,25 @@ public record WorkshopPayload(Component profile, List<AugEntry> augments, Refine
                 RefineInfo::new);
     }
 
+    /** 책장 제본: 가진 손님의 책 하나당 한 줄. */
+    public record BindEntry(String guest, Component page, int books, int cost, int requiredGrade, boolean allowed) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, BindEntry> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, BindEntry::guest,
+                ComponentSerialization.STREAM_CODEC, BindEntry::page,
+                ByteBufCodecs.VAR_INT, BindEntry::books,
+                ByteBufCodecs.VAR_INT, BindEntry::cost,
+                ByteBufCodecs.VAR_INT, BindEntry::requiredGrade,
+                ByteBufCodecs.BOOL, BindEntry::allowed,
+                BindEntry::new);
+    }
+
     public static final Type<WorkshopPayload> TYPE = new Type<>(FixerCity.id("workshop"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, WorkshopPayload> STREAM_CODEC = StreamCodec.composite(
             ComponentSerialization.STREAM_CODEC, WorkshopPayload::profile,
             AugEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), WorkshopPayload::augments,
             RefineInfo.STREAM_CODEC, WorkshopPayload::refine,
+            BindEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), WorkshopPayload::binds,
             WorkshopPayload::new);
 
     @Override

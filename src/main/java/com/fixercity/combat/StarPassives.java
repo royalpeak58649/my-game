@@ -53,7 +53,7 @@ public final class StarPassives {
 
     /** 이 책장이 감정 단계를 쓰는지 (도시의 별 · 하나 협회 인물). */
     public static boolean usesEmotion(KeyPagePassive p) {
-        return p != null && p.ordinal() >= KeyPagePassive.DONG_HWAN.ordinal();
+        return p != null && p.ordinal() >= KeyPagePassive.DONG_HWAN.ordinal() && p.ordinal() <= KeyPagePassive.OLIVIER.ordinal();
     }
 
     /** 속도 III: 감정 3단계부터 신속. */

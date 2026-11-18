@@ -28,11 +28,14 @@ jobs:
           set -o pipefail
           ./gradlew build --no-daemon -Pmod_version=0.1.${{ github.run_number }} 2>&1 | tee build.log
 
-      - name: Server smoke test (load mod, registries, recipes)
+      - name: Fetch boss mod (L_Ender's Cataclysm) for the smoke test
+        run: python3 .github/scripts/fetch_boss_mod.py run/mods && ls -la run/mods
+
+      - name: Server smoke test (load mod, registries, recipes, receptions with Cataclysm)
         run: |
           mkdir -p run && echo "eula=true" > run/eula.txt
           ./gradlew runServer --no-daemon -Pmod_version=0.1.${{ github.run_number }} > server.log 2>&1 &
-          for i in $(seq 1 120); do
+          for i in $(seq 1 180); do
             grep -qE 'fixercity smoke: (all|some)' server.log && break
             grep -qE 'Crash report|Failed to start' server.log && break
             sleep 5
@@ -47,6 +50,14 @@ jobs:
           grep -q "fixercity smoke: library receptions OK" server.log || { echo "library smoke check did not pass"; exit 1; }
           grep -q "fixercity smoke: city events OK" server.log || { echo "events smoke check did not pass"; exit 1; }
 
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: server.log
+          if-no-files-found: ignore
+
       - name: Publish jar as release
         uses: softprops/action-gh-release@v2
         with:
@@ -58,6 +69,7 @@ jobs:
           body: |
             자동 빌드 #${{ github.run_number }} (${{ github.sha }})
             `fixercity-0.1.${{ github.run_number }}.jar` 를 마인크래프트 `mods` 폴더에 넣으세요 (예전 fixercity jar는 지우기). NeoForge 1.21.1 필요.
+            도서관의 접대(보스전)에는 L_Ender's Cataclysm (NeoForge 1.21.1)이 필요합니다.
           files: build/libs/fixercity-*.jar
 
       - name: Report build failure as issue

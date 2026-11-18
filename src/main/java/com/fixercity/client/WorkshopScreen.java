@@ -6,7 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-/** 공방 화면: 위는 신체 개조 5종, 아래는 손에 든 무기 강화. */
+/** 공방 화면: 위는 신체 개조 5종, 가운데는 손에 든 무기 강화, 아래는 손님의 책으로 책장 제본. */
 public class WorkshopScreen extends Screen {
     private static final int PANEL_W = 320;
     private static final int ROW_H = 24;
@@ -34,7 +34,7 @@ public class WorkshopScreen extends Screen {
     @Override
     protected void init() {
         left = (width - PANEL_W) / 2;
-        int total = 34 + data.augments().size() * ROW_H + 60 + 26;
+        int total = 34 + data.augments().size() * ROW_H + 60 + 30 + Math.max(1, data.binds().size()) * ROW_H + 26;
         top = Math.max(8, (height - total) / 2);
         int y = top + 34;
         for (WorkshopPayload.AugEntry a : data.augments()) {
@@ -49,8 +49,19 @@ public class WorkshopScreen extends Screen {
                 .bounds(left + PANEL_W - 64, y + 2, 60, 18).build();
         refine.active = data.refine().allowed();
         addRenderableWidget(refine);
+        y += 30 + 30;
+        for (WorkshopPayload.BindEntry e : data.binds()) {
+            Button b = Button.builder(Component.translatable("ui.fixercity.bind"), btn -> act("workshop bind " + e.guest()))
+                    .bounds(left + PANEL_W - 64, y + 2, 60, 18).build();
+            b.active = e.allowed();
+            addRenderableWidget(b);
+            y += ROW_H;
+        }
+        if (data.binds().isEmpty()) {
+            y += ROW_H;
+        }
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), btn -> onClose())
-                .bounds(left + PANEL_W - 84, y + 34, 80, 20).build());
+                .bounds(left + PANEL_W - 84, y + 4, 80, 20).build());
     }
 
     @Override
@@ -76,6 +87,18 @@ public class WorkshopScreen extends Screen {
         Component info = r.level() >= 5 ? Component.translatable("ui.fixercity.augment_max")
                 : Component.translatable("ui.fixercity.refine_cost", String.format("%,d", r.cost()), r.chance());
         g.drawString(font, info, left + 4, y + 13, r.allowed() ? 0xFFAAAAAA : 0xFF886666);
+        y += 30;
+        g.drawString(font, Component.translatable("ui.fixercity.bind_header"), left + 4, y + 10, 0xFFE0A83A);
+        y += 30;
+        if (data.binds().isEmpty()) {
+            g.drawString(font, Component.translatable("ui.fixercity.bind_none"), left + 4, y + 6, 0xFF888888);
+        }
+        for (WorkshopPayload.BindEntry e : data.binds()) {
+            g.drawString(font, e.page().copy().append(" (" + e.books() + ")"), left + 4, y + 2, 0xFFFFFFFF);
+            g.drawString(font, Component.translatable("ui.fixercity.bind_cost", String.format("%,d", e.cost()), e.requiredGrade()),
+                    left + 4, y + 13, e.allowed() ? 0xFFAAAAAA : 0xFF886666);
+            y += ROW_H;
+        }
     }
 
     @Override

@@ -132,10 +132,48 @@ public final class KeyPages {
     public static final KeyPage OLIVIER = new KeyPage("olivier", 1, 22, 37, 0.09F, 7,
             NORMAL, NORMAL, ENDURE, ENDURE, NORMAL, NORMAL, KeyPagePassive.OLIVIER, false);
 
-    public static final List<KeyPage> ALL = List.of(RAT, OFFICE_FIXER, ZWEI, SHI, LIU, SEVEN, THUMB, KUROKUMO,
+    // ---- 접대 손님 (L_Ender's Cataclysm 보스) ----
+    // 손님을 이기면 그 손님의 책을 얻고, 공방에서 빈 책장과 함께 제본하면 이 책장이 된다.
+    // 접대 중인 손님 자신도 이 책장의 내성을 쓴다.
+    public static final KeyPage AMETHYST_CRAB = new KeyPage("amethyst_crab", 9, 2, 18, 0.0F, 3,
+            ENDURE, NORMAL, WEAK, NORMAL, NORMAL, WEAK, KeyPagePassive.AMETHYST_SHELL, false);
+    public static final KeyPage KOBOLEDIATOR = new KeyPage("kobolediator", 8, 4, 22, 0.05F, 2,
+            NORMAL, WEAK, NORMAL, NORMAL, WEAK, NORMAL, KeyPagePassive.ARENA_ROAR, true);
+    public static final KeyPage PROWLER = new KeyPage("prowler", 7, 6, 24, 0.05F, 4,
+            ENDURE, ENDURE, WEAK, NORMAL, NORMAL, WEAK, KeyPagePassive.TRACKING, true);
+    public static final KeyPage CORALSSUS = new KeyPage("coralssus", 7, 8, 26, -0.05F, 4,
+            NORMAL, ENDURE, NORMAL, WEAK, ENDURE, NORMAL, KeyPagePassive.CORAL_ARMOR, false);
+    public static final KeyPage WADJET = new KeyPage("wadjet", 6, 6, 26, 0.10F, 3,
+            ENDURE, NORMAL, WEAK, NORMAL, ENDURE, WEAK, KeyPagePassive.VIPER_GAZE, true);
+    public static final KeyPage ENDER_GOLEM = new KeyPage("ender_golem", 6, 12, 30, -0.05F, 6,
+            NORMAL, ENDURE, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.VOID_FIST, false);
+    public static final KeyPage APTRGANGR = new KeyPage("aptrgangr", 5, 10, 28, 0.0F, 5,
+            WEAK, ENDURE, NORMAL, NORMAL, ENDURE, NORMAL, KeyPagePassive.UNDYING, true);
+    public static final KeyPage NETHERITE_MONSTROSITY = new KeyPage("netherite_monstrosity", 4, 14, 32, -0.05F, 8,
+            ENDURE, ENDURE, NORMAL, NORMAL, ENDURE, WEAK, KeyPagePassive.LAVA_HEART, false);
+    public static final KeyPage ANCIENT_REMNANT = new KeyPage("ancient_remnant", 4, 12, 30, 0.05F, 6,
+            NORMAL, ENDURE, ENDURE, ENDURE, NORMAL, NORMAL, KeyPagePassive.DESERT_KING, true);
+    public static final KeyPage ENDER_GUARDIAN = new KeyPage("ender_guardian", 3, 13, 33, 0.05F, 7,
+            ENDURE, NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.VOID_RUNE, true);
+    public static final KeyPage MALEDICTUS = new KeyPage("maledictus", 3, 12, 33, 0.10F, 6,
+            NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, WEAK, KeyPagePassive.GRUDGE, true);
+    public static final KeyPage LEVIATHAN = new KeyPage("leviathan", 2, 18, 35, 0.05F, 6,
+            ENDURE, NORMAL, ENDURE, NORMAL, ENDURE, NORMAL, KeyPagePassive.ABYSSAL_HUNTER, false);
+    public static final KeyPage SCYLLA = new KeyPage("scylla", 2, 17, 34, 0.09F, 6,
+            NORMAL, ENDURE, ENDURE, ENDURE, NORMAL, NORMAL, KeyPagePassive.STORM_CHAIN, true);
+    public static final KeyPage IGNIS = new KeyPage("ignis", 2, 18, 36, 0.05F, 7,
+            ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, ENDURE, KeyPagePassive.HELLFIRE, true);
+    public static final KeyPage HARBINGER = new KeyPage("harbinger", 1, 21, 38, 0.09F, 8,
+            ENDURE, ENDURE, NORMAL, ENDURE, NORMAL, NORMAL, KeyPagePassive.HERALD_LASER, true);
+
+    /** 접대 손님 책장 (상점·키트에는 없고 제본으로만 얻는다). */
+    public static final List<KeyPage> GUESTS = List.of(AMETHYST_CRAB, KOBOLEDIATOR, PROWLER, CORALSSUS, WADJET, ENDER_GOLEM,
+            APTRGANGR, NETHERITE_MONSTROSITY, ANCIENT_REMNANT, ENDER_GUARDIAN, MALEDICTUS, LEVIATHAN, SCYLLA, IGNIS, HARBINGER);
+
+    public static final List<KeyPage> ALL = concat(List.of(RAT, OFFICE_FIXER, ZWEI, SHI, LIU, SEVEN, THUMB, KUROKUMO,
             YUN, HOOK, STREETLIGHT, MOLAR, FULL_STOP, DAWN, GAZE, WEDGE, WORKSHOP, JEONG,
             W_CORP, WARP, SMILING, INDEX, PHILIP,
-            DONG_HWAN, LOWELL, CECIL, MEI, KALO, BORIS, KATRIEL, DENIS, NEMO, MARTINA, BADA, ESTHER, HUBERT, GLORIA, CHUN, XIAO, MIRIS, RED_MIST, NIKOLAI, MYO, MAXIM, RUDOLPH, PURPLE_TEAR, YAN, ALLEN, IRINA, YAE, BAYARD, HANA_FIXER, MIRINAE, HAROLD, OLIVIER);
+            DONG_HWAN, LOWELL, CECIL, MEI, KALO, BORIS, KATRIEL, DENIS, NEMO, MARTINA, BADA, ESTHER, HUBERT, GLORIA, CHUN, XIAO, MIRIS, RED_MIST, NIKOLAI, MYO, MAXIM, RUDOLPH, PURPLE_TEAR, YAN, ALLEN, IRINA, YAE, BAYARD, HANA_FIXER, MIRINAE, HAROLD, OLIVIER), GUESTS);
 
     private static final Map<String, KeyPage> BY_ID = new LinkedHashMap<>();
 
@@ -148,6 +186,16 @@ public final class KeyPages {
     /** id로 책장을 찾는다. 없거나 빈 문자열이면 null. */
     public static KeyPage byId(String id) {
         return id == null || id.isEmpty() ? null : BY_ID.get(id);
+    }
+
+    public static boolean isGuest(KeyPage page) {
+        return page != null && GUESTS.contains(page);
+    }
+
+    private static List<KeyPage> concat(List<KeyPage> a, List<KeyPage> b) {
+        java.util.ArrayList<KeyPage> out = new java.util.ArrayList<>(a);
+        out.addAll(b);
+        return List.copyOf(out);
     }
 
     private KeyPages() {}

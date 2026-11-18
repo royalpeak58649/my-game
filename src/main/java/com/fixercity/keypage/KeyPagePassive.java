@@ -80,7 +80,23 @@ public enum KeyPagePassive {
     HANA_FIXER("hana_fixer"),
     MIRINAE("mirinae"),
     HAROLD("harold"),
-    OLIVIER("olivier");
+    OLIVIER("olivier"),
+    // ---- 접대 손님 (BossPassives) ----
+    AMETHYST_SHELL("amethyst_shell"),
+    ARENA_ROAR("arena_roar"),
+    TRACKING("tracking"),
+    CORAL_ARMOR("coral_armor"),
+    VIPER_GAZE("viper_gaze"),
+    VOID_FIST("void_fist"),
+    UNDYING("undying"),
+    LAVA_HEART("lava_heart"),
+    DESERT_KING("desert_king"),
+    VOID_RUNE("void_rune"),
+    GRUDGE("grudge"),
+    ABYSSAL_HUNTER("abyssal_hunter"),
+    STORM_CHAIN("storm_chain"),
+    HELLFIRE("hellfire"),
+    HERALD_LASER("herald_laser");
 
     private final String id;
 

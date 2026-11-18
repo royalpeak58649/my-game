@@ -110,7 +110,7 @@ public final class CityEvents {
     private static List<ServerPlayer> fieldPlayers(MinecraftServer server) {
         List<ServerPlayer> list = new ArrayList<>();
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
-            if (p.level().dimension() != ReceptionManager.LIBRARY && !p.isSpectator()) {
+            if (p.level().dimension() != ReceptionManager.STAGE && !p.isSpectator()) {
                 list.add(p);
             }
         }

@@ -107,6 +107,9 @@ public final class FixerEvents {
             default -> {
             }
         }
+        if (com.fixercity.combat.BossPassives.handles(page.passive())) {
+            com.fixercity.combat.BossPassives.tick(player, page.passive());
+        }
         if (com.fixercity.combat.StarPassives.usesEmotion(page.passive())) {
             com.fixercity.combat.StarPassives.tick(player, page);
         }

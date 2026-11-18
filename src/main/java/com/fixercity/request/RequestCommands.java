@@ -142,16 +142,16 @@ public final class RequestCommands {
                             ctx.getSource().sendSuccess(() -> RequestUi.profileLine(target.server, target), true);
                             return 1;
                         }))))
-                .then(Commands.literal("reception").then(Commands.argument("floor", StringArgumentType.word())
+                .then(Commands.literal("reception").then(Commands.argument("guest", StringArgumentType.word())
                         .suggests((ctx, b) -> {
-                            for (com.fixercity.reception.LibraryFloor f : com.fixercity.reception.LibraryFloor.values()) {
-                                b.suggest(f.id());
+                            for (com.fixercity.reception.Guest g : com.fixercity.reception.Guest.values()) {
+                                b.suggest(g.id());
                             }
                             return b.buildFuture();
                         })
                         .executes(ctx -> {
-                            com.fixercity.reception.LibraryFloor f = com.fixercity.reception.LibraryFloor.byId(StringArgumentType.getString(ctx, "floor"));
-                            return f != null && com.fixercity.reception.ReceptionManager.start(ctx.getSource().getPlayerOrException(), f) ? 1 : 0;
+                            com.fixercity.reception.Guest g = com.fixercity.reception.Guest.byId(StringArgumentType.getString(ctx, "guest"));
+                            return g != null && com.fixercity.reception.ReceptionManager.start(ctx.getSource().getPlayerOrException(), g) ? 1 : 0;
                         })))
                 .then(Commands.literal("refresh").executes(ctx -> {
                     RequestManager.forceRefresh(ctx.getSource().getServer());

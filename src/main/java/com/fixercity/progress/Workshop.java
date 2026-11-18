@@ -64,7 +64,69 @@ public final class Workshop {
         } else {
             refine = new WorkshopPayload.RefineInfo(Component.translatable("ui.fixercity.refine_none"), 0, 0, 0, false);
         }
-        PacketDistributor.sendToPlayer(player, new WorkshopPayload(RequestUi.profileLine(player.server, player), augs, refine));
+        List<WorkshopPayload.BindEntry> binds = new ArrayList<>();
+        boolean blank = player.getInventory().countItem(com.fixercity.registry.ModItems.BLANK_KEY_PAGE.get()) > 0;
+        for (com.fixercity.reception.Guest g : com.fixercity.reception.Guest.values()) {
+            int books = player.getInventory().countItem(com.fixercity.registry.ModItems.guestBook(g));
+            if (books <= 0) {
+                continue;
+            }
+            int cost = Math.round(bindCost(g) * price);
+            int req = bindGrade(g);
+            binds.add(new WorkshopPayload.BindEntry(g.id(), Component.translatable(g.page().translationKey()), books, cost, req,
+                    blank && grade <= req && p.ahn >= cost));
+        }
+        PacketDistributor.sendToPlayer(player, new WorkshopPayload(RequestUi.profileLine(player.server, player), augs, refine, binds));
+    }
+
+    /** 제본 비용: 그 등급 의뢰 보수의 2배. */
+    public static int bindCost(com.fixercity.reception.Guest g) {
+        return com.fixercity.request.Grades.baseAhn(g.grade()) * 2;
+    }
+
+    /** 제본에 필요한 등급: 초대장과 같다 (손님 등급보다 한 단계 아래부터). */
+    public static int bindGrade(com.fixercity.reception.Guest g) {
+        return Math.min(9, g.grade() + 1);
+    }
+
+    /** 손님의 책 1권 + 빈 책장 1장 + 안 -> 손님 책장. 결과 문자열은 메시지 키 꼬리. */
+    public static String bind(ServerPlayer player, com.fixercity.reception.Guest g, float price) {
+        net.minecraft.world.entity.player.Inventory inv = player.getInventory();
+        net.minecraft.world.item.Item book = com.fixercity.registry.ModItems.guestBook(g);
+        net.minecraft.world.item.Item blank = com.fixercity.registry.ModItems.BLANK_KEY_PAGE.get();
+        if (inv.countItem(book) <= 0) {
+            return "no_book";
+        }
+        if (inv.countItem(blank) <= 0) {
+            return "no_blank";
+        }
+        if (RequestManager.grade(player.server, player.getUUID()) > bindGrade(g)) {
+            return "grade";
+        }
+        int cost = Math.round(bindCost(g) * price);
+        FixerSavedData.Profile p = RequestManager.data(player.server).profile(player.getUUID());
+        if (p.ahn < cost) {
+            return "money";
+        }
+        RequestManager.addAhn(player.server, player.getUUID(), -cost);
+        take(inv, book);
+        take(inv, blank);
+        ItemStack page = new ItemStack(com.fixercity.registry.ModItems.keyPageItem(g.page()));
+        if (!inv.add(page)) {
+            player.drop(page, false);
+        }
+        return "ok";
+    }
+
+    private static void take(net.minecraft.world.entity.player.Inventory inv, net.minecraft.world.item.Item item) {
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack s = inv.getItem(i);
+            if (s.is(item)) {
+                s.shrink(1);
+                inv.setChanged();
+                return;
+            }
+        }
     }
 
     @SubscribeEvent
@@ -95,6 +157,24 @@ public final class Workshop {
                         p.level().playSound(null, p.blockPosition(), SoundEvents.SMITHING_TABLE_USE, SoundSource.PLAYERS, 1.0F, 0.8F);
                     } else {
                         p.sendSystemMessage(Component.translatable("message.fixercity.workshop_" + result).withStyle(ChatFormatting.RED));
+                    }
+                    return 1;
+                })))
+                .then(Commands.literal("bind").then(Commands.argument("guest", StringArgumentType.word()).executes(ctx -> {
+                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                    com.fixercity.reception.Guest g = com.fixercity.reception.Guest.byId(StringArgumentType.getString(ctx, "guest"));
+                    if (g == null || !near(p)) {
+                        p.sendSystemMessage(Component.translatable("message.fixercity.need_workshop").withStyle(ChatFormatting.RED));
+                        return 0;
+                    }
+                    String result = bind(p, g, com.fixercity.event.CityEvents.priceMultiplier(p.server));
+                    if (result.equals("ok")) {
+                        p.sendSystemMessage(Component.translatable("message.fixercity.page_bound",
+                                Component.translatable(g.page().translationKey()).withStyle(ChatFormatting.GOLD)).withStyle(ChatFormatting.GREEN));
+                        p.level().playSound(null, p.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 1.0F, 0.6F);
+                        p.level().playSound(null, p.blockPosition(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 1.0F, 1.0F);
+                    } else {
+                        p.sendSystemMessage(Component.translatable("message.fixercity.bind_" + result).withStyle(ChatFormatting.RED));
                     }
                     return 1;
                 })))

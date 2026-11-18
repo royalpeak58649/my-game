@@ -19,8 +19,11 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.REQUEST_BOARD.get());
                         output.accept(ModItems.WORKSHOP.get());
                         output.accept(ModItems.CITY_PASS.get());
-                        for (com.fixercity.reception.LibraryFloor floor : com.fixercity.reception.LibraryFloor.values()) {
-                            output.accept(ModItems.invitation(floor));
+                        for (com.fixercity.reception.Guest guest : com.fixercity.reception.Guest.values()) {
+                            output.accept(ModItems.invitation(guest));
+                        }
+                        for (com.fixercity.reception.Guest guest : com.fixercity.reception.Guest.values()) {
+                            output.accept(ModItems.guestBook(guest));
                         }
                         output.accept(ModItems.BRIEFCASE.get());
                         output.accept(ModItems.FIXER_LONGSWORD.get());

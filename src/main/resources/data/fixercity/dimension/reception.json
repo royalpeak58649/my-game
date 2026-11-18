@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:overworld",
+  "type": "fixercity:reception",
   "generator": {
     "type": "minecraft:flat",
     "settings": {

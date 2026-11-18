@@ -41,14 +41,30 @@ public final class ModItems {
     public static final Tier FIXER_STEEL = new SimpleTier(
             BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 2.0F, 14, () -> Ingredient.of(Items.IRON_INGOT));
 
-    /** 도서관 초대장 (층은 데이터 컴포넌트). */
+    /** 도서관 초대장 (손님은 데이터 컴포넌트). */
     public static final DeferredItem<com.fixercity.item.InvitationItem> INVITATION = REGISTER.register("invitation",
             () -> new com.fixercity.item.InvitationItem(new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)));
 
-    public static net.minecraft.world.item.ItemStack invitation(com.fixercity.reception.LibraryFloor floor) {
+    public static net.minecraft.world.item.ItemStack invitation(com.fixercity.reception.Guest guest) {
         net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(INVITATION.get());
-        stack.set(com.fixercity.registry.ModDataComponents.FLOOR.get(), floor.id());
+        stack.set(com.fixercity.registry.ModDataComponents.FLOOR.get(), guest.id());
         return stack;
+    }
+
+    /** 손님의 책: 접대에서 이기면 받는다. 공방에서 빈 책장과 함께 제본하면 그 손님의 책장이 된다. */
+    public static final Map<com.fixercity.reception.Guest, DeferredItem<com.fixercity.item.GuestBookItem>> GUEST_BOOKS =
+            new java.util.EnumMap<>(com.fixercity.reception.Guest.class);
+
+    static {
+        for (com.fixercity.reception.Guest guest : com.fixercity.reception.Guest.values()) {
+            Rarity rarity = guest.grade() >= 7 ? Rarity.UNCOMMON : guest.grade() >= 4 ? Rarity.RARE : Rarity.EPIC;
+            GUEST_BOOKS.put(guest, REGISTER.register("guest_book_" + guest.id(),
+                    () -> new com.fixercity.item.GuestBookItem(guest, new Item.Properties().stacksTo(16).rarity(rarity))));
+        }
+    }
+
+    public static Item guestBook(com.fixercity.reception.Guest guest) {
+        return GUEST_BOOKS.get(guest).get();
     }
 
     /** 회수 의뢰의 의뢰품. */

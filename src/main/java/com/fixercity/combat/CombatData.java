@@ -132,4 +132,9 @@ public class CombatData {
     public long recentDamageAt = Long.MIN_VALUE / 2;
     public long resuscitateReadyAt;
     public boolean repairUsed;
+
+    // ---- 접대 손님 책장 (BossPassives) ----
+    public int guestCounter;
+    public java.util.UUID guestTarget;
+    public long guestReadyAt;
 }

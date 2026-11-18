@@ -213,7 +213,9 @@ public final class CombatHandler {
                     }
                     default -> {
                         // 도시의 별 · 하나 협회 인물 책장
-                        float[] r = StarPassives.onAttack(level, player, target, kind, page.passive());
+                        float[] r = BossPassives.handles(page.passive())
+                                ? BossPassives.onAttack(level, player, target, kind, page.passive())
+                                : StarPassives.onAttack(level, player, target, kind, page.passive());
                         amount = amount * r[0] + r[2];
                         staggerBonus *= r[1];
                         extraStagger += r[3];
@@ -272,6 +274,7 @@ public final class CombatHandler {
 
         CombatData data = dataFor(target);
         amount *= StarPassives.defendMultiplier(level, target, attacker, kind);
+        amount *= BossPassives.defendMultiplier(target, source, kind);
 
         // 츠바이 수호 태세: 물리 피해 감소 + 근접 공격자 반격 (넉백, 흐트러짐 피해)
         if (kind != null && data.isGuarding(now)) {

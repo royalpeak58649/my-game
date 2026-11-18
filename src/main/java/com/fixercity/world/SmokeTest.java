@@ -75,7 +75,7 @@ public final class SmokeTest {
             }
         }
         for (com.fixercity.keypage.KeyPage page : com.fixercity.keypage.KeyPages.ALL) {
-            if (com.fixercity.kit.FixerKit.forPage(page.id()) == null && page.grade() <= 2) {
+            if (com.fixercity.kit.FixerKit.forPage(page.id()) == null && page.grade() <= 2 && !com.fixercity.keypage.KeyPages.isGuest(page)) {
                 LOGGER.error("fixercity smoke: no kit for key page {}", page.id());
             }
         }

@@ -128,9 +128,12 @@ public final class Shop {
         add("thumb_rifle", "weapons", () -> new ItemStack(ModItems.THUMB_RIFLE.get()), 4500, 3);
         add("kurokumo_blade", "weapons", () -> new ItemStack(ModItems.KUROKUMO_BLADE.get()), 1500, 5);
 
-        for (com.fixercity.reception.LibraryFloor floor : com.fixercity.reception.LibraryFloor.values()) {
-            add("invitation_" + floor.id(), "invitations", () -> ModItems.invitation(floor),
-                    Grades.baseAhn(floor.grade()) * 2, Math.min(9, floor.grade() + 1));
+        // 초대장: 손님(보스 모드)이 있을 때만 판다
+        if (com.fixercity.reception.Guest.bossModLoaded()) {
+            for (com.fixercity.reception.Guest guest : com.fixercity.reception.Guest.values()) {
+                add("invitation_" + guest.id(), "invitations", () -> ModItems.invitation(guest),
+                        Grades.baseAhn(guest.grade()) * 2, Math.min(9, guest.grade() + 1));
+            }
         }
         add("lucky_coin", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.LUCKY_COIN)), 150, 9);
         add("office_badge", "accessories", () -> new ItemStack(ModItems.accessoryItem(Accessory.OFFICE_BADGE)), 300, 8);
